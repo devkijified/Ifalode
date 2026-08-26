@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-primary: #8B5E3C;
+  --brand-secondary: #D4A574;
+  --brand-accent: #C41E3A;
+  --brand-font: Inter, sans-serif;
+}
+
+body {
+  font-family: var(--brand-font);
+}
+
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
