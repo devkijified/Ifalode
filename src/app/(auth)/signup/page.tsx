@@ -31,17 +31,23 @@ export default function SignupPage() {
 
     if (error) {
       setError(error.message)
-    } else {
-      // Create profile
-      if (data.user) {
-        await supabase.from('profiles').insert({
+    } else if (data.user) {
+      // Create profile using the user's ID
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
           id: data.user.id,
           email: email,
           full_name: fullName,
           role: 'user',
         })
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError)
+        setError('Account created but profile setup failed. Please contact support.')
+      } else {
+        router.push('/login?verified=true')
       }
-      router.push('/login?verified=true')
     }
     setLoading(false)
   }
