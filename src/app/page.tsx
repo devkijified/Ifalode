@@ -93,10 +93,10 @@ export default function HomePage() {
     null
 
   // TODO: Replace these with your details
-  const YOUR_NAME = 'Your Name'
-  const YOUR_ROLE = 'writer, builder, and teacher'
-  const YOUR_TOPICS = 'design, systems, and learning'
-  const YOUR_LOCATION = 'your location'
+  const PRIEST_NAME = 'Babalawo [Your Name]'
+  const PRIEST_TITLE = 'Ifá Priest'
+  const TRADITION = 'Yoruba / Ifá tradition'
+  const LOCATION = 'your location'
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 overflow-hidden">
@@ -118,7 +118,7 @@ export default function HomePage() {
                 href="/"
                 className="shrink-0 text-xl sm:text-2xl font-black tracking-tight bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent"
               >
-                {brand?.display_name || YOUR_NAME}
+                {brand?.display_name || PRIEST_NAME}
               </Link>
 
 
@@ -129,12 +129,12 @@ export default function HomePage() {
                   Home
                 </NavLink>
 
-                <NavLink href="/writing">
-                  Writing
+                <NavLink href="/teachings">
+                  Teachings
                 </NavLink>
 
-                <NavLink href="/projects">
-                  Projects
+                <NavLink href="/services">
+                  Services
                 </NavLink>
 
                 <NavLink href="/about">
@@ -152,11 +152,11 @@ export default function HomePage() {
               <div className="flex items-center gap-2 sm:gap-3">
 
                 <Link
-                  href="/products"
+                  href="/resources"
                   className="hidden sm:flex items-center justify-center w-10 h-10 rounded-xl border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 transition"
-                  title="Products"
+                  title="Resources"
                 >
-                  🧰
+                  📿
                 </Link>
 
 
@@ -242,9 +242,9 @@ export default function HomePage() {
                           />
 
                           <AccountLink
-                            href="/products"
-                            icon="📘"
-                            label="Products"
+                            href="/readings"
+                            icon="📿"
+                            label="My Readings"
                           />
 
                           <AccountLink
@@ -319,7 +319,7 @@ export default function HomePage() {
                 <span className="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse" />
 
                 <span className="text-xs font-semibold text-brand-primary">
-                  Writing • Projects • Ideas
+                  Ifá • Wisdom • Guidance
                 </span>
 
               </div>
@@ -327,26 +327,26 @@ export default function HomePage() {
 
               <h1 className="text-5xl sm:text-6xl lg:text-[70px] leading-[.98] font-black tracking-[-0.045em]">
 
-                I'm {YOUR_NAME}.
+                I am {PRIEST_NAME}.
 
                 <br />
 
                 <span className="text-brand-primary">
-                  {YOUR_ROLE}.
+                  {PRIEST_TITLE}.
                 </span>
 
                 <br />
 
-                Focused on {YOUR_TOPICS}.
+                Keeper of the {TRADITION}.
 
               </h1>
 
 
               <p className="mt-7 max-w-xl text-base sm:text-lg leading-8 text-slate-400">
 
-                This is my corner of the internet: writing, projects, and a few
-                things I've made. If you're into {YOUR_TOPICS}, you're in the
-                right place.
+                This is my space for sharing teachings, offerings, and guidance
+                from the Ifá tradition. Here you will find wisdom, rituals, and
+                ways to walk a more aligned path.
 
               </p>
 
@@ -354,18 +354,18 @@ export default function HomePage() {
               <div className="flex flex-wrap items-center gap-3 mt-9">
 
                 <Link
-                  href="/writing"
+                  href="/teachings"
                   className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-brand-primary text-white font-semibold text-sm hover:opacity-90 transition shadow-xl shadow-brand-primary/10"
                 >
-                  Read my writing
+                  Explore teachings
                   <span>→</span>
                 </Link>
 
                 <Link
-                  href="/projects"
+                  href="/services"
                   className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border border-slate-800 bg-slate-900 text-white font-semibold text-sm hover:bg-slate-800 transition"
                 >
-                  See my projects
+                  View services
                   <span>↗</span>
                 </Link>
 
@@ -376,18 +376,18 @@ export default function HomePage() {
               <div className="flex flex-wrap items-center gap-7 mt-11 pt-7 border-t border-slate-800/70">
 
                 <MiniStat
-                  value="Writing"
-                  label="Essays and notes"
+                  value="Teachings"
+                  label="Wisdom & insights"
                 />
 
                 <MiniStat
-                  value="Projects"
-                  label="Things I've built"
+                  value="Services"
+                  label="Readings & rituals"
                 />
 
                 <MiniStat
-                  value="Products"
-                  label="Courses & resources"
+                  value="Resources"
+                  label="Prayers & guides"
                 />
 
               </div>
@@ -427,7 +427,7 @@ export default function HomePage() {
                     </div>
 
                     <span className="text-[9px] uppercase tracking-[.2em] text-slate-600">
-                      {brand?.display_name?.toUpperCase() || 'ME'}
+                      {brand?.display_name?.toUpperCase() || 'IFÁ'}
                     </span>
 
                   </div>
@@ -436,38 +436,38 @@ export default function HomePage() {
                   <div className="p-6 sm:p-8">
 
                     <p className="text-[10px] uppercase tracking-[.18em] text-brand-primary font-bold">
-                      My working space
+                      Sacred knowledge
                     </p>
 
                     <h3 className="mt-3 text-2xl sm:text-3xl font-bold">
-                      Ideas I'm thinking about.
+                      Wisdom that guides your path.
                     </h3>
 
 
                     <div className="grid grid-cols-2 gap-3 mt-8">
 
                       <VisualCard
-                        emoji="✍️"
-                        title="Write"
-                        text="Essays"
+                        emoji="📿"
+                        title="Consult"
+                        text="Readings"
                       />
 
                       <VisualCard
-                        emoji="🛠️"
-                        title="Build"
-                        text="Projects"
+                        emoji="🕯️"
+                        title="Ritual"
+                        text="Ceremonies"
+                      />
+
+                      <VisualCard
+                        emoji="📖"
+                        title="Learn"
+                        text="Teachings"
                       />
 
                       <VisualCard
                         emoji="✦"
-                        title="Explore"
-                        text="Notes"
-                      />
-
-                      <VisualCard
-                        emoji="🚀"
-                        title="Share"
-                        text="Products"
+                        title="Align"
+                        text="Your journey"
                       />
 
                     </div>
@@ -478,11 +478,11 @@ export default function HomePage() {
                       <div className="flex items-center justify-between mb-3">
 
                         <span className="text-xs text-slate-400">
-                          Current focus
+                          Spiritual focus
                         </span>
 
                         <span className="text-xs font-bold text-brand-primary">
-                          {YOUR_TOPICS}
+                          {TRADITION}
                         </span>
 
                       </div>
@@ -511,10 +511,10 @@ export default function HomePage() {
 
                     <div>
                       <p className="text-xs text-slate-500">
-                        Based in
+                        Serving from
                       </p>
                       <p className="text-sm font-bold">
-                        {YOUR_LOCATION}
+                        {LOCATION}
                       </p>
                     </div>
 
@@ -534,7 +534,7 @@ export default function HomePage() {
 
 
       {/* =====================================================
-          WHAT I DO
+          WHAT I OFFER
       ===================================================== */}
 
       <section className="py-20 sm:py-28 border-t border-slate-900">
@@ -546,23 +546,23 @@ export default function HomePage() {
             <div>
 
               <p className="text-xs uppercase tracking-[.2em] text-brand-primary font-bold mb-4">
-                What I do
+                What I offer
               </p>
 
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
-                Work that overlaps
+                Guidance rooted in
                 <br />
                 <span className="text-slate-500">
-                  writing, building, and teaching.
+                  the Ifá tradition.
                 </span>
               </h2>
 
             </div>
 
             <p className="max-w-2xl text-slate-500 leading-7">
-              I spend my time writing about {YOUR_TOPICS}, building projects
-              and tools, and occasionally turning what I learn into courses and
-              resources. Everything here is an extension of that.
+              As a priest of Ifá, I offer consultations, rituals, and teachings
+              grounded in the wisdom of the Odu. Everything here is intended to
+              support clarity, alignment, and spiritual growth.
             </p>
 
           </div>
@@ -572,30 +572,30 @@ export default function HomePage() {
 
             <FeatureCard
               number="01"
-              emoji="✍️"
-              title="Write"
-              text="Essays, notes, and longer pieces about design, systems, and learning."
+              emoji="📿"
+              title="Consultations"
+              text="Ifá divination and guidance to help you understand your path and choices."
             />
 
             <FeatureCard
               number="02"
-              emoji="🛠️"
-              title="Build"
-              text="Projects and experiments that explore ideas in a concrete way."
+              emoji="🕯️"
+              title="Rituals"
+              text="Ceremonies and offerings designed to restore balance and open the way."
             />
 
             <FeatureCard
               number="03"
-              emoji="✦"
-              title="Explore"
-              text="Curated resources, references, and things I'm learning from."
+              emoji="📖"
+              title="Teachings"
+              text="Lessons on the Odu, ethics, and living in harmony with your destiny."
             />
 
             <FeatureCard
               number="04"
-              emoji="🚀"
-              title="Teach"
-              text="Courses and products that package what I've learned so far."
+              emoji="✦"
+              title="Resources"
+              text="Prayers, guides, and references to support your spiritual practice."
             />
 
           </div>
@@ -606,7 +606,7 @@ export default function HomePage() {
 
 
       {/* =====================================================
-          LATEST WRITING
+          RECENT TEACHINGS
       ===================================================== */}
 
       <section className="py-20 sm:py-28 bg-slate-900/35 border-y border-slate-900">
@@ -614,38 +614,38 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
           <SectionHeading
-            eyebrow="Writing"
-            title="Recent essays and notes."
-            description="A selection of recent pieces on design, systems, and learning."
-            action="View all writing"
-            href="/writing"
+            eyebrow="Teachings"
+            title="Recent insights and lessons."
+            description="Selections from ongoing teachings on the Odu, ethics, and spiritual living."
+            action="View all teachings"
+            href="/teachings"
           />
 
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 mt-10">
 
-            <WritingCard
-              category="ESSAY"
-              title="On building durable systems"
-              description="What makes a system last, and how to design for change without losing clarity."
+            <TeachingCard
+              category="LESSON"
+              title="On understanding your Ori"
+              description="Exploring the role of the inner head in destiny, choices, and spiritual alignment."
               date="Aug 2026"
-              href="/writing"
+              href="/teachings"
             />
 
-            <WritingCard
-              category="NOTE"
-              title="Learning as a design problem"
-              description="Treating your own learning like a product: constraints, feedback loops, and iteration."
+            <TeachingCard
+              category="INSIGHT"
+              title="Living with Ire"
+              description="What it means to walk in goodness, and how to cultivate ire in daily life."
               date="Jul 2026"
-              href="/writing"
+              href="/teachings"
             />
 
-            <WritingCard
-              category="ESSAY"
-              title="Small sites, serious thinking"
-              description="Why personal websites are the best place for deep, unoptimized thought."
+            <TeachingCard
+              category="LESSON"
+              title="The language of the Odu"
+              description="How the Odu speak through signs, stories, and patterns in your life."
               date="Jun 2026"
-              href="/writing"
+              href="/teachings"
             />
 
           </div>
@@ -656,7 +656,7 @@ export default function HomePage() {
 
 
       {/* =====================================================
-          PRODUCTS / COURSES
+          SERVICES / READINGS
       ===================================================== */}
 
       <section className="py-20 sm:py-28">
@@ -672,34 +672,35 @@ export default function HomePage() {
               <div className="p-7 sm:p-10 lg:p-14">
 
                 <p className="text-xs uppercase tracking-[.2em] text-brand-primary font-bold">
-                  Products
+                  Services
                 </p>
 
                 <h2 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
-                  Things I've made
+                  Readings and rituals
                   <br />
                   <span className="text-slate-500">
-                    and stand behind.
+                    for clarity and alignment.
                   </span>
                 </h2>
 
                 <p className="mt-5 max-w-lg text-slate-500 leading-7">
-                  A small set of courses, templates, and resources. I only
-                  publish what I actually use and believe in.
+                  If you are seeking guidance, healing, or direction, I offer
+                  Ifá consultations and ritual work tailored to your situation
+                  and questions.
                 </p>
 
                 <Link
-                  href="/products"
+                  href="/services"
                   className="inline-flex items-center gap-2 mt-8 px-5 py-3 rounded-xl bg-brand-primary text-white text-sm font-semibold hover:opacity-90 transition"
                 >
-                  Browse products
+                  View services
                   <span>→</span>
                 </Link>
 
               </div>
 
 
-              {/* Product visual */}
+              {/* Service visual */}
               <div className="p-8 lg:p-12">
 
                 <div className="relative mx-auto max-w-[300px] aspect-[.78] rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary p-7 shadow-2xl shadow-brand-primary/10 rotate-[-4deg]">
@@ -711,21 +712,21 @@ export default function HomePage() {
                     <div>
 
                       <p className="text-[9px] uppercase tracking-[.25em] text-white/60">
-                        {brand?.display_name?.toUpperCase() || 'ME'}
+                        {brand?.display_name?.toUpperCase() || 'IFÁ'}
                       </p>
 
                       <div className="mt-12">
 
                         <p className="text-3xl font-black text-white leading-none">
-                          IDEAS
+                          CLARITY
                         </p>
 
                         <p className="text-3xl font-black text-white leading-none">
-                          INTO
+                          THROUGH
                         </p>
 
                         <p className="text-3xl font-black text-white leading-none">
-                          PRACTICE.
+                          THE ODU.
                         </p>
 
                       </div>
@@ -733,7 +734,7 @@ export default function HomePage() {
                     </div>
 
                     <p className="text-xs text-white/60">
-                      Courses & resources
+                      Consultations & rituals
                     </p>
 
                   </div>
@@ -752,7 +753,7 @@ export default function HomePage() {
 
 
       {/* =====================================================
-          ABOUT / PERSONAL
+          ABOUT PRIEST
       ===================================================== */}
 
       <section className="py-20 sm:py-28 bg-slate-900/35 border-y border-slate-900">
@@ -767,21 +768,21 @@ export default function HomePage() {
 
                 <div className="h-full rounded-2xl border border-slate-800 bg-slate-900 flex flex-col items-center justify-center text-center p-8">
 
-                  {/* Replace with your image or illustration if you like */}
+                  {/* Replace with your image or symbol if you like */}
                   <div className="w-24 h-24 rounded-full bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center text-3xl font-black mb-6">
-                    {YOUR_NAME.charAt(0)}
+                    {PRIEST_NAME.split(' ')[1]?.charAt(0) || 'I'}
                   </div>
 
                   <p className="text-xs uppercase tracking-[.2em] text-brand-primary font-bold">
-                    {brand?.display_name || YOUR_NAME}
+                    {brand?.display_name || PRIEST_NAME}
                   </p>
 
                   <h3 className="text-2xl font-bold mt-3">
-                    {YOUR_ROLE.split(',')[0]}.
+                    {PRIEST_TITLE}.
                     <br />
-                    {YOUR_LOCATION}.
+                    {LOCATION}.
                     <br />
-                    Focused on {YOUR_TOPICS}.
+                    {TRADITION}.
                   </h3>
 
                 </div>
@@ -794,22 +795,22 @@ export default function HomePage() {
             <div>
 
               <p className="text-xs uppercase tracking-[.2em] text-brand-primary font-bold mb-4">
-                About me
+                About the priest
               </p>
 
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
-                A website with
+                A spiritual home
                 <br />
                 <span className="text-slate-500">
-                  a specific human behind it.
+                  grounded in Ifá.
                 </span>
               </h2>
 
               <p className="mt-6 text-slate-500 leading-8 max-w-xl">
-                I'm {YOUR_NAME}, {YOUR_ROLE} based in {YOUR_LOCATION}. I work on
-                {YOUR_TOPICS}, write about what I learn, and occasionally turn
-                that into courses and resources. This site is where I share that
-                work and thinking.
+                I am {PRIEST_NAME}, a priest of Ifá serving from {LOCATION}. My
+                work is dedicated to helping people understand their destiny,
+                make aligned choices, and live in harmony with the wisdom of the
+                Odu. This site is an extension of that service.
               </p>
 
               <div className="grid sm:grid-cols-2 gap-3 mt-8">
@@ -821,15 +822,15 @@ export default function HomePage() {
                 />
 
                 <SimpleLink
-                  emoji="✍️"
-                  title="All writing"
-                  href="/writing"
+                  emoji="📖"
+                  title="All teachings"
+                  href="/teachings"
                 />
 
                 <SimpleLink
-                  emoji="🛠️"
-                  title="Projects"
-                  href="/projects"
+                  emoji="📿"
+                  title="Services"
+                  href="/services"
                 />
 
                 <SimpleLink
@@ -870,30 +871,30 @@ export default function HomePage() {
               </h2>
 
               <p className="mt-3 text-slate-500">
-                Pick up where you left off or explore something new.
+                Continue your spiritual journey or explore new teachings.
               </p>
 
               <div className="grid sm:grid-cols-3 gap-3 mt-8">
 
                 <MemberAction
-                  emoji="✍️"
-                  title="Latest Writing"
-                  text="Read recent essays"
-                  href="/writing"
+                  emoji="📖"
+                  title="Latest Teachings"
+                  text="Read recent lessons"
+                  href="/teachings"
                 />
 
                 <MemberAction
-                  emoji="🛠️"
-                  title="Projects"
-                  text="See what I'm building"
-                  href="/projects"
+                  emoji="📿"
+                  title="My Readings"
+                  text="View your consultations"
+                  href="/readings"
                 />
 
                 <MemberAction
-                  emoji="🧰"
-                  title="Products"
-                  text="Browse courses & resources"
-                  href="/products"
+                  emoji="🕯️"
+                  title="Services"
+                  text="Book a reading or ritual"
+                  href="/services"
                 />
 
               </div>
@@ -911,18 +912,18 @@ export default function HomePage() {
                 <div>
 
                   <p className="text-xs uppercase tracking-[.2em] text-white/60 font-bold">
-                    Stay in the loop
+                    Stay connected
                   </p>
 
                   <h2 className="mt-3 text-3xl sm:text-4xl font-bold text-white">
-                    New writing and projects
+                    New teachings and insights
                     <br className="hidden sm:block" />
-                    every few weeks.
+                    shared regularly.
                   </h2>
 
                   <p className="mt-4 text-white/65 max-w-xl leading-7">
-                    Create a free account to get updates when I publish new
-                    essays, projects, or resources.
+                    Create a free account to receive updates when new teachings,
+                    resources, or service offerings are published.
                   </p>
 
                 </div>
@@ -962,12 +963,12 @@ export default function HomePage() {
                 href="/"
                 className="text-2xl font-black tracking-tight bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent"
               >
-                {brand?.display_name || YOUR_NAME}
+                {brand?.display_name || PRIEST_NAME}
               </Link>
 
               <p className="mt-4 max-w-sm text-sm leading-6 text-slate-600">
-                A personal site for writing, projects, and products around{' '}
-                {YOUR_TOPICS}.
+                A spiritual home for Ifá teachings, consultations, and resources
+                rooted in the {TRADITION}.
               </p>
 
             </div>
@@ -976,9 +977,9 @@ export default function HomePage() {
             <FooterColumn
               title="Explore"
               links={[
-                ['Writing', '/writing'],
-                ['Projects', '/projects'],
-                ['Products', '/products'],
+                ['Teachings', '/teachings'],
+                ['Services', '/services'],
+                ['Resources', '/resources'],
                 ['About', '/about'],
               ]}
             />
@@ -988,9 +989,9 @@ export default function HomePage() {
               title="Account"
               links={[
                 ['Dashboard', '/dashboard'],
+                ['Readings', '/readings'],
                 ['Profile', '/profile'],
                 ['Settings', '/settings'],
-                ['Contact', '/contact'],
               ]}
             />
 
@@ -1000,7 +1001,7 @@ export default function HomePage() {
           <div className="mt-12 pt-6 border-t border-slate-900 flex flex-col sm:flex-row justify-between gap-3">
 
             <p className="text-xs text-slate-700">
-              © {new Date().getFullYear()} {brand?.display_name || YOUR_NAME}.
+              © {new Date().getFullYear()} {brand?.display_name || PRIEST_NAME}.
               All rights reserved.
             </p>
 
@@ -1225,7 +1226,7 @@ function SectionHeading({
 }
 
 
-function WritingCard({
+function TeachingCard({
   category,
   title,
   description,
