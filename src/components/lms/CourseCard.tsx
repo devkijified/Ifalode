@@ -10,22 +10,19 @@ interface CourseCardProps {
 export const CourseCard = ({ course }: CourseCardProps) => {
   return (
     <Link href={`/courses/${course.id}`}>
-      <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden">
-        <div className="aspect-video bg-gray-100 flex items-center justify-center">
-          {course.cover_image ? (
-            <img src={course.cover_image} alt={course.title} className="w-full h-full object-cover" />
-          ) : (
-            <span className="text-4xl text-gray-400">🎓</span>
-          )}
-        </div>
+      <div className="bg-slate-900 rounded-2xl border border-slate-800 hover:border-brand-primary/40 transition-all hover:translate-y-[-4px] hover:shadow-xl hover:shadow-brand-primary/5 overflow-hidden">
+        {/* ... rest of component */}
         <div className="p-4">
-          <h3 className="font-semibold text-lg mb-1">{course.title}</h3>
-          <p className="text-gray-600 text-sm line-clamp-2 mb-2">{course.description}</p>
+          <h3 className="font-semibold text-white text-lg mb-1 line-clamp-1">{course.title}</h3>
+          <p className="text-slate-400 text-sm line-clamp-2 mb-3">{course.description}</p>
           <div className="flex justify-between items-center">
+            {/* ✅ Uses brand-primary for price */}
             <span className="text-xl font-bold text-brand-primary">
               {course.price ? `$${course.price}` : 'Free'}
             </span>
-            <span className="text-sm text-gray-500 capitalize">{course.level}</span>
+            <span className="text-xs text-slate-500 bg-slate-800 px-2 py-1 rounded-full capitalize">
+              {course.level}
+            </span>
           </div>
         </div>
       </div>
