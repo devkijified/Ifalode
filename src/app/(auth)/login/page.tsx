@@ -27,16 +27,37 @@ export default function LoginPage() {
 
     if (error) {
       setError(error.message)
+      setLoading(false)
+      return
+    }
+
+    // Get user role after login
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+      // Redirect based on role
+      if (profile?.role === 'admin') {
+        router.push('/admin')
+      } else {
+        router.push('/dashboard') // Create this page for regular users
+      }
     } else {
       router.push('/')
-      router.refresh()
     }
+    
+    router.refresh()
     setLoading(false)
   }
 
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-slate-950 text-slate-100 selection:bg-brand-primary selection:text-white">
-      {/* Left Visual Side (Branding & Atmosphere) */}
+      {/* Left Visual Side */}
       <div className="hidden lg:flex flex-col justify-between p-12 relative overflow-hidden bg-slate-900 border-r border-slate-800/80">
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-brand-primary/15 blur-[120px] pointer-events-none rounded-full" />
         <div className="absolute bottom-10 right-10 w-[300px] h-[300px] bg-brand-secondary/10 blur-[100px] pointer-events-none rounded-full" />
@@ -68,7 +89,6 @@ export default function LoginPage() {
       {/* Right Form Side */}
       <div className="flex items-center justify-center p-8 sm:p-12 lg:p-16">
         <div className="w-full max-w-md space-y-8">
-          {/* Mobile Logo View */}
           <div className="lg:hidden text-center mb-4">
             <Link href="/" className="text-2xl font-black tracking-wider bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
               {brand?.display_name || 'Ifalode'}
@@ -116,7 +136,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Forgot Password Link */}
             <div className="flex items-center justify-end">
               <Link 
                 href="/forgot-password"
