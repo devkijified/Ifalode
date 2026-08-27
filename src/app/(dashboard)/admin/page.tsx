@@ -19,13 +19,20 @@ export default function AdminDashboard() {
         return
       }
 
-      const { data: profile } = await supabase
+      const { data: profile, error } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', user.id)
         .single()
 
-      if (profile?.role !== 'admin') {
+      if (error) {
+        console.error('Error fetching profile:', error)
+        router.push('/')
+        return
+      }
+
+      // Check if user is admin - use type assertion to handle the type
+      if (profile && (profile as any).role !== 'admin') {
         router.push('/')
         return
       }
