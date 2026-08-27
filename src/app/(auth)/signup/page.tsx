@@ -24,6 +24,20 @@ export default function SignupPage() {
     setSuccess(false)
 
     try {
+      // Check if user already exists first
+      const { data: existingUser, error: checkError } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('email', email)
+        .maybeSingle()
+
+      if (existingUser) {
+        setError('An account with this email already exists. Please sign in instead.')
+        setLoading(false)
+        return
+      }
+
+      // Try to sign up
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -35,24 +49,26 @@ export default function SignupPage() {
       })
 
       if (error) {
-        setError(error.message)
+        // Handle specific error codes
+        if (error.message.includes('User already registered')) {
+          setError('An account with this email already exists. Please sign in instead.')
+        } else {
+          setError(error.message)
+        }
         setLoading(false)
         return
       }
 
       if (data.user) {
-        // Wait a moment for the trigger to work
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
-        // Check if profile was created
-        const { data: profile, error: checkError } = await supabase
+        // Check if user was already created but profile missing
+        const { data: profile, error: profileCheck } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', data.user.id)
-          .single()
+          .maybeSingle()
 
-        if (checkError || !profile) {
-          // Try to create profile manually if trigger didn't work
+        if (!profile) {
+          // Profile doesn't exist - create it
           const { error: insertError } = await supabase
             .from('profiles')
             .insert({
@@ -64,15 +80,15 @@ export default function SignupPage() {
 
           if (insertError) {
             console.error('Profile creation error:', insertError)
-            setError('Account created but profile setup had issues. Please try logging in.')
-          } else {
-            setSuccess(true)
-            setTimeout(() => router.push('/login?verified=true'), 1500)
+            // If profile creation fails but user exists, they can still login
+            setError('Account exists but profile setup had issues. Please try logging in.')
+            setLoading(false)
+            return
           }
-        } else {
-          setSuccess(true)
-          setTimeout(() => router.push('/login?verified=true'), 1500)
         }
+
+        setSuccess(true)
+        setTimeout(() => router.push('/login?verified=true'), 1500)
       }
     } catch (err) {
       console.error('Signup error:', err)
@@ -185,8 +201,19 @@ export default function SignupPage() {
               </div>
 
               {error && (
-                <div className="p-3 rounded-lg bg-red-950/50 border border-red-800/60 text-red-400 text-sm text-center">
+                <div className={`p-3 rounded-lg text-sm text-center ${
+                  error.includes('already exists') 
+                    ? 'bg-yellow-500/10 border border-yellow-500/20 text-yellow-400'
+                    : 'bg-red-950/50 border border-red-800/60 text-red-400'
+                }`}>
                   {error}
+                  {error.includes('already exists') && (
+                    <div className="mt-2">
+                      <Link href="/login" className="text-brand-primary hover:text-brand-secondary transition font-semibold">
+                        Sign in here →
+                      </Link>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -197,6 +224,10 @@ export default function SignupPage() {
               >
                 {loading ? 'Creating account...' : 'Create Account'}
               </button>
+
+              <div className="text-center text-xs text-slate-500">
+                By creating an account, you agree to our Terms of Service and Privacy Policy.
+              </div>
             </form>
           )}
         </div>
