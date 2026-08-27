@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-// Define the BrandSettings interface locally
 interface BrandSettings {
   id: string
   brand_name: string
@@ -44,14 +43,8 @@ export const useBrand = () => {
   }, [])
 
   const updateBrand = async (updates: Partial<BrandSettings>) => {
-    // Convert to a plain object that Supabase accepts
-    const updateData: Record<string, any> = {}
-    Object.keys(updates).forEach(key => {
-      const typedKey = key as keyof BrandSettings
-      if (updates[typedKey] !== undefined) {
-        updateData[key] = updates[typedKey]
-      }
-    })
+    // Use a simple object with type assertion
+    const updateData = { ...updates } as any
 
     const { data, error } = await supabase
       .from('brand_settings')
