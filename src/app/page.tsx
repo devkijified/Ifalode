@@ -93,10 +93,10 @@ export default function HomePage() {
     null
 
   // TODO: Replace these with your details
-  const PRIEST_NAME = 'Babalawo [Your Name]'
+  const PRIEST_NAME = 'Babalawo Akinsoji Elebuibon'
   const PRIEST_TITLE = 'Ifá Priest'
   const TRADITION = 'Yoruba / Ifá tradition'
-  const LOCATION = 'your location'
+  const LOCATION = 'Nigeria, USA'
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 overflow-hidden">
