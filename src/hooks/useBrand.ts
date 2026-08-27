@@ -16,7 +16,6 @@ export const useBrand = () => {
         .single()
 
       if (!error && data) {
-        // Use type assertion to handle the unknown type
         const brandData = data as BrandSettings
         setBrand(brandData)
         document.documentElement.style.setProperty('--brand-primary', brandData.primary_color)
@@ -30,9 +29,10 @@ export const useBrand = () => {
   }, [])
 
   const updateBrand = async (updates: Partial<BrandSettings>) => {
+    // Use type assertion for the update
     const { data, error } = await supabase
       .from('brand_settings')
-      .update(updates)
+      .update(updates as any)  // Type assertion here
       .eq('id', brand?.id)
       .select()
       .single()
