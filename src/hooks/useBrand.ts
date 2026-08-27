@@ -51,31 +51,32 @@ export const useBrand = () => {
       }
     }
 
-    const { data, error } = await supabase
-      .from('brand_settings')
-      .update(updates as any)
-      .eq('id', brand.id)
-      .select()
-      .single()
+    const { data, error } = await supabase.rpc('update_brand_settings', {
+      p_id: brand.id,
+      p_updates: updates,
+    })
 
     if (!error && data) {
-      const brandData = data as BrandSettings
-      setBrand(brandData)
+      const brandData = (data as unknown as { brand: BrandSettings } | null)?.brand ?? (data as unknown as BrandSettings | null) ?? null
 
-      if (updates.primary_color) {
-        document.documentElement.style.setProperty('--brand-primary', updates.primary_color)
-      }
-      if (updates.secondary_color) {
-        document.documentElement.style.setProperty('--brand-secondary', updates.secondary_color)
-      }
-      if (updates.accent_color) {
-        document.documentElement.style.setProperty('--brand-accent', updates.accent_color)
-      }
+      if (brandData) {
+        setBrand(brandData)
 
-      return { success: true, data: brandData }
+        if (updates.primary_color) {
+          document.documentElement.style.setProperty('--brand-primary', updates.primary_color)
+        }
+        if (updates.secondary_color) {
+          document.documentElement.style.setProperty('--brand-secondary', updates.secondary_color)
+        }
+        if (updates.accent_color) {
+          document.documentElement.style.setProperty('--brand-accent', updates.accent_color)
+        }
+
+        return { success: true, data: brandData }
+      }
     }
 
-    return { success: false, error }
+    return { success: false, error: error as any }
   }
 
   return { brand, loading, updateBrand }
