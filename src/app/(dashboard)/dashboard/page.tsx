@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useBrand } from '@/hooks/useBrand'
+import { User as SupabaseUser } from '@supabase/supabase-js'
 
 interface Course {
   id: string
@@ -68,19 +69,9 @@ interface Lesson {
   created_at: string
 }
 
-interface User {
-  id: string
-  email: string
-  user_metadata?: {
-    full_name?: string
-    name?: string
-    avatar_url?: string
-  }
-}
-
 export default function DashboardPage() {
   const { brand } = useBrand()
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<SupabaseUser | null>(null)
   const [loading, setLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   
