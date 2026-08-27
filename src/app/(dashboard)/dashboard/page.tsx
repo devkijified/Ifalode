@@ -178,8 +178,10 @@ export default function DashboardPage() {
         if (productsError) throw productsError
         setProducts(productsData || [])
 
+        // ✅ FIX: Use type assertion to fix the TypeScript error
         if (enrollmentsData && enrollmentsData.length > 0) {
-          const courseIds = enrollmentsData.map(e => e.course_id)
+          const typedEnrollments = enrollmentsData as any[]
+          const courseIds = typedEnrollments.map(e => e.course_id)
           const { data: lessonsData, error: lessonsError } = await supabase
             .from('lessons')
             .select('*')
