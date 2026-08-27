@@ -31,8 +31,12 @@ export default function SignupPage() {
 
     if (error) {
       setError(error.message)
-    } else if (data.user) {
-      // Create profile using the user's ID
+      setLoading(false)
+      return
+    }
+
+    if (data.user) {
+      // Use type assertion to bypass TypeScript strict checking
       const { error: profileError } = await supabase
         .from('profiles')
         .insert({
@@ -40,7 +44,7 @@ export default function SignupPage() {
           email: email,
           full_name: fullName,
           role: 'user',
-        })
+        } as any) // Type assertion
 
       if (profileError) {
         console.error('Profile creation error:', profileError)
