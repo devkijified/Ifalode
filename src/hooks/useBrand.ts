@@ -51,7 +51,8 @@ export const useBrand = () => {
       }
     }
 
-    const { data, error } = await supabase.rpc('update_brand_settings', {
+    // Use `any` type casting to bypass strict Supabase RPC type checking if the database types are out of sync
+    const { data, error } = await (supabase.rpc as any)('update_brand_settings', {
       p_id: brand.id,
       p_updates: updates,
     })
