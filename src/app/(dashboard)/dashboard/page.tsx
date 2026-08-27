@@ -1,944 +1,230 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import React, { useState } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
-import { useBrand } from '@/hooks/useBrand'
-import { User as SupabaseUser } from '@supabase/supabase-js'
+import {
+  LayoutDashboard,
+  GraduationCap,
+  Store as StoreIcon,
+  Shield,
+  PhoneCall,
+  User,
+  ArrowRight,
+  ArrowLeft,
+  Activity,
+  Zap,
+  Clock,
+  Lock,
+  Search,
+  CreditCard,
+  ShieldAlert,
+  HelpCircle,
+  Cloud,
+  CheckCircle2,
+  AlertTriangle,
+  Server,
+  FileText
+} from 'lucide-react'
 
-interface Course {
-  id: string
-  title: string
-  description: string | null
-  instructor: string | null
-  price: number | null
-  cover_image: string | null
-  category: string | null
-  level: 'beginner' | 'intermediate' | 'advanced' | null
-  is_published: boolean
-  created_at: string
-  updated_at: string
-}
-
-interface Enrollment {
-  id: string
-  user_id: string
-  course_id: string
-  progress: number
-  completed: boolean
-  enrolled_at: string
-  course?: Course
-}
-
-interface Product {
-  id: string
-  title: string
-  description: string | null
-  price: number
-  cover_image: string | null
-  file_url: string | null
-  category: string | null
-  is_ebook: boolean
-  stock: number
-  created_at: string
-  updated_at: string
-}
-
-interface Order {
-  id: string
-  user_id: string
-  product_id: string | null
-  course_id: string | null
-  amount: number
-  status: 'pending' | 'completed' | 'failed'
-  payment_method: string | null
-  created_at: string
-  product?: Product
-  course?: Course
-}
-
-interface Lesson {
-  id: string
-  course_id: string
-  title: string
-  content: string | null
-  video_url: string | null
-  order_number: number | null
-  duration: number | null
-  created_at: string
-}
-
-export default function DashboardPage() {
-  const { brand } = useBrand()
-  const [user, setUser] = useState<SupabaseUser | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [sidebarOpen, setSidebarOpen] = useState(true)
-  
-  const [enrollments, setEnrollments] = useState<Enrollment[]>([])
-  const [products, setProducts] = useState<Product[]>([])
-  const [orders, setOrders] = useState<Order[]>([])
-  const [lessons, setLessons] = useState<Lesson[]>([])
-  const [dataLoading, setDataLoading] = useState(true)
-
-  const router = useRouter()
-  const supabase = createClient()
-
-  useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-
-      if (!user) {
-        router.push('/login')
-        return
-      }
-
-      setUser(user)
-      setLoading(false)
-    }
-
-    getUser()
-  }, [])
-
-  useEffect(() => {
-    if (!user) return
-
-    const fetchDashboardData = async () => {
-      try {
-        const { data: enrollmentsData, error: enrollmentsError } = await supabase
-          .from('enrollments')
-          .select(`
-            *,
-            course:courses (
-              id,
-              title,
-              description,
-              instructor,
-              price,
-              cover_image,
-              category,
-              level,
-              is_published,
-              created_at,
-              updated_at
-            )
-          `)
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-
-        if (enrollmentsError) throw enrollmentsError
-        setEnrollments(enrollmentsData || [])
-
-        const { data: ordersData, error: ordersError } = await supabase
-          .from('orders')
-          .select(`
-            *,
-            product:products (
-              id,
-              title,
-              description,
-              price,
-              cover_image,
-              file_url,
-              category,
-              is_ebook,
-              stock,
-              created_at,
-              updated_at
-            ),
-            course:courses (
-              id,
-              title,
-              description,
-              instructor,
-              price,
-              cover_image,
-              category,
-              level,
-              is_published,
-              created_at,
-              updated_at
-            )
-          `)
-          .eq('user_id', user.id)
-          .eq('status', 'completed')
-          .order('created_at', { ascending: false })
-
-        if (ordersError) throw ordersError
-        setOrders(ordersData || [])
-
-        const { data: productsData, error: productsError } = await supabase
-          .from('products')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(10)
-
-        if (productsError) throw productsError
-        setProducts(productsData || [])
-
-        // ✅ FIX: Use type assertion to fix the TypeScript error
-        if (enrollmentsData && enrollmentsData.length > 0) {
-          const typedEnrollments = enrollmentsData as any[]
-          const courseIds = typedEnrollments.map(e => e.course_id)
-          const { data: lessonsData, error: lessonsError } = await supabase
-            .from('lessons')
-            .select('*')
-            .in('course_id', courseIds)
-            .order('order_number', { ascending: true })
-            .limit(10)
-
-          if (lessonsError) throw lessonsError
-          setLessons(lessonsData || [])
-        }
-
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error)
-      } finally {
-        setDataLoading(false)
-      }
-    }
-
-    fetchDashboardData()
-  }, [user])
-
-  const signOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-10 h-10 border-2 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-slate-400">Loading dashboard...</p>
-        </div>
-      </div>
-    )
-  }
-
-  const fullName =
-    user?.user_metadata?.full_name ||
-    user?.user_metadata?.name ||
-    'User'
-
-  const firstName = fullName.split(' ')[0]
-
-  const totalEbooks = orders.filter(o => o.product).length
-  const coursesEnrolled = enrollments.length
-  const totalProgress = enrollments.reduce((acc, curr) => acc + curr.progress, 0)
-  const averageProgress = coursesEnrolled > 0 ? Math.round(totalProgress / coursesEnrolled) : 0
-
-  const inProgressCourses = enrollments.filter(e => !e.completed && e.progress > 0)
-  const completedCourses = enrollments.filter(e => e.completed)
-  const notStartedCourses = enrollments.filter(e => e.progress === 0)
+export default function Dashboard({ brand }: { brand?: { display_name?: string } }) {
+  const [collapsed, setCollapsed] = useState(false)
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-
-      <header className="fixed top-0 left-0 right-0 z-50 h-[72px] bg-slate-900/95 backdrop-blur-xl border-b border-slate-800">
-
-        <div className="h-full flex items-center">
-
-          <div
-            className={`h-full flex items-center border-r border-slate-800 transition-all duration-300 ${
-              sidebarOpen ? 'w-[250px]' : 'w-[80px]'
-            }`}
-          >
-            <div className="w-full px-5 flex items-center gap-4">
-
-              <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="w-9 h-9 rounded-lg hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition"
-              >
-                ☰
-              </button>
-
-              {sidebarOpen && (
-                <Link
-                  href="/"
-                  className="text-xl font-black tracking-wide bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent truncate"
-                >
-                  {brand?.display_name || 'Ifalode'}
-                </Link>
-              )}
-
-            </div>
-          </div>
-
-          <div className="flex-1 h-full flex items-center justify-between px-6">
-
-            <div className="hidden md:flex items-center gap-2 text-sm text-slate-400">
-              <Link href="/dashboard" className="text-brand-primary">
-                Dashboard
-              </Link>
-              <span>/</span>
-              <span>Overview</span>
-            </div>
-
-            <div className="flex items-center gap-3 ml-auto">
-
-              <div className="hidden lg:flex items-center w-64 h-10 bg-slate-950 border border-slate-800 rounded-lg px-3">
-                <span className="text-slate-500 mr-2">⌕</span>
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="bg-transparent outline-none text-sm w-full text-slate-200 placeholder:text-slate-600"
-                />
-              </div>
-
-              <button className="relative w-10 h-10 rounded-lg hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition">
-                🔔
-                <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-brand-primary" />
-              </button>
-
-              <div className="flex items-center gap-3 pl-3 border-l border-slate-800">
-
-                <div className="hidden sm:block text-right">
-                  <p className="text-sm font-semibold text-white">
-                    {fullName}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    Student
-                  </p>
-                </div>
-
-                <button className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center font-bold text-white">
-                  {firstName.charAt(0).toUpperCase()}
-                </button>
-
-              </div>
-
-            </div>
-          </div>
-        </div>
-      </header>
-
-
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex">
+      {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-[72px] bottom-0 z-40 bg-slate-900 border-r border-slate-800 transition-all duration-300 ${
-          sidebarOpen ? 'w-[250px]' : 'w-[80px]'
-        }`}
+        className={`${
+          collapsed ? 'w-20' : 'w-64'
+        } bg-slate-900 border-r border-slate-800 transition-all duration-300 flex flex-col justify-between hidden md:flex sticky top-0 h-screen`}
       >
-
-        <div className="h-full flex flex-col">
-
-          <nav className="flex-1 px-3 py-6 overflow-y-auto">
-
-            {sidebarOpen && (
-              <p className="px-3 mb-3 text-[10px] uppercase tracking-widest font-bold text-slate-600">
-                Dashboard & Apps
-              </p>
+        <div className="p-5 flex flex-col gap-6">
+          <div className="flex items-center justify-between">
+            {!collapsed && (
+              <span className="font-extrabold text-xl tracking-wider text-white">
+                {brand?.display_name || 'TRUSTLINE'}
+              </span>
             )}
-
-            <SidebarLink
-              href="/dashboard"
-              icon="▦"
-              label="Dashboard"
-              active
-              collapsed={!sidebarOpen}
-            />
-
-            <SidebarLink
-              href="/store"
-              icon="🛒"
-              label="Store"
-              collapsed={!sidebarOpen}
-            />
-
-            <SidebarLink
-              href="/courses"
-              icon="🎓"
-              label="Courses"
-              collapsed={!sidebarOpen}
-            />
-
-            <SidebarLink
-              href="/dashboard"
-              icon="📚"
-              label="My Learning"
-              collapsed={!sidebarOpen}
-            />
-
-            <SidebarLink
-              href="/dashboard"
-              icon="📊"
-              label="Progress"
-              collapsed={!sidebarOpen}
-            />
-
-            {sidebarOpen && (
-              <p className="px-3 mt-8 mb-3 text-[10px] uppercase tracking-widest font-bold text-slate-600">
-                Account
-              </p>
-            )}
-
-            <SidebarLink
-              href="/profile"
-              icon="👤"
-              label="Profile"
-              collapsed={!sidebarOpen}
-            />
-
-            <SidebarLink
-              href="/settings"
-              icon="⚙"
-              label="Settings"
-              collapsed={!sidebarOpen}
-            />
-
-          </nav>
-
-          <div className="p-3 border-t border-slate-800">
-
             <button
-              onClick={signOut}
-              className={`w-full flex items-center ${
-                sidebarOpen ? 'justify-start px-3' : 'justify-center'
-              } gap-3 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition`}
+              onClick={() => setCollapsed(!collapsed)}
+              className="p-2 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition"
+              aria-label="Toggle Sidebar"
             >
-              <span>↪</span>
-              {sidebarOpen && (
-                <span className="text-sm font-medium">Sign Out</span>
-              )}
+              {collapsed ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
             </button>
-
           </div>
 
+          <nav className="flex flex-col gap-1">
+            <SidebarLink href="/dashboard" icon={<LayoutDashboard className="w-5 h-5" />} label="Dashboard" active collapsed={collapsed} />
+            <SidebarLink href="/courses" icon={<GraduationCap className="w-5 h-5" />} label="Courses" collapsed={collapsed} />
+            <SidebarLink href="/store" icon={<StoreIcon className="w-5 h-5" />} label="Store" collapsed={collapsed} />
+            <SidebarLink href="/security" icon={<Shield className="w-5 h-5" />} label="Security" collapsed={collapsed} />
+            <SidebarLink href="/contact" icon={<PhoneCall className="w-5 h-5" />} label="Contact" collapsed={collapsed} />
+            <SidebarLink href="/profile" icon={<User className="w-5 h-5" />} label="Profile" collapsed={collapsed} />
+          </nav>
+        </div>
+
+        <div className="p-5 border-t border-slate-800">
+          <Link
+            href="/contact"
+            className={`flex items-center ${
+              collapsed ? 'justify-center' : 'gap-3 px-3'
+            } py-3 rounded-lg bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 transition`}
+            title={collapsed ? 'Get Help Now' : undefined}
+          >
+            <HelpCircle className="w-5 h-5 shrink-0" />
+            {!collapsed && <span className="text-sm font-bold">Get Help Now</span>}
+          </Link>
         </div>
       </aside>
 
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col min-w-0">
+        <nav className="border-b border-slate-800 px-6 py-4 flex items-center justify-between bg-slate-900/50 backdrop-blur sticky top-0 z-10">
+          <div className="flex items-center gap-4">
+            <span className="font-bold text-lg md:hidden text-white">{brand?.display_name || 'TRUSTLINE'}</span>
+            <h1 className="text-xl font-bold text-white">Dashboard Overview</h1>
+          </div>
+          <div className="flex items-center gap-4">
+            <Link href="/contact" className="btn-nav text-xs font-semibold px-4 py-2 rounded-lg bg-brand-primary text-white hover:opacity-90 transition">
+              Get Help Now
+            </Link>
+          </div>
+        </nav>
 
-      <main
-        className={`pt-[72px] min-h-screen transition-all duration-300 ${
-          sidebarOpen ? 'ml-[250px]' : 'ml-[80px]'
-        }`}
-      >
+        <header className="hero px-8 py-10 bg-gradient-to-b from-slate-900 to-slate-950 border-b border-slate-800">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-white mb-3">
+            Secure Your Digital Life <br />
+            <span style={{ color: 'var(--accent)' }}>Regain Full Control.</span>
+          </h1>
+          <p className="text-slate-400 max-w-2xl mb-6 text-sm md:text-base">
+            Expert intervention for hacking, debt resolution, and data recovery. Trustline Tech Services provides the professional support you need to protect your privacy and assets.
+          </p>
+          <a href="#expertise" className="btn-primary inline-block px-5 py-2.5 rounded-xl bg-brand-primary text-white font-semibold text-sm hover:opacity-90 transition">
+            View Expertise
+          </a>
+        </header>
 
-        <div className="p-5 md:p-7 lg:p-8 max-w-[1600px] mx-auto">
-
-          <div className="grid xl:grid-cols-[1fr_280px] gap-5 mb-7">
-
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-brand-primary to-brand-secondary p-7 md:p-8">
-
-              <div className="absolute -right-20 -top-20 w-64 h-64 rounded-full bg-white/10" />
-              <div className="absolute right-20 -bottom-28 w-48 h-48 rounded-full bg-white/5" />
-
-              <div className="relative z-10 max-w-3xl">
-
-                <span className="inline-flex px-3 py-1 rounded-full bg-white/15 text-white text-xs font-semibold mb-4">
-                  Your Learning Dashboard
-                </span>
-
-                <h1 className="text-2xl md:text-3xl font-bold text-white mb-3">
-                  Hello {firstName}, Welcome Back!
-                </h1>
-
-                <p className="text-white/70 text-sm md:text-base max-w-2xl">
-                  Continue your learning journey, explore new courses,
-                  and discover more knowledge from your personal dashboard.
-                </p>
-
-                <div className="flex flex-wrap gap-3 mt-6">
-                  <Link
-                    href="/courses"
-                    className="px-5 py-2.5 bg-white text-slate-900 rounded-lg text-sm font-semibold hover:bg-slate-100 transition"
-                  >
-                    Continue Learning
-                  </Link>
-
-                  <Link
-                    href="/store"
-                    className="px-5 py-2.5 bg-white/10 border border-white/20 text-white rounded-lg text-sm font-semibold hover:bg-white/20 transition"
-                  >
-                    Browse Store
-                  </Link>
-                </div>
-
-              </div>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-center text-center">
-
-              <div className="w-12 h-12 rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center mx-auto mb-4 text-xl">
-                ✦
-              </div>
-
-              <h3 className="font-bold text-lg mb-2">
-                Have more to learn?
-              </h3>
-
-              <p className="text-sm text-slate-500 mb-5">
-                Explore our latest courses and ebooks.
-              </p>
-
-              <Link
-                href="/courses"
-                className="w-full py-2.5 rounded-lg bg-brand-primary text-white text-sm font-semibold hover:opacity-90 transition"
-              >
-                Explore Courses
-              </Link>
-
-            </div>
-
+        <div className="p-6 md:p-8 flex-1 flex flex-col gap-8 max-w-7xl w-full mx-auto">
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard label="Active Protections" value="12" change="+2 this month" icon={<Shield className="w-5 h-5 text-brand-primary" />} positive />
+            <StatCard label="Resolved Issues" value="48" change="+12% success rate" icon={<Zap className="w-5 h-5 text-brand-primary" />} positive />
+            <StatCard label="Pending Cases" value="3" change="Requires attention" icon={<Clock className="w-5 h-5 text-amber-400" />} />
+            <StatCard label="System Security" value="98%" change="Optimal status" icon={<Lock className="w-5 h-5 text-brand-primary" />} positive />
           </div>
 
-
-          <SectionHeader
-            title="Your Courses"
-            action="View All"
-            href="/courses"
-          />
-
-          {dataLoading ? (
-            <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
-              {[1, 2, 3, 4].map(i => (
-                <div key={i} className="bg-slate-900 border border-slate-800 rounded-2xl p-5 animate-pulse">
-                  <div className="h-4 bg-slate-800 rounded w-20 mb-4" />
-                  <div className="h-8 bg-slate-800 rounded w-12 mb-4" />
-                  <div className="h-4 bg-slate-800 rounded w-3/4 mb-2" />
-                  <div className="h-3 bg-slate-800 rounded w-1/2 mb-4" />
-                  <div className="h-2 bg-slate-800 rounded w-full" />
-                </div>
-              ))}
-            </div>
-          ) : enrollments.length === 0 ? (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 mb-8 text-center">
-              <div className="text-4xl mb-4">🎓</div>
-              <h3 className="font-bold text-lg mb-2">No courses yet</h3>
-              <p className="text-sm text-slate-500 mb-4">
-                Explore our courses and start your learning journey
-              </p>
-              <Link
-                href="/courses"
-                className="inline-block px-5 py-2.5 bg-brand-primary text-white rounded-lg text-sm font-semibold hover:opacity-90 transition"
-              >
-                Browse Courses
-              </Link>
-            </div>
-          ) : (
-            <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
-              {enrollments.slice(0, 4).map((enrollment, index) => {
-                const course = enrollment.course
-                const status = enrollment.completed ? 'Finished' : enrollment.progress > 0 ? 'Active' : 'Paused'
-                const color = index % 4 === 0 ? 'primary' : index % 4 === 1 ? 'purple' : index % 4 === 2 ? 'green' : 'orange'
-                const icons = ['📘', '🧠', '💼', '💻', '🎯', '⚡', '🚀', '📈']
-                
-                return (
-                  <CourseCard
-                    key={enrollment.id}
-                    title={course?.title || 'Untitled Course'}
-                    status={status}
-                    progress={`${enrollment.progress}%`}
-                    remaining={enrollment.completed ? 'Completed' : `${course ? '12 Lessons' : 'Lessons'}`}
-                    icon={icons[index % icons.length]}
-                    color={color as any}
-                  />
-                )
-              })}
-            </div>
-          )}
-
-
-          <div className="grid lg:grid-cols-3 gap-5 mb-8">
-
-            <StatCard
-              label="Total Ebooks"
-              value={totalEbooks.toString()}
-              change={totalEbooks === 0 ? "Start building your library" : `${totalEbooks} ebook${totalEbooks > 1 ? 's' : ''} purchased`}
-              icon="📚"
-              positive
-            />
-
-            <StatCard
-              label="Courses Enrolled"
-              value={coursesEnrolled.toString()}
-              change={coursesEnrolled === 0 ? "Explore courses to begin" : `${coursesEnrolled} course${coursesEnrolled > 1 ? 's' : ''} enrolled`}
-              icon="🎓"
-              positive
-            />
-
-            <StatCard
-              label="Learning Progress"
-              value={`${averageProgress}%`}
-              change={averageProgress === 0 ? "Average completion" : "Keep up the great work!"}
-              icon="📈"
-              positive
-            />
-
-          </div>
-
-
-          <SectionHeader
-            title="Performance & Statistics"
-            action="This Month"
-          />
-
-          <div className="grid xl:grid-cols-[1.2fr_1fr] gap-5 mb-8">
-
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl">
-
-              <div className="flex items-center justify-between p-5 border-b border-slate-800">
-                <h3 className="font-bold">
-                  Course Completion
-                </h3>
-
-                <button className="text-xs px-3 py-1.5 rounded-lg bg-brand-primary/10 text-brand-primary">
-                  View All
-                </button>
-              </div>
-
-              <div className="p-5 space-y-6">
-
-                <ProgressItem
-                  label="In Progress"
-                  users={`${inProgressCourses.length} Course${inProgressCourses.length !== 1 ? 's' : ''}`}
-                  percentage={coursesEnrolled > 0 ? Math.round((inProgressCourses.length / coursesEnrolled) * 100) : 0}
-                />
-
-                <ProgressItem
-                  label="Completed"
-                  users={`${completedCourses.length} Course${completedCourses.length !== 1 ? 's' : ''}`}
-                  percentage={coursesEnrolled > 0 ? Math.round((completedCourses.length / coursesEnrolled) * 100) : 0}
-                />
-
-                <ProgressItem
-                  label="Not Started"
-                  users={`${notStartedCourses.length} Course${notStartedCourses.length !== 1 ? 's' : ''}`}
-                  percentage={coursesEnrolled > 0 ? Math.round((notStartedCourses.length / coursesEnrolled) * 100) : 0}
-                />
-
-                <ProgressItem
-                  label="Expired"
-                  users="0 Courses"
-                  percentage={0}
-                />
-
-              </div>
-
-            </div>
-
-
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl">
-
-              <div className="p-5 border-b border-slate-800">
-                <h3 className="font-bold">
-                  Learning Overview
-                </h3>
-              </div>
-
-              <div className="p-5">
-
-                <div className="h-56 flex items-center justify-center">
-
-                  <div className="relative w-40 h-40">
-
-                    <div className="absolute inset-0 rounded-full border-[14px] border-slate-800" />
-
-                    <div
-                      className="absolute inset-0 rounded-full border-[14px] border-brand-primary"
-                      style={{
-                        clipPath: averageProgress >= 50 
-                          ? 'polygon(50% 0, 100% 0, 100% 100%, 50% 100%)'
-                          : `polygon(50% 0, ${averageProgress}% 0, ${averageProgress}% 100%, 50% 100%)`,
-                      }}
-                    />
-
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-3xl font-bold">{averageProgress}%</span>
-                      <span className="text-xs text-slate-500">
-                        Completed
-                      </span>
-                    </div>
-
-                  </div>
-
-                </div>
-
-                <div className="flex justify-center gap-6 text-xs text-slate-400">
-                  <span className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-brand-primary" />
-                    Completed
-                  </span>
-
-                  <span className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-slate-700" />
-                    Remaining
-                  </span>
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
-
-
-          <div className="grid xl:grid-cols-[1.2fr_1fr] gap-5 mb-8">
-
-            <div>
-
-              <SectionHeader
-                title="Lessons"
-                action="View All"
-                href="/courses"
+          {/* Courses & Modules Section */}
+          <section id="expertise">
+            <SectionHeader title="Your Services & Expertise" action="View All" href="/courses" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <CourseCard
+                title="Digital Forensics & Recovery"
+                status="Active"
+                progress="75%"
+                remaining="2 modules left"
+                icon={<Search className="w-6 h-6 text-brand-primary" />}
+                color="primary"
               />
-
-              {dataLoading ? (
-                <div className="space-y-3">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="bg-slate-900 border border-slate-800 rounded-xl p-4 animate-pulse">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-slate-800" />
-                        <div className="flex-1">
-                          <div className="h-4 bg-slate-800 rounded w-3/4 mb-2" />
-                          <div className="h-3 bg-slate-800 rounded w-1/2" />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : lessons.length === 0 ? (
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center">
-                  <p className="text-sm text-slate-500">
-                    No lessons available. Enroll in a course to start learning.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {lessons.slice(0, 3).map((lesson, index) => {
-                    const icons = ['📖', '✦', '🎯', '📝', '🔬', '💡']
-                    const colors = ['orange', 'primary', 'red', 'purple', 'green', 'blue']
-                    return (
-                      <LessonCard
-                        key={lesson.id}
-                        title={lesson.title}
-                        subtitle={lesson.content ? lesson.content.substring(0, 50) + '...' : 'Course lesson'}
-                        icon={icons[index % icons.length]}
-                        color={colors[index % colors.length] as any}
-                      />
-                    )
-                  })}
-                </div>
-              )}
-
-            </div>
-
-
-            <div>
-
-              <SectionHeader
-                title="Recent Activity"
-                action="View All"
+              <CourseCard
+                title="Debt Resolution & Shield"
+                status="Paused"
+                progress="40%"
+                remaining="5 steps remaining"
+                icon={<CreditCard className="w-6 h-6 text-orange-400" />}
+                color="orange"
               />
+              <CourseCard
+                title="Cybersecurity Fundamentals"
+                status="Finished"
+                progress="100%"
+                remaining="Completed successfully"
+                icon={<ShieldCheckIcon className="w-6 h-6 text-green-400" />}
+                color="green"
+              />
+            </div>
+          </section>
 
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl divide-y divide-slate-800">
-
-                {orders.length > 0 ? (
-                  <>
-                    <ActivityItem
-                      icon="📚"
-                      title="New purchase"
-                      description={`You purchased ${orders[0].product?.title || 'a product'}`}
-                      time="Today"
-                    />
-                    {enrollments.length > 0 && (
-                      <ActivityItem
-                        icon="🎓"
-                        title="Course enrollment"
-                        description={`You enrolled in ${enrollments[0].course?.title || 'a course'}`}
-                        time="Yesterday"
-                      />
-                    )}
-                  </>
-                ) : enrollments.length > 0 ? (
-                  <ActivityItem
-                    icon="🎓"
-                    title="Course enrollment"
-                    description={`You enrolled in ${enrollments[0].course?.title || 'a course'}`}
-                    time="Yesterday"
-                  />
-                ) : (
-                  <>
-                    <ActivityItem
-                      icon="📚"
-                      title="New ebook available"
-                      description="Check out the latest addition to the store."
-                      time="Today"
-                    />
-
-                    <ActivityItem
-                      icon="🎓"
-                      title="Course enrollment"
-                      description="Your learning journey is ready to continue."
-                      time="Yesterday"
-                    />
-                  </>
-                )}
-
-                <ActivityItem
-                  icon="✓"
-                  title="Profile updated"
-                  description="Your account information was updated."
-                  time="3 days ago"
-                />
-
-                <ActivityItem
-                  icon="⭐"
-                  title="Welcome to Ifalode"
-                  description="Explore everything available to you."
-                  time="1 week ago"
-                />
-
+          {/* Lesson & Quick Actions */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 flex flex-col gap-4">
+              <SectionHeader title="Recommended Interventions" action="Explore Store" href="/store" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <LessonCard title="Anti-Malware Audit" subtitle="Comprehensive deep scan" icon={<ShieldAlert className="w-5 h-5" />} color="primary" />
+                <LessonCard title="Identity Theft Recovery" subtitle="Restore compromised data" icon={<User className="w-5 h-5" />} color="purple" />
+                <LessonCard title="Secure Comm Setup" subtitle="Encrypted channels configuration" icon={<Lock className="w-5 h-5" />} color="green" />
+                <LessonCard title="Emergency Lockout Help" subtitle="Immediate expert assistance" icon={<ShieldAlert className="w-5 h-5" />} color="red" />
               </div>
-
             </div>
 
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-white mb-2">Live Security Feed</h3>
+                <p className="text-xs text-slate-500 mb-4">Real-time status updates on your defense perimeter.</p>
+                <div className="flex flex-col gap-3">
+                  <ProgressItem label="Firewall Integrity" users="99.9%" percentage={99} />
+                  <ProgressItem label="Data Encryption" users="AES-256" percentage={100} />
+                  <ProgressItem label="Access Logs" users="Monitored" percentage={85} />
+                </div>
+              </div>
+              <div className="mt-6">
+                <ActivityItem
+                  icon={<Shield className="w-5 h-5 text-brand-primary" />}
+                  title="Perimeter Secured"
+                  description="All nodes successfully verified against threats."
+                  time="10 mins ago"
+                />
+              </div>
+            </div>
           </div>
 
-
-          <SectionHeader
-            title="Your Library"
-            action="View All"
-            href="/store"
-          />
-
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl mb-8 overflow-hidden">
-
+          {/* Library / Table Section */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+            <div className="p-5 border-b border-slate-800 flex items-center justify-between">
+              <h3 className="font-bold text-white">Active Asset Protections</h3>
+              <Link href="/store" className="text-xs text-brand-primary hover:underline">View Store →</Link>
+            </div>
             <div className="overflow-x-auto">
-
-              <table className="w-full min-w-[700px]">
-
+              <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-800 text-left">
-                    <th className="px-5 py-4 text-xs uppercase tracking-wide text-slate-500">
-                      Content
-                    </th>
-                    <th className="px-5 py-4 text-xs uppercase tracking-wide text-slate-500">
-                      Type
-                    </th>
-                    <th className="px-5 py-4 text-xs uppercase tracking-wide text-slate-500">
-                      Status
-                    </th>
-                    <th className="px-5 py-4 text-xs uppercase tracking-wide text-slate-500">
-                      Access
-                    </th>
+                  <tr className="border-b border-slate-800 text-xs text-slate-500">
+                    <th className="px-5 py-3 font-semibold">Asset Name</th>
+                    <th className="px-5 py-3 font-semibold">Type</th>
+                    <th className="px-5 py-3 font-semibold">Status</th>
+                    <th className="px-5 py-3 font-semibold">Action</th>
                   </tr>
                 </thead>
-
                 <tbody>
-
-                  {orders.filter(o => o.product).length === 0 && orders.filter(o => o.course).length === 0 ? (
-                    <>
-                      <LibraryRow
-                        title="No ebooks purchased yet"
-                        subtitle="Visit the store to build your library"
-                        icon="A1"
-                        type="Ebook"
-                        status="Available"
-                      />
-
-                      <LibraryRow
-                        title="No courses enrolled yet"
-                        subtitle="Explore courses to get started"
-                        icon="B1"
-                        type="Course"
-                        status="Available"
-                      />
-                    </>
-                  ) : (
-                    <>
-                      {orders.filter(o => o.product).map(order => (
-                        <LibraryRow
-                          key={order.id}
-                          title={order.product?.title || 'Purchased Product'}
-                          subtitle={order.product?.description || 'Digital product'}
-                          icon="📚"
-                          type="Ebook"
-                          status="Purchased"
-                        />
-                      ))}
-                      {orders.filter(o => o.course).map(order => (
-                        <LibraryRow
-                          key={order.id}
-                          title={order.course?.title || 'Enrolled Course'}
-                          subtitle={order.course?.description || 'Online course'}
-                          icon="🎓"
-                          type="Course"
-                          status="Enrolled"
-                        />
-                      ))}
-                    </>
-                  )}
-
+                  <LibraryRow title="Primary Cloud Vault" subtitle="Encrypted storage instance" icon={<Cloud className="w-4 h-4 text-brand-primary" />} type="Storage" status="Protected" />
+                  <LibraryRow title="Financial Gateway Shield" subtitle="Transaction surveillance" icon={<CreditCard className="w-4 h-4 text-brand-primary" />} type="Finance" status="Active" />
                 </tbody>
-
               </table>
-
             </div>
-
           </div>
 
-
-          <div className="grid md:grid-cols-2 gap-5 mb-8">
-
-            <Link
-              href="/store"
-              className="group rounded-2xl p-6 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 transition"
-            >
-              <div className="flex items-center gap-5">
-
-                <div className="w-16 h-16 rounded-full border border-white/30 flex items-center justify-center text-2xl">
-                  🛒
-                </div>
-
-                <div>
-                  <h3 className="font-bold text-lg text-white">
-                    Browse the Store
-                  </h3>
-
-                  <p className="text-sm text-white/70 mt-1">
-                    Discover ebooks and learning resources
-                  </p>
-                </div>
-
+          {/* Explore Courses Callout */}
+          <Link
+            href="/courses"
+            className="group rounded-2xl p-6 bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-95 transition"
+          >
+            <div className="flex items-center gap-5">
+              <div className="w-16 h-16 rounded-full border border-white/30 flex items-center justify-center text-white">
+                <GraduationCap className="w-8 h-8" />
               </div>
-            </Link>
-
-
-            <Link
-              href="/courses"
-              className="group rounded-2xl p-6 bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-95 transition"
-            >
-              <div className="flex items-center gap-5">
-
-                <div className="w-16 h-16 rounded-full border border-white/30 flex items-center justify-center text-2xl">
-                  🎓
-                </div>
-
-                <div>
-                  <h3 className="font-bold text-lg text-white">
-                    Explore Courses
-                  </h3>
-
-                  <p className="text-sm text-white/70 mt-1">
-                    Continue your education and grow your skills
-                  </p>
-                </div>
-
+              <div>
+                <h3 className="font-bold text-lg text-white">
+                  Explore Courses
+                </h3>
+                <p className="text-sm text-white/70 mt-1">
+                  Continue your education and grow your skills
+                </p>
               </div>
-            </Link>
-
-          </div>
-
+            </div>
+          </Link>
 
           <footer className="border-t border-slate-800 pt-6 pb-4 flex flex-col md:flex-row justify-between gap-3 text-xs text-slate-600">
             <p>
               © {new Date().getFullYear()} {brand?.display_name || 'Ifalode'}. All rights reserved.
             </p>
-
             <div className="flex gap-5">
               <Link href="/store" className="hover:text-slate-400">
                 Store
@@ -951,14 +237,20 @@ export default function DashboardPage() {
               </Link>
             </div>
           </footer>
-
         </div>
       </main>
-
     </div>
   )
 }
 
+function ShieldCheckIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+      <path d="m9 12 2 2 4-4" />
+    </svg>
+  )
+}
 
 function SidebarLink({
   href,
@@ -968,7 +260,7 @@ function SidebarLink({
   collapsed = false,
 }: {
   href: string
-  icon: string
+  icon: React.ReactNode
   label: string
   active?: boolean
   collapsed?: boolean
@@ -985,23 +277,20 @@ function SidebarLink({
           : 'text-slate-400 hover:bg-slate-800 hover:text-white'
       }`}
     >
-      <span className="text-lg w-6 text-center">
+      <span className="shrink-0 flex items-center justify-center w-6">
         {icon}
       </span>
-
       {!collapsed && (
         <span className="text-sm font-medium">
           {label}
         </span>
       )}
-
       {!collapsed && active && (
         <span className="ml-auto w-1.5 h-1.5 rounded-full bg-brand-primary" />
       )}
     </Link>
   )
 }
-
 
 function SectionHeader({
   title,
@@ -1014,11 +303,9 @@ function SectionHeader({
 }) {
   return (
     <div className="flex items-center justify-between mb-4">
-
       <h2 className="text-lg font-bold text-white">
         {title}
       </h2>
-
       {href ? (
         <Link
           href={href}
@@ -1031,11 +318,9 @@ function SectionHeader({
           {action}
         </button>
       )}
-
     </div>
   )
 }
-
 
 function CourseCard({
   title,
@@ -1049,7 +334,7 @@ function CourseCard({
   status: string
   progress: string
   remaining: string
-  icon: string
+  icon: React.ReactNode
   color: 'primary' | 'purple' | 'green' | 'orange'
 }) {
   const colors = {
@@ -1070,17 +355,12 @@ function CourseCard({
     <div
       className={`relative overflow-hidden bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition group`}
     >
-
       <div
         className={`absolute inset-0 bg-gradient-to-br ${colors[color]} to-transparent opacity-50`}
       />
-
       <div className="relative">
-
         <div className="flex items-center justify-between mb-6">
-
           <div className="flex gap-2">
-
             <span
               className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase ${
                 status === 'Finished'
@@ -1092,53 +372,38 @@ function CourseCard({
             >
               {status}
             </span>
-
-            <span className="px-2 py-1 rounded-md bg-slate-800 text-slate-500 text-xs">
-              🔒
+            <span className="px-2 py-1 rounded-md bg-slate-800 text-slate-400 text-xs flex items-center justify-center">
+              <Lock className="w-3 h-3" />
             </span>
-
           </div>
-
           <button className="text-slate-600 hover:text-white">
             •••
           </button>
-
         </div>
-
-        <div className="text-3xl mb-4">
+        <div className="p-3 bg-slate-800/50 w-fit rounded-xl mb-4 border border-slate-700/50">
           {icon}
         </div>
-
         <h3 className="font-bold text-white mb-1">
           {title}
         </h3>
-
         <p className="text-xs text-slate-500 mb-4">
           {remaining}
         </p>
-
         <div className="flex items-center gap-3">
-
           <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
-
             <div
               className="h-full bg-brand-primary rounded-full"
               style={{ width: progress }}
             />
-
           </div>
-
           <span className={`text-xs font-bold ${textColors[color]}`}>
             {progress}
           </span>
-
         </div>
-
       </div>
     </div>
   )
 }
-
 
 function StatCard({
   label,
@@ -1150,23 +415,19 @@ function StatCard({
   label: string
   value: string
   change: string
-  icon: string
+  icon: React.ReactNode
   positive?: boolean
 }) {
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition">
-
       <div className="flex items-start justify-between">
-
         <div>
           <p className="text-sm text-slate-500 mb-2">
             {label}
           </p>
-
           <h3 className="text-3xl font-bold text-white">
             {value}
           </h3>
-
           <p
             className={`text-xs mt-2 ${
               positive ? 'text-slate-500' : 'text-red-400'
@@ -1175,17 +436,13 @@ function StatCard({
             {change}
           </p>
         </div>
-
-        <div className="w-11 h-11 rounded-xl bg-brand-primary/10 flex items-center justify-center text-lg">
+        <div className="w-11 h-11 rounded-xl bg-brand-primary/10 flex items-center justify-center">
           {icon}
         </div>
-
       </div>
-
     </div>
   )
 }
-
 
 function ProgressItem({
   label,
@@ -1198,40 +455,28 @@ function ProgressItem({
 }) {
   return (
     <div>
-
       <div className="flex items-center justify-between mb-2">
-
         <span className="text-sm text-brand-primary">
           {label}
         </span>
-
         <span className="text-xs text-slate-500">
           {users}
         </span>
-
       </div>
-
       <div className="flex items-center gap-3">
-
         <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
-
           <div
             className="h-full bg-brand-primary rounded-full transition-all"
             style={{ width: `${percentage}%` }}
           />
-
         </div>
-
         <span className="text-xs text-slate-400 w-8 text-right">
           {percentage}%
         </span>
-
       </div>
-
     </div>
   )
 }
-
 
 function LessonCard({
   title,
@@ -1241,7 +486,7 @@ function LessonCard({
 }: {
   title: string
   subtitle: string
-  icon: string
+  icon: React.ReactNode
   color: 'primary' | 'orange' | 'red' | 'purple' | 'green' | 'blue'
 }) {
   const bg = {
@@ -1258,35 +503,27 @@ function LessonCard({
       href="/courses"
       className="flex items-center justify-between bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-slate-700 transition group"
     >
-
       <div className="flex items-center gap-4">
-
         <div
-          className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl ${bg[color]}`}
+          className={`w-12 h-12 rounded-xl flex items-center justify-center ${bg[color]}`}
         >
           {icon}
         </div>
-
         <div>
           <h3 className="text-sm font-semibold text-white group-hover:text-brand-primary transition">
             {title}
           </h3>
-
           <p className="text-xs text-slate-500 mt-1">
             {subtitle}
           </p>
         </div>
-
       </div>
-
-      <span className="text-xl text-slate-600 group-hover:text-brand-primary transition">
-        →
+      <span className="text-slate-600 group-hover:text-brand-primary transition">
+        <ArrowRight className="w-5 h-5" />
       </span>
-
     </Link>
   )
 }
-
 
 function ActivityItem({
   icon,
@@ -1294,38 +531,30 @@ function ActivityItem({
   description,
   time,
 }: {
-  icon: string
+  icon: React.ReactNode
   title: string
   description: string
   time: string
 }) {
   return (
     <div className="p-4 flex gap-4">
-
       <div className="w-10 h-10 rounded-lg bg-brand-primary/10 flex items-center justify-center shrink-0">
         {icon}
       </div>
-
       <div className="min-w-0">
-
         <h4 className="text-sm font-semibold text-white">
           {title}
         </h4>
-
         <p className="text-xs text-slate-500 mt-1">
           {description}
         </p>
-
         <p className="text-[10px] text-slate-600 mt-2">
           {time}
         </p>
-
       </div>
-
     </div>
   )
 }
-
 
 function LibraryRow({
   title,
@@ -1336,59 +565,44 @@ function LibraryRow({
 }: {
   title: string
   subtitle: string
-  icon: string
+  icon: React.ReactNode
   type: string
   status: string
 }) {
   return (
     <tr className="border-b border-slate-800 last:border-0">
-
       <td className="px-5 py-4">
-
         <div className="flex items-center gap-3">
-
-          <div className="w-10 h-10 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center text-xs font-bold">
+          <div className="w-10 h-10 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
             {icon}
           </div>
-
           <div>
             <p className="text-sm font-semibold text-white">
               {title}
             </p>
-
             <p className="text-xs text-slate-500 mt-1">
               {subtitle}
             </p>
           </div>
-
         </div>
-
       </td>
-
       <td className="px-5 py-4 text-sm text-slate-400">
         {type}
       </td>
-
       <td className="px-5 py-4">
-
         <span className="inline-flex items-center gap-2 text-xs text-slate-400">
           <span className="w-2 h-2 rounded-full bg-brand-primary" />
           {status}
         </span>
-
       </td>
-
       <td className="px-5 py-4">
-
         <Link
           href="/store"
-          className="text-xs font-semibold text-brand-primary hover:underline"
+          className="text-xs font-semibold text-brand-primary hover:underline flex items-center gap-1"
         >
-          Explore →
+          Explore <ArrowRight className="w-3 h-3" />
         </Link>
-
       </td>
-
     </tr>
   )
 }
