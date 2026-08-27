@@ -16,10 +16,12 @@ export const useBrand = () => {
         .single()
 
       if (!error && data) {
-        setBrand(data)
-        document.documentElement.style.setProperty('--brand-primary', data.primary_color)
-        document.documentElement.style.setProperty('--brand-secondary', data.secondary_color)
-        document.documentElement.style.setProperty('--brand-accent', data.accent_color)
+        // Use type assertion to handle the unknown type
+        const brandData = data as BrandSettings
+        setBrand(brandData)
+        document.documentElement.style.setProperty('--brand-primary', brandData.primary_color)
+        document.documentElement.style.setProperty('--brand-secondary', brandData.secondary_color)
+        document.documentElement.style.setProperty('--brand-accent', brandData.accent_color)
       }
       setLoading(false)
     }
@@ -36,7 +38,8 @@ export const useBrand = () => {
       .single()
 
     if (!error && data) {
-      setBrand(data)
+      const brandData = data as BrandSettings
+      setBrand(brandData)
       if (updates.primary_color) {
         document.documentElement.style.setProperty('--brand-primary', updates.primary_color)
       }
@@ -46,7 +49,7 @@ export const useBrand = () => {
       if (updates.accent_color) {
         document.documentElement.style.setProperty('--brand-accent', updates.accent_color)
       }
-      return { success: true, data }
+      return { success: true, data: brandData }
     }
     return { success: false, error }
   }
