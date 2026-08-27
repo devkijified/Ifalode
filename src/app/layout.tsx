@@ -14,9 +14,12 @@ export async function generateMetadata(): Promise<Metadata> {
     .limit(1)
     .single()
 
+  // Use type assertion to handle the unknown type
+  const brandData = brand as any
+
   return {
-    title: brand?.meta_title || brand?.brand_name || 'IfaLode',
-    description: brand?.meta_description || 'Ifá Wisdom, Courses & Sacred Store',
+    title: brandData?.meta_title || brandData?.brand_name || 'IfaLode',
+    description: brandData?.meta_description || 'Ifá Wisdom, Courses & Sacred Store',
   }
 }
 
