@@ -58,14 +58,31 @@ export default function StorePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-950 via-stone-950 to-neutral-950 flex flex-col items-center justify-center text-amber-100 gap-6">
+      <div className="min-h-screen flex flex-col items-center justify-center gap-6" style={{ 
+        backgroundColor: '#0f172a',
+        color: 'var(--brand-secondary)'
+      }}>
         <div className="relative w-20 h-20">
-          <div className="absolute inset-0 rounded-full border-2 border-amber-600/30 animate-pulse" />
-          <div className="absolute inset-0 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />
-          <div className="absolute inset-0 flex items-center justify-center text-2xl">🪵</div>
+          <div 
+            className="absolute inset-0 rounded-full border-2 animate-pulse" 
+            style={{ borderColor: 'var(--brand-primary, #8B5E3C)' }}
+          />
+          <div 
+            className="absolute inset-0 rounded-full border-2 border-t-transparent animate-spin" 
+            style={{ 
+              borderColor: 'var(--brand-primary, #8B5E3C)',
+              borderTopColor: 'transparent'
+            }} 
+          />
+          <div className="absolute inset-0 flex items-center justify-center text-3xl">🪵</div>
         </div>
         <div className="text-center space-y-2">
-          <p className="text-amber-200 text-sm font-medium tracking-widest uppercase">Consulting the Oracle</p>
+          <p 
+            className="text-sm font-medium tracking-widest uppercase"
+            style={{ color: 'var(--brand-secondary, #D4A574)' }}
+          >
+            Consulting the Oracle
+          </p>
           <p className="text-stone-400 text-xs">Loading sacred knowledge...</p>
         </div>
       </div>
@@ -73,29 +90,54 @@ export default function StorePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-950 via-stone-950 to-neutral-950 text-stone-100 flex flex-col selection:bg-amber-700 selection:text-amber-50">
+    <div className="min-h-screen flex flex-col" style={{ 
+      backgroundColor: '#0f172a',
+      color: '#f1f5f9'
+    }}>
       {/* Top Navigation */}
-      <nav className="sticky top-0 z-50 backdrop-blur-xl bg-stone-950/80 border-b border-amber-900/50 shadow-2xl">
+      <nav className="sticky top-0 z-50 backdrop-blur-xl border-b shadow-2xl" style={{ 
+        backgroundColor: 'rgba(15, 23, 42, 0.8)',
+        borderColor: 'var(--brand-primary, #8B5E3C)'
+      }}>
         <div className="container mx-auto px-6 h-20 flex items-center justify-between">
           <Link href="/" className="group flex items-center gap-3">
             <span className="text-3xl">🪵</span>
             <div className="flex flex-col">
-              <span className="text-xl font-bold tracking-wider text-amber-100 group-hover:text-amber-200 transition">
+              <span 
+                className="text-xl font-bold tracking-wider transition"
+                style={{ color: 'var(--brand-secondary, #D4A574)' }}
+              >
                 {brand?.display_name || 'IFALODE'}
               </span>
-              <span className="text-[10px] uppercase tracking-widest text-amber-600/80">Digital Ifá Library</span>
+              <span className="text-[10px] uppercase tracking-widest" style={{ 
+                color: 'var(--brand-primary, #8B5E3C)',
+                opacity: 0.8
+              }}>
+                Digital Ifá Library
+              </span>
             </div>
           </Link>
           
           <div className="flex items-center gap-8">
             <div className="hidden md:flex items-center gap-6 text-sm font-medium">
-              <Link href="/store" className="text-amber-400 font-semibold transition">Store</Link>
-              <Link href="/courses" className="text-stone-400 hover:text-amber-200 transition">Courses</Link>
-              <Link href="/dashboard" className="text-stone-400 hover:text-amber-200 transition">Dashboard</Link>
+              <Link 
+                href="/store" 
+                className="font-semibold transition"
+                style={{ color: 'var(--brand-secondary, #D4A574)' }}
+              >
+                Store
+              </Link>
+              <Link href="/courses" className="text-stone-400 hover:text-white transition">Courses</Link>
+              <Link href="/dashboard" className="text-stone-400 hover:text-white transition">Dashboard</Link>
             </div>
             <Link 
               href="/login"
-              className="px-6 py-2.5 text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-amber-700 to-amber-800 text-amber-50 rounded-lg shadow-lg shadow-amber-900/40 hover:from-amber-600 hover:to-amber-700 hover:scale-[1.02] active:scale-[0.98] transition-all border border-amber-600/30"
+              className="px-6 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
+              style={{ 
+                background: 'linear-gradient(to right, var(--brand-primary, #8B5E3C), var(--brand-secondary, #D4A574))',
+                color: 'white',
+                boxShadow: '0 10px 25px -5px var(--brand-primary, #8B5E3C)'
+              }}
             >
               Sign In
             </Link>
@@ -104,23 +146,52 @@ export default function StorePage() {
       </nav>
 
       {/* Hero Header */}
-      <header className="relative overflow-hidden bg-gradient-to-b from-stone-900/80 via-amber-950/50 to-transparent border-b border-amber-900/30 pt-20 pb-16 px-6">
+      <header className="relative overflow-hidden border-b pt-20 pb-16 px-6" style={{ 
+        background: 'linear-gradient(to bottom, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 1))',
+        borderColor: 'var(--brand-primary, #8B5E3C)'
+      }}>
         {/* Decorative patterns */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-10">
-          <div className="absolute top-20 left-10 w-64 h-64 border border-amber-500/30 rounded-full" />
-          <div className="absolute top-40 right-20 w-96 h-96 border border-amber-600/20 rounded-full" />
-          <div className="absolute bottom-20 left-1/3 w-80 h-80 border border-amber-700/20 rounded-full" />
+          <div 
+            className="absolute top-20 left-10 w-64 h-64 border rounded-full" 
+            style={{ borderColor: 'var(--brand-primary, #8B5E3C)' }}
+          />
+          <div 
+            className="absolute top-40 right-20 w-96 h-96 border rounded-full" 
+            style={{ borderColor: 'var(--brand-primary, #8B5E3C)' }}
+          />
+          <div 
+            className="absolute bottom-20 left-1/3 w-80 h-80 border rounded-full" 
+            style={{ borderColor: 'var(--brand-primary, #8B5E3C)' }}
+          />
         </div>
 
         <div className="container mx-auto max-w-6xl relative z-10">
           <div className="text-center max-w-4xl mx-auto mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-900/30 border border-amber-700/40 text-amber-300 text-[10px] font-bold uppercase tracking-widest mb-6">
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+            <div 
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border text-[10px] font-bold uppercase tracking-widest mb-6"
+              style={{ 
+                backgroundColor: 'var(--brand-primary, #8B5E3C)',
+                borderColor: 'var(--brand-secondary, #D4A574)',
+                color: 'var(--brand-secondary, #D4A574)'
+              }}
+            >
+              <span 
+                className="w-2 h-2 rounded-full animate-pulse" 
+                style={{ backgroundColor: 'var(--brand-secondary, #D4A574)' }}
+              />
               Òrìṣà-Approved Knowledge
             </div>
-            <h1 className="text-5xl md:text-7xl font-black text-amber-50 tracking-tight mb-6 leading-tight">
+            <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6 leading-tight text-white">
               Sacred Texts & <br />
-              <span className="bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 bg-clip-text text-transparent">Divination Tools</span>
+              <span style={{ 
+                background: 'linear-gradient(to right, var(--brand-secondary, #D4A574), var(--brand-primary, #8B5E3C))',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}>
+                Divination Tools
+              </span>
             </h1>
             <p className="text-stone-400 text-base md:text-lg leading-relaxed mb-10 max-w-2xl mx-auto">
               Access authentic Ifá corpus, Odu verses, and spiritual guides from initiated Babalawo. 
@@ -129,7 +200,10 @@ export default function StorePage() {
 
             {/* Search */}
             <div className="max-w-2xl mx-auto relative group">
-              <span className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-amber-600/70 group-focus-within:text-amber-400 transition text-xl">
+              <span 
+                className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none transition text-xl"
+                style={{ color: 'var(--brand-primary, #8B5E3C)' }}
+              >
                 🔍
               </span>
               <input
@@ -137,12 +211,17 @@ export default function StorePage() {
                 placeholder="Search Odu, verses, e-books, or spiritual tools..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-14 pr-5 py-5 bg-stone-900/70 border border-amber-900/50 rounded-2xl text-amber-50 placeholder-stone-500 focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-700/20 transition shadow-2xl text-base"
+                className="w-full pl-14 pr-5 py-5 border rounded-2xl text-white placeholder-stone-500 focus:outline-none focus:ring-4 transition shadow-2xl text-base"
+                style={{ 
+                  backgroundColor: 'rgba(30, 41, 59, 0.7)',
+                  borderColor: 'var(--brand-primary, #8B5E3C)',
+                  '--tw-ring-color': 'var(--brand-primary, #8B5E3C)'
+                } as any}
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute inset-y-0 right-0 pr-5 flex items-center text-xs text-stone-500 hover:text-amber-300 transition"
+                  className="absolute inset-y-0 right-0 pr-5 flex items-center text-xs text-stone-500 hover:text-white transition"
                 >
                   Clear
                 </button>
@@ -152,25 +231,64 @@ export default function StorePage() {
 
           {/* Spotlight */}
           {spotlightProduct && !searchQuery && selectedCategory === 'All' && (
-            <div className="mt-12 bg-gradient-to-r from-stone-900/90 via-amber-950/50 to-stone-900/90 border border-amber-800/40 rounded-3xl p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-10 shadow-2xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 bg-gradient-to-r from-amber-700 to-amber-800 text-amber-50 text-[10px] font-bold uppercase px-5 py-2 rounded-bl-2xl tracking-widest shadow-lg border-b border-l border-amber-600/30">
+            <div 
+              className="mt-12 border rounded-3xl p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-10 shadow-2xl relative overflow-hidden"
+              style={{ 
+                background: 'linear-gradient(to right, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.5), rgba(15, 23, 42, 0.9))',
+                borderColor: 'var(--brand-primary, #8B5E3C)'
+              }}
+            >
+              <div 
+                className="absolute top-0 right-0 text-[10px] font-bold uppercase px-5 py-2 rounded-bl-2xl tracking-widest shadow-lg border-b border-l"
+                style={{ 
+                  background: 'linear-gradient(to right, var(--brand-primary, #8B5E3C), var(--brand-secondary, #D4A574))',
+                  color: 'white',
+                  borderColor: 'var(--brand-primary, #8B5E3C)'
+                }}
+              >
                 ✨ Featured Teaching
               </div>
               <div className="space-y-4 max-w-xl">
-                <span className="text-xs font-semibold text-amber-500 uppercase tracking-wider">Babalawo Recommended</span>
-                <h2 className="text-3xl md:text-4xl font-extrabold text-amber-50 leading-tight">{spotlightProduct.title}</h2>
-                <p className="text-stone-400 text-sm leading-relaxed line-clamp-3">{spotlightProduct.description}</p>
+                <span 
+                  className="text-xs font-semibold uppercase tracking-wider"
+                  style={{ color: 'var(--brand-secondary, #D4A574)' }}
+                >
+                  Babalawo Recommended
+                </span>
+                <h2 className="text-3xl md:text-4xl font-extrabold text-white leading-tight">
+                  {spotlightProduct.title}
+                </h2>
+                <p className="text-stone-400 text-sm leading-relaxed line-clamp-3">
+                  {spotlightProduct.description}
+                </p>
                 <div className="flex items-center gap-5 pt-3">
-                  <span className="text-2xl font-black text-amber-300">${spotlightProduct.price ?? '0.00'}</span>
+                  <span 
+                    className="text-2xl font-black"
+                    style={{ color: 'var(--brand-secondary, #D4A574)' }}
+                  >
+                    ${spotlightProduct.price ?? '0.00'}
+                  </span>
                   <Link
                     href={`/store/${spotlightProduct.id}`}
-                    className="px-8 py-3 bg-gradient-to-r from-amber-700 to-amber-800 hover:from-amber-600 hover:to-amber-700 text-amber-50 font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-lg shadow-amber-900/50 border border-amber-600/30"
+                    className="px-8 py-3 font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-lg border"
+                    style={{ 
+                      background: 'linear-gradient(to right, var(--brand-primary, #8B5E3C), var(--brand-secondary, #D4A574))',
+                      color: 'white',
+                      borderColor: 'var(--brand-primary, #8B5E3C)',
+                      boxShadow: '0 10px 25px -5px var(--brand-primary, #8B5E3C)'
+                    }}
                   >
                     Explore This Resource →
                   </Link>
                 </div>
               </div>
-              <div className="w-full md:w-80 h-52 rounded-2xl bg-gradient-to-br from-stone-900 to-amber-950/50 border border-amber-800/40 flex items-center justify-center text-6xl shadow-inner shrink-0">
+              <div 
+                className="w-full md:w-80 h-52 rounded-2xl border flex items-center justify-center text-6xl shadow-inner shrink-0"
+                style={{ 
+                  background: 'linear-gradient(to bottom right, #1e293b, rgba(15, 23, 42, 0.5))',
+                  borderColor: 'var(--brand-primary, #8B5E3C)'
+                }}
+              >
                 📿
               </div>
             </div>
@@ -181,7 +299,9 @@ export default function StorePage() {
       {/* Main Catalog */}
       <main className="flex-1 container mx-auto px-6 py-16 max-w-7xl">
         {/* Toolbar */}
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-12 pb-8 border-b border-amber-900/30">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-12 pb-8 border-b" style={{ 
+          borderColor: 'var(--brand-primary, #8B5E3C)'
+        }}>
           {/* Categories */}
           <div className="flex items-center gap-3 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-hide">
             {['All', 'E-Books', 'Odu Corpus', 'Divination Tools', 'Ritual Guides'].map((cat) => (
@@ -190,9 +310,20 @@ export default function StorePage() {
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
                   selectedCategory === cat
-                    ? 'bg-gradient-to-r from-amber-700 to-amber-800 text-amber-50 shadow-lg shadow-amber-900/40 scale-[1.02] border border-amber-600/40'
-                    : 'bg-stone-900/50 border border-amber-900/30 text-stone-400 hover:text-amber-200 hover:border-amber-700/50'
+                    ? 'scale-[1.02] border shadow-lg'
+                    : 'border text-stone-400 hover:text-white hover:border-opacity-50'
                 }`}
+                style={{ 
+                  ...(selectedCategory === cat ? {
+                    background: 'linear-gradient(to right, var(--brand-primary, #8B5E3C), var(--brand-secondary, #D4A574))',
+                    color: 'white',
+                    borderColor: 'var(--brand-primary, #8B5E3C)',
+                    boxShadow: '0 10px 25px -5px var(--brand-primary, #8B5E3C)'
+                  } : {
+                    backgroundColor: 'rgba(30, 41, 59, 0.5)',
+                    borderColor: 'var(--brand-primary, #8B5E3C)'
+                  })
+                }}
               >
                 {cat}
               </button>
@@ -201,11 +332,18 @@ export default function StorePage() {
 
           {/* Sort */}
           <div className="flex items-center gap-3 w-full md:w-auto justify-end">
-            <span className="text-xs text-stone-500 font-medium uppercase tracking-wider">Sort:</span>
+            <span className="text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--brand-secondary, #D4A574)' }}>
+              Sort:
+            </span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-stone-900/50 border border-amber-900/30 text-amber-100 text-xs font-semibold px-4 py-2.5 rounded-xl focus:outline-none focus:border-amber-600 transition cursor-pointer"
+              className="border text-xs font-semibold px-4 py-2.5 rounded-xl focus:outline-none transition cursor-pointer"
+              style={{ 
+                backgroundColor: 'rgba(30, 41, 59, 0.5)',
+                borderColor: 'var(--brand-primary, #8B5E3C)',
+                color: 'var(--brand-secondary, #D4A574)'
+              }}
             >
               <option value="newest">Latest Additions</option>
               <option value="price-low">Price: Low to High</option>
@@ -222,18 +360,35 @@ export default function StorePage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-32 bg-stone-900/40 border border-amber-900/30 rounded-3xl p-10 max-w-lg mx-auto">
-            <div className="w-20 h-20 rounded-2xl bg-amber-950/50 flex items-center justify-center text-5xl mx-auto mb-6 border border-amber-800/30">
+          <div 
+            className="text-center py-32 border rounded-3xl p-10 max-w-lg mx-auto"
+            style={{ 
+              backgroundColor: 'rgba(30, 41, 59, 0.4)',
+              borderColor: 'var(--brand-primary, #8B5E3C)'
+            }}
+          >
+            <div 
+              className="w-20 h-20 rounded-2xl flex items-center justify-center text-5xl mx-auto mb-6 border"
+              style={{ 
+                backgroundColor: 'rgba(15, 23, 42, 0.5)',
+                borderColor: 'var(--brand-primary, #8B5E3C)'
+              }}
+            >
               🔮
             </div>
-            <h3 className="text-xl font-bold text-amber-100 mb-3">No Results Found</h3>
+            <h3 className="text-xl font-bold text-white mb-3">No Results Found</h3>
             <p className="text-stone-400 text-sm leading-relaxed mb-8">
               The oracle did not reveal any resources matching your search. 
               Try different keywords or clear your filters.
             </p>
             <button
               onClick={() => { setSearchQuery(''); setSelectedCategory('All'); }}
-              className="px-6 py-3 bg-stone-800/80 hover:bg-stone-700/80 text-amber-100 rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-md border border-amber-900/30"
+              className="px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-md border"
+              style={{ 
+                backgroundColor: 'rgba(30, 41, 59, 0.8)',
+                borderColor: 'var(--brand-primary, #8B5E3C)',
+                color: 'var(--brand-secondary, #D4A574)'
+              }}
             >
               Reset Search
             </button>
@@ -242,18 +397,27 @@ export default function StorePage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-amber-900/30 py-12 text-xs text-stone-500 bg-stone-950/80">
+      <footer 
+        className="border-t py-12 text-xs bg-opacity-80"
+        style={{ 
+          borderColor: 'var(--brand-primary, #8B5E3C)',
+          backgroundColor: 'rgba(15, 23, 42, 0.8)',
+          color: 'var(--brand-secondary, #D4A574)'
+        }}
+      >
         <div className="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
             <span className="text-xl">🪵</span>
             <p>© {new Date().getFullYear()} {brand?.display_name || 'IFALODE'}. 
-            <span className="ml-2 text-amber-700/60">Preserving Ifá wisdom for future generations.</span></p>
+            <span className="ml-2" style={{ color: 'var(--brand-primary, #8B5E3C)', opacity: 0.6 }}>
+              Preserving Ifá wisdom for future generations.
+            </span></p>
           </div>
           <div className="flex gap-6 font-medium">
-            <Link href="/store" className="hover:text-amber-300 transition">Store</Link>
-            <Link href="/courses" className="hover:text-amber-300 transition">Courses</Link>
-            <Link href="/dashboard" className="hover:text-amber-300 transition">Dashboard</Link>
-            <Link href="/login" className="hover:text-amber-300 transition">Sign In</Link>
+            <Link href="/store" className="hover:text-white transition" style={{ color: 'var(--brand-secondary, #D4A574)' }}>Store</Link>
+            <Link href="/courses" className="hover:text-white transition" style={{ color: 'var(--brand-secondary, #D4A574)' }}>Courses</Link>
+            <Link href="/dashboard" className="hover:text-white transition" style={{ color: 'var(--brand-secondary, #D4A574)' }}>Dashboard</Link>
+            <Link href="/login" className="hover:text-white transition" style={{ color: 'var(--brand-secondary, #D4A574)' }}>Sign In</Link>
           </div>
         </div>
       </footer>
