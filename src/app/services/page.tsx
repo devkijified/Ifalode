@@ -106,11 +106,10 @@ export default function ServicesPage() {
     user?.user_metadata?.avatar_url ||
     null
 
-  // TODO: Replace these with your details
-  const PRIEST_NAME = 'Babalawo [Your Name]'
+  const PRIEST_NAME = 'Akinsoji Elebuibon'
   const PRIEST_TITLE = 'Ifá Priest'
   const TRADITION = 'Yoruba / Ifá tradition'
-  const LOCATION = 'your location'
+  const LOCATION = 'Nigeria, USA'
 
   const services: Service[] = [
     {
@@ -192,7 +191,7 @@ export default function ServicesPage() {
     <main className="min-h-screen bg-slate-950 text-slate-100">
 
       {/* =====================================================
-          HEADER (same pattern as homepage)
+          HEADER
       ===================================================== */}
 
       <header className="fixed top-0 inset-x-0 z-50">
@@ -400,9 +399,9 @@ export default function ServicesPage() {
 
             <p className="mt-6 max-w-2xl text-base sm:text-lg leading-8 text-slate-400">
 
-              As a priest of Ifá, I offer consultations, rituals, and ceremonies
-              to help you understand your path, restore balance, and walk in
-              alignment with your destiny.
+              As a priest of Ifá, Akinsoji Elebuibon offers consultations,
+              rituals, and ceremonies to help you understand your path, restore
+              balance, and walk in alignment with your destiny.
 
             </p>
 
@@ -524,7 +523,7 @@ export default function ServicesPage() {
                 </p>
 
                 <h2 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
-                  {PRIEST_NAME}
+                  Akinsoji Elebuibon
                   <br />
                   <span className="text-slate-500">
                     {PRIEST_TITLE}.
@@ -533,10 +532,10 @@ export default function ServicesPage() {
 
                 <p className="mt-5 max-w-lg text-slate-500 leading-7">
 
-                  I am a priest of Ifá serving from {LOCATION}. My work is
-                  dedicated to helping people understand their destiny, make
-                  aligned choices, and live in harmony with the wisdom of the
-                  Odu.
+                  Akinsoji Elebuibon is a priest of Ifá serving from Nigeria and
+                  the USA. His work is dedicated to helping people understand
+                  their destiny, make aligned choices, and live in harmony with
+                  the wisdom of the Odu.
 
                 </p>
 
@@ -544,7 +543,7 @@ export default function ServicesPage() {
                   href="/about"
                   className="inline-flex items-center gap-2 mt-8 px-5 py-3 rounded-xl bg-brand-primary text-white text-sm font-semibold hover:opacity-90 transition"
                 >
-                  Learn more about me
+                  Learn more about Akinsoji
                   <span>→</span>
                 </Link>
 
@@ -603,7 +602,7 @@ export default function ServicesPage() {
 
 
       {/* =====================================================
-          FOOTER (same pattern as homepage)
+          FOOTER
       ===================================================== */}
 
       <footer className="border-t border-slate-900 bg-slate-950">
