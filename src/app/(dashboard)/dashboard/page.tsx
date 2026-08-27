@@ -1,239 +1,10 @@
 'use client'
 
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useBrand } from '@/hooks/useBrand'
-
-/* =========================================================
-   SVG ICONS
-========================================================= */
-
-type IconProps = {
-  size?: number
-  strokeWidth?: number
-  className?: string
-}
-
-function Icon({
-  children,
-  size = 20,
-  strokeWidth = 1.8,
-  className = '',
-}: IconProps & { children: ReactNode }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      stroke="currentColor"
-      strokeWidth={strokeWidth}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      {children}
-    </svg>
-  )
-}
-
-function DashboardIcon(props: IconProps) {
-  return (
-    <Icon {...props}>
-      <rect x="3" y="3" width="7" height="7" rx="1" />
-      <rect x="14" y="3" width="7" height="7" rx="1" />
-      <rect x="3" y="14" width="7" height="7" rx="1" />
-      <rect x="14" y="14" width="7" height="7" rx="1" />
-    </Icon>
-  )
-}
-
-function BookIcon(props: IconProps) {
-  return (
-    <Icon {...props}>
-      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21V5.5Z" />
-      <path d="M4 5.5V21" />
-      <path d="M8 7h8" />
-      <path d="M8 11h7" />
-    </Icon>
-  )
-}
-
-function GraduationIcon(props: IconProps) {
-  return (
-    <Icon {...props}>
-      <path d="m3 9 9-5 9 5-9 5-9-5Z" />
-      <path d="M7 11.2V16c2.7 2.2 7.3 2.2 10 0v-4.8" />
-      <path d="M21 9v6" />
-    </Icon>
-  )
-}
-
-function ChartIcon(props: IconProps) {
-  return (
-    <Icon {...props}>
-      <path d="M4 19V5" />
-      <path d="M4 19h17" />
-      <path d="m7 15 3-4 3 2 5-7" />
-      <path d="M15 6h3v3" />
-    </Icon>
-  )
-}
-
-function CartIcon(props: IconProps) {
-  return (
-    <Icon {...props}>
-      <path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 1.9-1.5L20 8H6" />
-      <circle cx="9" cy="20" r="1" />
-      <circle cx="18" cy="20" r="1" />
-    </Icon>
-  )
-}
-
-function UserIcon(props: IconProps) {
-  return (
-    <Icon {...props}>
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 21a8 8 0 0 1 16 0" />
-    </Icon>
-  )
-}
-
-function SettingsIcon(props: IconProps) {
-  return (
-    <Icon {...props}>
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.1h-2.6V20a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H4v-2.6h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V5h2.6v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.1v2.6h-.1a1.7 1.7 0 0 0-1.6 1Z" />
-    </Icon>
-  )
-}
-
-function BellIcon(props: IconProps) {
-  return (
-    <Icon {...props}>
-      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z" />
-      <path d="M10 21h4" />
-    </Icon>
-  )
-}
-
-function SearchIcon(props: IconProps) {
-  return (
-    <Icon {...props}>
-      <circle cx="10.8" cy="10.8" r="6.8" />
-      <path d="m16 16 5 5" />
-    </Icon>
-  )
-}
-
-function MenuIcon(props: IconProps) {
-  return (
-    <Icon {...props}>
-      <path d="M4 6h16" />
-      <path d="M4 12h16" />
-      <path d="M4 18h16" />
-    </Icon>
-  )
-}
-
-function ArrowRightIcon(props: IconProps) {
-  return (
-    <Icon {...props}>
-      <path d="M5 12h14" />
-      <path d="m13 6 6 6-6 6" />
-    </Icon>
-  )
-}
-
-function ArrowUpIcon(props: IconProps) {
-  return (
-    <Icon {...props}>
-      <path d="M12 19V5" />
-      <path d="m6 11 6-6 6 6" />
-    </Icon>
-  )
-}
-
-function LogOutIcon(props: IconProps) {
-  return (
-    <Icon {...props}>
-      <path d="M10 17l5-5-5-5" />
-      <path d="M15 12H3" />
-      <path d="M21 3v18" />
-    </Icon>
-  )
-}
-
-function TargetIcon(props: IconProps) {
-  return (
-    <Icon {...props}>
-      <circle cx="12" cy="12" r="8" />
-      <circle cx="12" cy="12" r="4" />
-      <circle cx="12" cy="12" r="1" />
-    </Icon>
-  )
-}
-
-function PlayIcon(props: IconProps) {
-  return (
-    <Icon {...props}>
-      <path d="m9 6 9 6-9 6V6Z" />
-    </Icon>
-  )
-}
-
-function StarIcon(props: IconProps) {
-  return (
-    <Icon {...props}>
-      <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z" />
-    </Icon>
-  )
-}
-
-function CheckIcon(props: IconProps) {
-  return (
-    <Icon {...props}>
-      <path d="m5 12 4 4L19 6" />
-    </Icon>
-  )
-}
-
-function MoreIcon(props: IconProps) {
-  return (
-    <Icon {...props}>
-      <circle cx="5" cy="12" r="1" fill="currentColor" />
-      <circle cx="12" cy="12" r="1" fill="currentColor" />
-      <circle cx="19" cy="12" r="1" fill="currentColor" />
-    </Icon>
-  )
-}
-
-function LockIcon(props: IconProps) {
-  return (
-    <Icon {...props}>
-      <rect x="5" y="10" width="14" height="11" rx="2" />
-      <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-    </Icon>
-  )
-}
-
-function SparkleIcon(props: IconProps) {
-  return (
-    <Icon {...props}>
-      <path d="m12 3 1.4 5.6L19 10l-5.6 1.4L12 17l-1.4-5.6L5 10l5.6-1.4L12 3Z" />
-      <path d="m19 16 .6 2.4L22 19l-2.4.6L19 22l-.6-2.4L16 19l2.4-.6L19 16Z" />
-    </Icon>
-  )
-}
-
-
-/* =========================================================
-   DASHBOARD
-========================================================= */
 
 export default function DashboardPage() {
   const { brand } = useBrand()
@@ -271,8 +42,8 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-10 h-10 rounded-full border-2 border-brand-primary border-t-transparent animate-spin mx-auto mb-4" />
-          <p className="text-slate-400 text-sm">Loading dashboard...</p>
+          <div className="w-10 h-10 border-2 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-slate-400">Loading dashboard...</p>
         </div>
       </div>
     )
@@ -288,28 +59,24 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
 
-      {/* =====================================================
-          HEADER
-      ===================================================== */}
+      {/* ================= TOP HEADER ================= */}
+      <header className="fixed top-0 left-0 right-0 z-50 h-[72px] bg-slate-900/95 backdrop-blur-xl border-b border-slate-800">
 
-      <header className="fixed inset-x-0 top-0 z-50 h-[72px] bg-slate-900/95 backdrop-blur-xl border-b border-slate-800">
+        <div className="h-full flex items-center">
 
-        <div className="h-full flex">
-
-          {/* Brand */}
+          {/* Logo / Sidebar area */}
           <div
-            className={`h-full border-r border-slate-800 flex items-center transition-all duration-300 ${
-              sidebarOpen ? 'w-[250px]' : 'w-[78px]'
+            className={`h-full flex items-center border-r border-slate-800 transition-all duration-300 ${
+              sidebarOpen ? 'w-[250px]' : 'w-[80px]'
             }`}
           >
-
-            <div className="w-full px-5 flex items-center gap-3">
+            <div className="w-full px-5 flex items-center gap-4">
 
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="w-9 h-9 shrink-0 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                className="w-9 h-9 rounded-lg hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition"
               >
-                <MenuIcon size={19} />
+                ☰
               </button>
 
               {sidebarOpen && (
@@ -322,421 +89,358 @@ export default function DashboardPage() {
               )}
 
             </div>
-
           </div>
 
+          {/* Header content */}
+          <div className="flex-1 h-full flex items-center justify-between px-6">
 
-          {/* Header right */}
-          <div className="flex-1 flex items-center justify-between px-5 md:px-7">
-
-            <div className="hidden md:flex items-center gap-2 text-sm">
-              <span className="text-brand-primary font-medium">
+            <div className="hidden md:flex items-center gap-2 text-sm text-slate-400">
+              <Link href="/dashboard" className="text-brand-primary">
                 Dashboard
-              </span>
-              <span className="text-slate-700">/</span>
-              <span className="text-slate-500">
-                Overview
-              </span>
+              </Link>
+              <span>/</span>
+              <span>Overview</span>
             </div>
-
 
             <div className="flex items-center gap-3 ml-auto">
 
               {/* Search */}
-              <div className="hidden lg:flex w-60 xl:w-72 h-10 rounded-lg bg-slate-950 border border-slate-800 items-center px-3">
-
-                <SearchIcon
-                  size={17}
-                  className="text-slate-600 shrink-0"
-                />
-
+              <div className="hidden lg:flex items-center w-64 h-10 bg-slate-950 border border-slate-800 rounded-lg px-3">
+                <span className="text-slate-500 mr-2">⌕</span>
                 <input
                   type="text"
                   placeholder="Search..."
-                  className="w-full bg-transparent outline-none border-none text-sm text-white placeholder:text-slate-600 ml-2"
+                  className="bg-transparent outline-none text-sm w-full text-slate-200 placeholder:text-slate-600"
                 />
-
               </div>
 
-
-              {/* Notification */}
-              <button className="relative w-10 h-10 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-800 hover:text-white transition">
-
-                <BellIcon size={19} />
-
+              {/* Notifications */}
+              <button className="relative w-10 h-10 rounded-lg hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition">
+                🔔
                 <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-brand-primary" />
-
               </button>
 
-
               {/* User */}
-              <div className="border-l border-slate-800 pl-3 flex items-center gap-3">
+              <div className="flex items-center gap-3 pl-3 border-l border-slate-800">
 
                 <div className="hidden sm:block text-right">
                   <p className="text-sm font-semibold text-white">
                     {fullName}
                   </p>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-xs text-slate-500">
                     Student
                   </p>
                 </div>
 
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center text-white font-bold">
+                <button className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center font-bold text-white">
                   {firstName.charAt(0).toUpperCase()}
-                </div>
+                </button>
 
               </div>
 
             </div>
-
           </div>
-
         </div>
-
       </header>
 
 
-      {/* =====================================================
-          SIDEBAR
-      ===================================================== */}
-
+      {/* ================= SIDEBAR ================= */}
       <aside
-        className={`fixed top-[72px] bottom-0 left-0 z-40 bg-slate-900 border-r border-slate-800 transition-all duration-300 ${
-          sidebarOpen ? 'w-[250px]' : 'w-[78px]'
+        className={`fixed left-0 top-[72px] bottom-0 z-40 bg-slate-900 border-r border-slate-800 transition-all duration-300 ${
+          sidebarOpen ? 'w-[250px]' : 'w-[80px]'
         }`}
       >
 
         <div className="h-full flex flex-col">
 
-          <nav className="flex-1 overflow-y-auto px-3 py-6">
+          <nav className="flex-1 px-3 py-6 overflow-y-auto">
 
             {sidebarOpen && (
-              <p className="px-3 mb-3 text-[10px] uppercase tracking-[0.15em] font-bold text-slate-600">
-                Main Menu
+              <p className="px-3 mb-3 text-[10px] uppercase tracking-widest font-bold text-slate-600">
+                Dashboard & Apps
               </p>
             )}
 
             <SidebarLink
               href="/dashboard"
+              icon="▦"
               label="Dashboard"
-              icon={<DashboardIcon size={19} />}
               active
               collapsed={!sidebarOpen}
             />
 
             <SidebarLink
               href="/store"
+              icon="🛒"
               label="Store"
-              icon={<CartIcon size={19} />}
               collapsed={!sidebarOpen}
             />
 
             <SidebarLink
               href="/courses"
+              icon="🎓"
               label="Courses"
-              icon={<GraduationIcon size={19} />}
               collapsed={!sidebarOpen}
             />
 
             <SidebarLink
               href="/dashboard"
-              label="My Library"
-              icon={<BookIcon size={19} />}
+              icon="📚"
+              label="My Learning"
               collapsed={!sidebarOpen}
             />
 
             <SidebarLink
               href="/dashboard"
-              label="My Progress"
-              icon={<ChartIcon size={19} />}
+              icon="📊"
+              label="Progress"
               collapsed={!sidebarOpen}
             />
 
             {sidebarOpen && (
-              <p className="px-3 mt-8 mb-3 text-[10px] uppercase tracking-[0.15em] font-bold text-slate-600">
+              <p className="px-3 mt-8 mb-3 text-[10px] uppercase tracking-widest font-bold text-slate-600">
                 Account
               </p>
             )}
 
             <SidebarLink
               href="/profile"
+              icon="👤"
               label="Profile"
-              icon={<UserIcon size={19} />}
               collapsed={!sidebarOpen}
             />
 
             <SidebarLink
               href="/settings"
+              icon="⚙"
               label="Settings"
-              icon={<SettingsIcon size={19} />}
               collapsed={!sidebarOpen}
             />
 
           </nav>
 
-
+          {/* Sidebar footer */}
           <div className="p-3 border-t border-slate-800">
 
             <button
               onClick={signOut}
-              title={!sidebarOpen ? 'Sign Out' : undefined}
               className={`w-full flex items-center ${
-                sidebarOpen
-                  ? 'justify-start px-3'
-                  : 'justify-center'
+                sidebarOpen ? 'justify-start px-3' : 'justify-center'
               } gap-3 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition`}
             >
-              <LogOutIcon size={19} />
-
+              <span>↪</span>
               {sidebarOpen && (
-                <span className="text-sm font-medium">
-                  Sign Out
-                </span>
+                <span className="text-sm font-medium">Sign Out</span>
               )}
-
             </button>
 
           </div>
 
         </div>
-
       </aside>
 
 
-      {/* =====================================================
-          MAIN
-      ===================================================== */}
-
+      {/* ================= MAIN CONTENT ================= */}
       <main
-        className={`pt-[72px] transition-all duration-300 ${
-          sidebarOpen ? 'ml-[250px]' : 'ml-[78px]'
+        className={`pt-[72px] min-h-screen transition-all duration-300 ${
+          sidebarOpen ? 'ml-[250px]' : 'ml-[80px]'
         }`}
       >
 
-        <div className="max-w-[1600px] mx-auto px-5 md:px-7 lg:px-8 py-7">
+        <div className="p-5 md:p-7 lg:p-8 max-w-[1600px] mx-auto">
 
+          {/* ================= WELCOME HERO ================= */}
+          <div className="grid xl:grid-cols-[1fr_280px] gap-5 mb-7">
 
-          {/* =================================================
-              WELCOME
-          ================================================= */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-brand-primary to-brand-secondary p-7 md:p-8">
 
-          <div className="grid xl:grid-cols-[1fr_290px] gap-5 mb-8">
+              {/* Decorative shapes */}
+              <div className="absolute -right-20 -top-20 w-64 h-64 rounded-full bg-white/10" />
+              <div className="absolute right-20 -bottom-28 w-48 h-48 rounded-full bg-white/5" />
 
-            <section className="relative min-h-[250px] overflow-hidden rounded-2xl bg-gradient-to-r from-brand-primary to-brand-secondary">
+              <div className="relative z-10 max-w-3xl">
 
-              {/* SVG decorative background */}
-              <svg
-                className="absolute right-0 top-0 h-full w-[45%] opacity-10"
-                viewBox="0 0 500 300"
-                preserveAspectRatio="none"
-              >
-                <circle cx="420" cy="50" r="170" fill="white" />
-                <circle cx="330" cy="280" r="120" fill="white" />
-              </svg>
-
-              <div className="relative z-10 p-7 md:p-9">
-
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/10 text-white text-[11px] font-semibold mb-5">
-
-                  <SparkleIcon size={13} />
-
+                <span className="inline-flex px-3 py-1 rounded-full bg-white/15 text-white text-xs font-semibold mb-4">
                   Your Learning Dashboard
-
-                </div>
+                </span>
 
                 <h1 className="text-2xl md:text-3xl font-bold text-white mb-3">
                   Hello {firstName}, Welcome Back!
                 </h1>
 
-                <p className="max-w-xl text-sm md:text-[15px] leading-6 text-white/70">
+                <p className="text-white/70 text-sm md:text-base max-w-2xl">
                   Continue your learning journey, explore new courses,
                   and discover more knowledge from your personal dashboard.
                 </p>
 
-                <div className="flex flex-wrap gap-3 mt-7">
-
+                <div className="flex flex-wrap gap-3 mt-6">
                   <Link
                     href="/courses"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white text-slate-900 text-sm font-semibold hover:bg-slate-100 transition"
+                    className="px-5 py-2.5 bg-white text-slate-900 rounded-lg text-sm font-semibold hover:bg-slate-100 transition"
                   >
                     Continue Learning
-                    <ArrowRightIcon size={15} />
                   </Link>
 
                   <Link
                     href="/store"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white text-sm font-semibold hover:bg-white/20 transition"
+                    className="px-5 py-2.5 bg-white/10 border border-white/20 text-white rounded-lg text-sm font-semibold hover:bg-white/20 transition"
                   >
-                    Visit Store
-                    <CartIcon size={15} />
+                    Browse Store
                   </Link>
-
                 </div>
 
               </div>
+            </div>
 
-            </section>
+            {/* Create / explore card */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-center text-center">
 
-
-            {/* Quick action */}
-            <section className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-center">
-
-              <div className="w-12 h-12 rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center mb-4">
-                <SparkleIcon size={23} />
+              <div className="w-12 h-12 rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center mx-auto mb-4 text-xl">
+                ✦
               </div>
 
               <h3 className="font-bold text-lg mb-2">
-                Discover Something New
+                Have more to learn?
               </h3>
 
-              <p className="text-sm leading-5 text-slate-500 mb-5">
-                Explore new courses and ebooks designed to expand your knowledge.
+              <p className="text-sm text-slate-500 mb-5">
+                Explore our latest courses and ebooks.
               </p>
 
               <Link
                 href="/courses"
-                className="inline-flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-brand-primary text-white text-sm font-semibold hover:opacity-90 transition"
+                className="w-full py-2.5 rounded-lg bg-brand-primary text-white text-sm font-semibold hover:opacity-90 transition"
               >
                 Explore Courses
-                <ArrowRightIcon size={15} />
               </Link>
 
-            </section>
+            </div>
 
           </div>
 
 
-          {/* =================================================
-              COURSES
-          ================================================= */}
-
+          {/* ================= MY COURSES ================= */}
           <SectionHeader
             title="Your Courses"
             action="View All"
             href="/courses"
           />
 
-          <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-5 mb-9">
+          <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
 
             <CourseCard
               title="Getting Started"
-              category="Learning"
               status="Active"
-              progress={65}
-              lessons="12 Lessons"
-              icon={<BookIcon size={25} />}
+              progress="65%"
+              remaining="12 Lessons"
+              icon="📘"
+              color="primary"
             />
 
             <CourseCard
               title="Personal Development"
-              category="Development"
               status="Active"
-              progress={42}
-              lessons="18 Lessons"
-              icon={<TargetIcon size={25} />}
+              progress="42%"
+              remaining="18 Lessons"
+              icon="🧠"
+              color="purple"
             />
 
             <CourseCard
               title="Business Masterclass"
-              category="Business"
               status="Finished"
-              progress={100}
-              lessons="Completed"
-              icon={<ChartIcon size={25} />}
+              progress="100%"
+              remaining="Completed"
+              icon="💼"
+              color="green"
             />
 
             <CourseCard
               title="Digital Skills"
-              category="Technology"
               status="Paused"
-              progress={28}
-              lessons="24 Lessons"
-              icon={<PlayIcon size={25} />}
+              progress="28%"
+              remaining="24 Lessons"
+              icon="💻"
+              color="orange"
             />
 
           </div>
 
 
-          {/* =================================================
-              STATISTICS
-          ================================================= */}
-
-          <div className="grid md:grid-cols-3 gap-5 mb-9">
+          {/* ================= STATISTICS ================= */}
+          <div className="grid lg:grid-cols-3 gap-5 mb-8">
 
             <StatCard
-              label="My Ebooks"
+              label="Total Ebooks"
               value="0"
-              description="Ebooks purchased"
-              icon={<BookIcon size={21} />}
+              change="Start building your library"
+              icon="📚"
+              positive
             />
 
             <StatCard
-              label="My Courses"
+              label="Courses Enrolled"
               value="0"
-              description="Courses enrolled"
-              icon={<GraduationIcon size={21} />}
+              change="Explore courses to begin"
+              icon="🎓"
+              positive
             />
 
             <StatCard
               label="Learning Progress"
               value="0%"
-              description="Average completion"
-              icon={<ChartIcon size={21} />}
+              change="Average completion"
+              icon="📈"
+              positive
             />
 
           </div>
 
 
-          {/* =================================================
-              PERFORMANCE
-          ================================================= */}
-
+          {/* ================= PERFORMANCE ================= */}
           <SectionHeader
             title="Performance & Statistics"
             action="This Month"
           />
 
-          <div className="grid xl:grid-cols-[1.15fr_1fr] gap-5 mb-9">
+          <div className="grid xl:grid-cols-[1.2fr_1fr] gap-5 mb-8">
 
+            {/* Course completion */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl">
 
-            {/* Completion */}
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
-
-              <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
-
-                <h3 className="font-bold text-sm">
+              <div className="flex items-center justify-between p-5 border-b border-slate-800">
+                <h3 className="font-bold">
                   Course Completion
                 </h3>
 
-                <button className="text-xs text-brand-primary font-medium hover:underline">
-                  View Details
+                <button className="text-xs px-3 py-1.5 rounded-lg bg-brand-primary/10 text-brand-primary">
+                  View All
                 </button>
-
               </div>
 
-              <div className="p-5 space-y-7">
+              <div className="p-5 space-y-6">
 
-                <ProgressRow
+                <ProgressItem
                   label="In Progress"
-                  count="0 Courses"
+                  users="0 Courses"
                   percentage={0}
                 />
 
-                <ProgressRow
+                <ProgressItem
                   label="Completed"
-                  count="0 Courses"
+                  users="0 Courses"
                   percentage={0}
                 />
 
-                <ProgressRow
+                <ProgressItem
                   label="Not Started"
-                  count="0 Courses"
+                  users="0 Courses"
                   percentage={0}
                 />
 
-                <ProgressRow
-                  label="Paused"
-                  count="0 Courses"
+                <ProgressItem
+                  label="Expired"
+                  users="0 Courses"
                   percentage={0}
                 />
 
@@ -745,78 +449,52 @@ export default function DashboardPage() {
             </div>
 
 
-            {/* Donut */}
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+            {/* Learning overview */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl">
 
-              <div className="px-5 py-4 border-b border-slate-800">
-                <h3 className="font-bold text-sm">
+              <div className="p-5 border-b border-slate-800">
+                <h3 className="font-bold">
                   Learning Overview
                 </h3>
               </div>
 
-              <div className="p-6">
+              <div className="p-5">
 
-                <div className="h-[210px] flex items-center justify-center">
+                <div className="h-56 flex items-center justify-center">
 
                   <div className="relative w-40 h-40">
 
-                    <svg
-                      className="w-full h-full -rotate-90"
-                      viewBox="0 0 120 120"
-                    >
+                    <div className="absolute inset-0 rounded-full border-[14px] border-slate-800" />
 
-                      <circle
-                        cx="60"
-                        cy="60"
-                        r="48"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="13"
-                        className="text-slate-800"
-                      />
-
-                      <circle
-                        cx="60"
-                        cy="60"
-                        r="48"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="13"
-                        strokeDasharray="301.6"
-                        strokeDashoffset="301.6"
-                        strokeLinecap="round"
-                        className="text-brand-primary"
-                      />
-
-                    </svg>
+                    <div
+                      className="absolute inset-0 rounded-full border-[14px] border-brand-primary"
+                      style={{
+                        clipPath:
+                          'polygon(50% 0, 100% 0, 100% 100%, 50% 100%)',
+                      }}
+                    />
 
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-
-                      <span className="text-3xl font-bold">
-                        0%
-                      </span>
-
-                      <span className="text-[11px] text-slate-500">
+                      <span className="text-3xl font-bold">0%</span>
+                      <span className="text-xs text-slate-500">
                         Completed
                       </span>
-
                     </div>
 
                   </div>
 
                 </div>
 
-                <div className="flex items-center justify-center gap-6">
+                <div className="flex justify-center gap-6 text-xs text-slate-400">
+                  <span className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-brand-primary" />
+                    Completed
+                  </span>
 
-                  <Legend
-                    label="Completed"
-                    active
-                  />
-
-                  <Legend
-                    label="Remaining"
-                  />
-
+                  <span className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-slate-700" />
+                    Remaining
+                  </span>
                 </div>
 
               </div>
@@ -826,15 +504,11 @@ export default function DashboardPage() {
           </div>
 
 
-          {/* =================================================
-              LESSONS + ACTIVITY
-          ================================================= */}
-
-          <div className="grid xl:grid-cols-[1.1fr_1fr] gap-7 mb-9">
-
+          {/* ================= LESSONS + ACTIVITY ================= */}
+          <div className="grid xl:grid-cols-[1.2fr_1fr] gap-5 mb-8">
 
             {/* Lessons */}
-            <section>
+            <div>
 
               <SectionHeader
                 title="Lessons"
@@ -847,62 +521,62 @@ export default function DashboardPage() {
                 <LessonCard
                   title="Introduction to Learning"
                   subtitle="Start your learning journey"
-                  icon={<BookIcon size={21} />}
-                  type="Learning"
+                  icon="📖"
+                  color="orange"
                 />
 
                 <LessonCard
                   title="Building Better Habits"
                   subtitle="Personal development"
-                  icon={<SparkleIcon size={21} />}
-                  type="Development"
+                  icon="✦"
+                  color="primary"
                 />
 
                 <LessonCard
                   title="Understanding Your Goals"
                   subtitle="Personal development"
-                  icon={<TargetIcon size={21} />}
-                  type="Goals"
+                  icon="🎯"
+                  color="red"
                 />
 
               </div>
 
-            </section>
+            </div>
 
 
-            {/* Activity */}
-            <section>
+            {/* Recent Activity */}
+            <div>
 
               <SectionHeader
                 title="Recent Activity"
                 action="View All"
               />
 
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl divide-y divide-slate-800">
 
                 <ActivityItem
-                  icon={<BookIcon size={18} />}
+                  icon="📚"
                   title="New ebook available"
                   description="Check out the latest addition to the store."
                   time="Today"
                 />
 
                 <ActivityItem
-                  icon={<GraduationIcon size={18} />}
+                  icon="🎓"
                   title="Course enrollment"
                   description="Your learning journey is ready to continue."
                   time="Yesterday"
                 />
 
                 <ActivityItem
-                  icon={<CheckIcon size={18} />}
+                  icon="✓"
                   title="Profile updated"
                   description="Your account information was updated."
                   time="3 days ago"
                 />
 
                 <ActivityItem
-                  icon={<StarIcon size={18} />}
+                  icon="⭐"
                   title="Welcome to Ifalode"
                   description="Explore everything available to you."
                   time="1 week ago"
@@ -910,65 +584,57 @@ export default function DashboardPage() {
 
               </div>
 
-            </section>
+            </div>
 
           </div>
 
 
-          {/* =================================================
-              LIBRARY
-          ================================================= */}
-
+          {/* ================= MEDIA / PURCHASED CONTENT ================= */}
           <SectionHeader
             title="Your Library"
-            action="Browse Store"
+            action="View All"
             href="/store"
           />
 
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden mb-9">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl mb-8 overflow-hidden">
 
             <div className="overflow-x-auto">
 
               <table className="w-full min-w-[700px]">
 
                 <thead>
-
-                  <tr className="border-b border-slate-800">
-
-                    <th className="text-left px-5 py-4 text-[10px] uppercase tracking-wider text-slate-600">
+                  <tr className="border-b border-slate-800 text-left">
+                    <th className="px-5 py-4 text-xs uppercase tracking-wide text-slate-500">
                       Content
                     </th>
-
-                    <th className="text-left px-5 py-4 text-[10px] uppercase tracking-wider text-slate-600">
+                    <th className="px-5 py-4 text-xs uppercase tracking-wide text-slate-500">
                       Type
                     </th>
-
-                    <th className="text-left px-5 py-4 text-[10px] uppercase tracking-wider text-slate-600">
+                    <th className="px-5 py-4 text-xs uppercase tracking-wide text-slate-500">
                       Status
                     </th>
-
-                    <th className="text-right px-5 py-4 text-[10px] uppercase tracking-wider text-slate-600">
-                      Action
+                    <th className="px-5 py-4 text-xs uppercase tracking-wide text-slate-500">
+                      Access
                     </th>
-
                   </tr>
-
                 </thead>
 
                 <tbody>
 
                   <LibraryRow
-                    icon={<BookIcon size={18} />}
                     title="No ebooks purchased yet"
                     subtitle="Visit the store to build your library"
+                    icon="A1"
                     type="Ebook"
+                    status="Available"
                   />
 
                   <LibraryRow
-                    icon={<GraduationIcon size={18} />}
                     title="No courses enrolled yet"
                     subtitle="Explore courses to get started"
+                    icon="B1"
                     type="Course"
+                    status="Available"
                   />
 
                 </tbody>
@@ -980,123 +646,79 @@ export default function DashboardPage() {
           </div>
 
 
-          {/* =================================================
-              CTA
-          ================================================= */}
-
-          <div className="grid md:grid-cols-2 gap-5 mb-9">
+          {/* ================= BOTTOM ACTIONS ================= */}
+          <div className="grid md:grid-cols-2 gap-5 mb-8">
 
             <Link
               href="/store"
-              className="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-red-600 to-red-500 p-6"
+              className="group rounded-2xl p-6 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 transition"
             >
+              <div className="flex items-center gap-5">
 
-              <div className="absolute right-[-30px] top-[-50px] w-44 h-44 rounded-full bg-white/10" />
-
-              <div className="relative flex items-center gap-5">
-
-                <div className="w-14 h-14 shrink-0 rounded-full border border-white/25 flex items-center justify-center text-white">
-                  <CartIcon size={24} />
+                <div className="w-16 h-16 rounded-full border border-white/30 flex items-center justify-center text-2xl">
+                  🛒
                 </div>
 
-                <div className="flex-1">
-
+                <div>
                   <h3 className="font-bold text-lg text-white">
                     Browse the Store
                   </h3>
 
-                  <p className="text-sm text-white/65 mt-1">
-                    Discover ebooks and learning resources.
+                  <p className="text-sm text-white/70 mt-1">
+                    Discover ebooks and learning resources
                   </p>
-
                 </div>
 
-                <ArrowRightIcon
-                  size={20}
-                  className="text-white/60 group-hover:translate-x-1 transition-transform"
-                />
-
               </div>
-
             </Link>
 
 
             <Link
               href="/courses"
-              className="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-brand-primary to-brand-secondary p-6"
+              className="group rounded-2xl p-6 bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-95 transition"
             >
+              <div className="flex items-center gap-5">
 
-              <div className="absolute right-[-30px] top-[-50px] w-44 h-44 rounded-full bg-white/10" />
-
-              <div className="relative flex items-center gap-5">
-
-                <div className="w-14 h-14 shrink-0 rounded-full border border-white/25 flex items-center justify-center text-white">
-                  <GraduationIcon size={24} />
+                <div className="w-16 h-16 rounded-full border border-white/30 flex items-center justify-center text-2xl">
+                  🎓
                 </div>
 
-                <div className="flex-1">
-
+                <div>
                   <h3 className="font-bold text-lg text-white">
                     Explore Courses
                   </h3>
 
-                  <p className="text-sm text-white/65 mt-1">
-                    Continue your education and grow your skills.
+                  <p className="text-sm text-white/70 mt-1">
+                    Continue your education and grow your skills
                   </p>
-
                 </div>
 
-                <ArrowRightIcon
-                  size={20}
-                  className="text-white/60 group-hover:translate-x-1 transition-transform"
-                />
-
               </div>
-
             </Link>
 
           </div>
 
 
-          {/* =================================================
-              FOOTER
-          ================================================= */}
-
-          <footer className="border-t border-slate-800 pt-6 pb-3 flex flex-col md:flex-row items-center justify-between gap-4">
-
-            <p className="text-xs text-slate-600">
+          {/* Footer */}
+          <footer className="border-t border-slate-800 pt-6 pb-4 flex flex-col md:flex-row justify-between gap-3 text-xs text-slate-600">
+            <p>
               © {new Date().getFullYear()} {brand?.display_name || 'Ifalode'}. All rights reserved.
             </p>
 
-            <div className="flex items-center gap-5 text-xs text-slate-600">
-
-              <Link
-                href="/store"
-                className="hover:text-slate-400 transition"
-              >
+            <div className="flex gap-5">
+              <Link href="/store" className="hover:text-slate-400">
                 Store
               </Link>
-
-              <Link
-                href="/courses"
-                className="hover:text-slate-400 transition"
-              >
+              <Link href="/courses" className="hover:text-slate-400">
                 Courses
               </Link>
-
-              <Link
-                href="/profile"
-                className="hover:text-slate-400 transition"
-              >
+              <Link href="/profile" className="hover:text-slate-400">
                 Profile
               </Link>
-
             </div>
-
           </footer>
 
         </div>
-
       </main>
 
     </div>
@@ -1116,7 +738,7 @@ function SidebarLink({
   collapsed = false,
 }: {
   href: string
-  icon: ReactNode
+  icon: string
   label: string
   active?: boolean
   collapsed?: boolean
@@ -1125,20 +747,15 @@ function SidebarLink({
     <Link
       href={href}
       title={collapsed ? label : undefined}
-      className={`group relative flex items-center ${
+      className={`flex items-center ${
         collapsed ? 'justify-center' : 'gap-3 px-3'
-      } h-11 rounded-lg mb-1 transition ${
+      } py-3 rounded-lg mb-1 transition ${
         active
           ? 'bg-brand-primary/10 text-brand-primary'
-          : 'text-slate-500 hover:bg-slate-800/70 hover:text-white'
+          : 'text-slate-400 hover:bg-slate-800 hover:text-white'
       }`}
     >
-
-      {active && (
-        <span className="absolute left-0 top-2 bottom-2 w-0.5 rounded-r-full bg-brand-primary" />
-      )}
-
-      <span className="shrink-0">
+      <span className="text-lg w-6 text-center">
         {icon}
       </span>
 
@@ -1151,7 +768,6 @@ function SidebarLink({
       {!collapsed && active && (
         <span className="ml-auto w-1.5 h-1.5 rounded-full bg-brand-primary" />
       )}
-
     </Link>
   )
 }
@@ -1176,13 +792,12 @@ function SectionHeader({
       {href ? (
         <Link
           href={href}
-          className="inline-flex items-center gap-1 text-xs font-semibold text-brand-primary hover:gap-2 transition-all"
+          className="text-xs font-semibold text-brand-primary hover:underline"
         >
           {action}
-          <ArrowRightIcon size={13} />
         </Link>
       ) : (
-        <button className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-400">
+        <button className="text-xs px-3 py-1.5 rounded-lg bg-brand-primary/10 text-brand-primary">
           {action}
         </button>
       )}
@@ -1194,94 +809,102 @@ function SectionHeader({
 
 function CourseCard({
   title,
-  category,
   status,
   progress,
-  lessons,
+  remaining,
   icon,
+  color,
 }: {
   title: string
-  category: string
   status: string
-  progress: number
-  lessons: string
-  icon: ReactNode
+  progress: string
+  remaining: string
+  icon: string
+  color: 'primary' | 'purple' | 'green' | 'orange'
 }) {
+  const colors = {
+    primary: 'from-brand-primary/20',
+    purple: 'from-purple-500/20',
+    green: 'from-green-500/20',
+    orange: 'from-orange-500/20',
+  }
+
+  const textColors = {
+    primary: 'text-brand-primary',
+    purple: 'text-purple-400',
+    green: 'text-green-400',
+    orange: 'text-orange-400',
+  }
+
   return (
-    <div className="group bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden hover:border-slate-700 transition">
+    <div
+      className={`relative overflow-hidden bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition group`}
+    >
 
-      {/* Top artwork */}
-      <div className="relative h-28 bg-gradient-to-br from-brand-primary/15 via-slate-900 to-slate-950 overflow-hidden">
+      <div
+        className={`absolute inset-0 bg-gradient-to-br ${colors[color]} to-transparent opacity-50`}
+      />
 
-        <svg
-          className="absolute right-0 top-0 w-32 h-32 text-brand-primary/10"
-          viewBox="0 0 100 100"
-        >
-          <circle cx="75" cy="25" r="35" fill="currentColor" />
-          <circle cx="100" cy="75" r="28" fill="currentColor" />
-        </svg>
+      <div className="relative">
 
-        <div className="absolute left-5 bottom-[-20px] w-14 h-14 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-brand-primary shadow-xl">
+        <div className="flex items-center justify-between mb-6">
+
+          <div className="flex gap-2">
+
+            <span
+              className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase ${
+                status === 'Finished'
+                  ? 'bg-green-500/10 text-green-400'
+                  : status === 'Paused'
+                  ? 'bg-orange-500/10 text-orange-400'
+                  : 'bg-brand-primary/10 text-brand-primary'
+              }`}
+            >
+              {status}
+            </span>
+
+            <span className="px-2 py-1 rounded-md bg-slate-800 text-slate-500 text-xs">
+              🔒
+            </span>
+
+          </div>
+
+          <button className="text-slate-600 hover:text-white">
+            •••
+          </button>
+
+        </div>
+
+        <div className="text-3xl mb-4">
           {icon}
         </div>
 
-        <div className="absolute top-4 left-4">
-
-          <span
-            className={`px-2.5 py-1 rounded-md text-[9px] uppercase tracking-wide font-bold ${
-              status === 'Finished'
-                ? 'bg-green-500/10 text-green-400'
-                : status === 'Paused'
-                ? 'bg-orange-500/10 text-orange-400'
-                : 'bg-brand-primary/10 text-brand-primary'
-            }`}
-          >
-            {status}
-          </span>
-
-        </div>
-
-        <button className="absolute top-4 right-4 text-slate-600 hover:text-white">
-          <MoreIcon size={17} />
-        </button>
-
-      </div>
-
-
-      <div className="p-5 pt-8">
-
-        <p className="text-[10px] uppercase tracking-wider text-slate-600 font-semibold mb-1">
-          {category}
-        </p>
-
-        <h3 className="font-bold text-white mb-1 group-hover:text-brand-primary transition">
+        <h3 className="font-bold text-white mb-1">
           {title}
         </h3>
 
-        <p className="text-xs text-slate-500 mb-5">
-          {lessons}
+        <p className="text-xs text-slate-500 mb-4">
+          {remaining}
         </p>
-
 
         <div className="flex items-center gap-3">
 
-          <div className="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden">
+          <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
 
             <div
-              className="h-full rounded-full bg-brand-primary transition-all"
-              style={{ width: `${progress}%` }}
+              className="h-full bg-brand-primary rounded-full"
+              style={{ width: progress }}
             />
 
           </div>
 
-          <span className="text-xs font-bold text-brand-primary">
-            {progress}%
+          <span className={`text-xs font-bold ${textColors[color]}`}>
+            {progress}
           </span>
 
         </div>
 
       </div>
-
     </div>
   )
 }
@@ -1290,13 +913,15 @@ function CourseCard({
 function StatCard({
   label,
   value,
-  description,
+  change,
   icon,
+  positive,
 }: {
   label: string
   value: string
-  description: string
-  icon: ReactNode
+  change: string
+  icon: string
+  positive?: boolean
 }) {
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition">
@@ -1304,8 +929,7 @@ function StatCard({
       <div className="flex items-start justify-between">
 
         <div>
-
-          <p className="text-xs text-slate-500 mb-2">
+          <p className="text-sm text-slate-500 mb-2">
             {label}
           </p>
 
@@ -1313,14 +937,16 @@ function StatCard({
             {value}
           </h3>
 
-          <div className="flex items-center gap-1.5 mt-2 text-xs text-slate-600">
-            <ArrowUpIcon size={12} />
-            {description}
-          </div>
-
+          <p
+            className={`text-xs mt-2 ${
+              positive ? 'text-slate-500' : 'text-red-400'
+            }`}
+          >
+            {change}
+          </p>
         </div>
 
-        <div className="w-11 h-11 rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center">
+        <div className="w-11 h-11 rounded-xl bg-brand-primary/10 flex items-center justify-center text-lg">
           {icon}
         </div>
 
@@ -1331,13 +957,13 @@ function StatCard({
 }
 
 
-function ProgressRow({
+function ProgressItem({
   label,
-  count,
+  users,
   percentage,
 }: {
   label: string
-  count: string
+  users: string
   percentage: number
 }) {
   return (
@@ -1345,28 +971,28 @@ function ProgressRow({
 
       <div className="flex items-center justify-between mb-2">
 
-        <span className="text-sm text-slate-300">
+        <span className="text-sm text-brand-primary">
           {label}
         </span>
 
-        <span className="text-xs text-slate-600">
-          {count}
+        <span className="text-xs text-slate-500">
+          {users}
         </span>
 
       </div>
 
       <div className="flex items-center gap-3">
 
-        <div className="flex-1 h-2 rounded-full bg-slate-800 overflow-hidden">
+        <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
 
           <div
-            className="h-full rounded-full bg-brand-primary transition-all"
+            className="h-full bg-brand-primary rounded-full transition-all"
             style={{ width: `${percentage}%` }}
           />
 
         </div>
 
-        <span className="w-8 text-right text-xs text-slate-500">
+        <span className="text-xs text-slate-400 w-8 text-right">
           {percentage}%
         </span>
 
@@ -1377,78 +1003,52 @@ function ProgressRow({
 }
 
 
-function Legend({
-  label,
-  active = false,
-}: {
-  label: string
-  active?: boolean
-}) {
-  return (
-    <span className="flex items-center gap-2 text-xs text-slate-500">
-
-      <span
-        className={`w-2.5 h-2.5 rounded-full ${
-          active ? 'bg-brand-primary' : 'bg-slate-700'
-        }`}
-      />
-
-      {label}
-
-    </span>
-  )
-}
-
-
 function LessonCard({
   title,
   subtitle,
   icon,
-  type,
+  color,
 }: {
   title: string
   subtitle: string
-  icon: ReactNode
-  type: string
+  icon: string
+  color: 'primary' | 'orange' | 'red'
 }) {
+  const bg = {
+    primary: 'bg-brand-primary/10 text-brand-primary',
+    orange: 'bg-orange-500/10 text-orange-400',
+    red: 'bg-red-500/10 text-red-400',
+  }
+
   return (
     <Link
       href="/courses"
-      className="group flex items-center gap-4 p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-700 transition"
+      className="flex items-center justify-between bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-slate-700 transition group"
     >
 
-      <div className="w-11 h-11 shrink-0 rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center">
-        {icon}
-      </div>
+      <div className="flex items-center gap-4">
 
-      <div className="flex-1 min-w-0">
+        <div
+          className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl ${bg[color]}`}
+        >
+          {icon}
+        </div>
 
-        <div className="flex items-center gap-2">
-
-          <h3 className="text-sm font-semibold text-white group-hover:text-brand-primary transition truncate">
+        <div>
+          <h3 className="text-sm font-semibold text-white group-hover:text-brand-primary transition">
             {title}
           </h3>
 
+          <p className="text-xs text-slate-500 mt-1">
+            {subtitle}
+          </p>
         </div>
 
-        <p className="text-xs text-slate-600 mt-1 truncate">
-          {subtitle}
-        </p>
-
       </div>
 
-      <div className="hidden sm:block">
-
-        <span className="px-2 py-1 rounded-md bg-slate-800 text-[9px] uppercase tracking-wide text-slate-500">
-          {type}
-        </span>
-
-      </div>
-
-      <ArrowRightIcon
-        size={17}
-        className="text-slate-700 group-hover:text-brand-primary group-hover:translate-x-1 transition-all"
-      />
+      <span className="text-xl text-slate-600 group-hover:text-brand-primary transition">
+        →
+      </span>
 
     </Link>
   )
@@ -1461,29 +1061,29 @@ function ActivityItem({
   description,
   time,
 }: {
-  icon: ReactNode
+  icon: string
   title: string
   description: string
   time: string
 }) {
   return (
-    <div className="flex gap-3 p-4 border-b border-slate-800 last:border-0">
+    <div className="p-4 flex gap-4">
 
-      <div className="w-10 h-10 shrink-0 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center">
+      <div className="w-10 h-10 rounded-lg bg-brand-primary/10 flex items-center justify-center shrink-0">
         {icon}
       </div>
 
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0">
 
         <h4 className="text-sm font-semibold text-white">
           {title}
         </h4>
 
-        <p className="text-xs text-slate-600 mt-1 leading-5">
+        <p className="text-xs text-slate-500 mt-1">
           {description}
         </p>
 
-        <p className="text-[10px] text-slate-700 mt-1.5">
+        <p className="text-[10px] text-slate-600 mt-2">
           {time}
         </p>
 
@@ -1495,15 +1095,17 @@ function ActivityItem({
 
 
 function LibraryRow({
-  icon,
   title,
   subtitle,
+  icon,
   type,
+  status,
 }: {
-  icon: ReactNode
   title: string
   subtitle: string
+  icon: string
   type: string
+  status: string
 }) {
   return (
     <tr className="border-b border-slate-800 last:border-0">
@@ -1512,57 +1114,44 @@ function LibraryRow({
 
         <div className="flex items-center gap-3">
 
-          <div className="w-10 h-10 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center">
+          <div className="w-10 h-10 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center text-xs font-bold">
             {icon}
           </div>
 
           <div>
-
             <p className="text-sm font-semibold text-white">
               {title}
             </p>
 
-            <p className="text-xs text-slate-600 mt-1">
+            <p className="text-xs text-slate-500 mt-1">
               {subtitle}
             </p>
-
           </div>
 
         </div>
 
       </td>
 
+      <td className="px-5 py-4 text-sm text-slate-400">
+        {type}
+      </td>
 
       <td className="px-5 py-4">
 
-        <span className="text-xs text-slate-500">
-          {type}
+        <span className="inline-flex items-center gap-2 text-xs text-slate-400">
+          <span className="w-2 h-2 rounded-full bg-brand-primary" />
+          {status}
         </span>
 
       </td>
 
-
       <td className="px-5 py-4">
-
-        <span className="inline-flex items-center gap-2 text-xs text-slate-500">
-
-          <span className="w-1.5 h-1.5 rounded-full bg-brand-primary" />
-
-          Available
-
-        </span>
-
-      </td>
-
-
-      <td className="px-5 py-4 text-right">
 
         <Link
           href="/store"
-          className="inline-flex items-center gap-1 text-xs font-semibold text-brand-primary hover:gap-2 transition-all"
+          className="text-xs font-semibold text-brand-primary hover:underline"
         >
-          Explore
-          <ArrowRightIcon size={13} />
+          Explore →
         </Link>
 
       </td>
