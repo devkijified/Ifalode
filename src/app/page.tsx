@@ -1,202 +1,280 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useBrand } from '@/hooks/useBrand'
 
-type Profile = {
-  full_name?: string
-  display_name?: string
-  title?: string
-  bio?: string
-  location?: string
-  avatar_url?: string
-  hero_image_url?: string
-  about?: string
-  website?: string
-}
-
-type ContentItem = {
+type User = {
   id: string
-  title: string
-  description?: string
-  image_url?: string
-  slug?: string
-  category?: string
-  type?: 'course' | 'ebook' | 'article' | 'project'
-  price?: number
+  email?: string
+  user_metadata?: {
+    full_name?: string
+    name?: string
+    avatar_url?: string
+  }
 }
 
 export default function HomePage() {
   const { brand } = useBrand()
+  const router = useRouter()
   const supabase = createClient()
 
-  const [user, setUser] = useState<any>(null)
-  const [profile, setProfile] = useState<Profile | null>(null)
-  const [featured, setFeatured] = useState<ContentItem[]>([])
+  const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [accountOpen, setAccountOpen] = useState(false)
+  const accountRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const loadSite = async () => {
+    let mounted = true
+
+    const loadUser = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser()
 
-      setUser(user)
-
-      /*
-       * Replace these table names/fields with your actual CMS tables.
-       *
-       * The important part is that this page is consuming CMS content.
-       * It is NOT the CMS itself.
-       */
-
-      if (user) {
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single()
-
-        if (profileData) {
-          setProfile(profileData)
-        }
+      if (mounted) {
+        setUser(user as User | null)
+        setLoading(false)
       }
-
-      const { data: content } = await supabase
-        .from('content')
-        .select('*')
-        .eq('published', true)
-        .eq('featured', true)
-        .order('created_at', { ascending: false })
-        .limit(6)
-
-      setFeatured(content || [])
-      setLoading(false)
     }
 
-    loadSite()
+    loadUser()
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (mounted) {
+        setUser(session?.user as User | null)
+      }
+    })
+
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
   }, [])
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 rounded-full border-2 border-slate-800 border-t-brand-primary animate-spin" />
-          <p className="text-sm text-slate-500">Loading...</p>
-        </div>
-      </div>
-    )
+  useEffect(() => {
+    const close = (event: MouseEvent) => {
+      if (
+        accountRef.current &&
+        !accountRef.current.contains(event.target as Node)
+      ) {
+        setAccountOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', close)
+
+    return () => {
+      document.removeEventListener('mousedown', close)
+    }
+  }, [])
+
+  const signOut = async () => {
+    await supabase.auth.signOut()
+    setAccountOpen(false)
+    setUser(null)
+    router.refresh()
   }
 
-  const name =
-    profile?.display_name ||
-    profile?.full_name ||
+  const displayName =
     user?.user_metadata?.full_name ||
-    'Baba Lau'
+    user?.user_metadata?.name ||
+    user?.email?.split('@')[0] ||
+    'Member'
 
-  const title =
-    profile?.title ||
-    'Babaláwo • Teacher • Guide'
+  const firstName = displayName.split(' ')[0]
 
-  const bio =
-    profile?.bio ||
-    'Sharing knowledge, wisdom, experiences and the journey of life.'
+  const avatar =
+    user?.user_metadata?.avatar_url ||
+    null
+
+  // TODO: Replace these with your details
+  const YOUR_NAME = 'Your Name'
+  const YOUR_ROLE = 'writer, builder, and teacher'
+  const YOUR_TOPICS = 'design, systems, and learning'
+  const YOUR_LOCATION = 'your location'
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
+    <main className="min-h-screen bg-slate-950 text-slate-100 overflow-hidden">
 
       {/* =====================================================
           HEADER
       ===================================================== */}
 
-      <header className="fixed top-0 left-0 right-0 z-50">
+      <header className="fixed top-0 inset-x-0 z-50">
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4">
 
-          <nav className="h-[70px] rounded-2xl border border-slate-800/80 bg-slate-950/85 backdrop-blur-xl">
+          <nav className="h-[68px] rounded-2xl border border-slate-800/80 bg-slate-950/85 backdrop-blur-xl shadow-2xl shadow-black/10">
 
-            <div className="h-full px-5 sm:px-7 flex items-center justify-between">
+            <div className="h-full px-5 flex items-center justify-between">
 
-              {/* Personal brand */}
+              {/* Logo */}
               <Link
                 href="/"
-                className="flex items-center gap-3"
+                className="shrink-0 text-xl sm:text-2xl font-black tracking-tight bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent"
               >
-
-                {profile?.avatar_url ? (
-                  <img
-                    src={profile.avatar_url}
-                    alt={name}
-                    className="w-9 h-9 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center font-bold text-sm">
-                    {name.charAt(0)}
-                  </div>
-                )}
-
-                <div className="hidden sm:block">
-                  <p className="text-sm font-bold">
-                    {name}
-                  </p>
-                  <p className="text-[10px] text-slate-600">
-                    {title}
-                  </p>
-                </div>
-
+                {brand?.display_name || YOUR_NAME}
               </Link>
 
 
-              {/* Navigation */}
-              <div className="hidden md:flex items-center gap-7">
+              {/* Desktop navigation */}
+              <div className="hidden lg:flex items-center gap-8 ml-10">
 
-                <SiteLink href="/" active>
+                <NavLink href="/" active>
                   Home
-                </SiteLink>
+                </NavLink>
 
-                <SiteLink href="/about">
+                <NavLink href="/writing">
+                  Writing
+                </NavLink>
+
+                <NavLink href="/projects">
+                  Projects
+                </NavLink>
+
+                <NavLink href="/about">
                   About
-                </SiteLink>
+                </NavLink>
 
-                <SiteLink href="/courses">
-                  Courses
-                </SiteLink>
-
-                <SiteLink href="/store">
-                  Store
-                </SiteLink>
-
-                <SiteLink href="/resources">
-                  Resources
-                </SiteLink>
-
-                <SiteLink href="/contact">
+                <NavLink href="/contact">
                   Contact
-                </SiteLink>
+                </NavLink>
 
               </div>
 
 
-              {/* CMS user session */}
-              <div className="flex items-center gap-3">
+              {/* Right */}
+              <div className="flex items-center gap-2 sm:gap-3">
 
-                {user ? (
-                  <Link
-                    href="/dashboard"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:opacity-90 transition"
+                <Link
+                  href="/products"
+                  className="hidden sm:flex items-center justify-center w-10 h-10 rounded-xl border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                  title="Products"
+                >
+                  🧰
+                </Link>
+
+
+                {!loading && !user && (
+                  <>
+                    <Link
+                      href="/login"
+                      className="hidden sm:inline-flex px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-300 hover:text-white transition"
+                    >
+                      Sign In
+                    </Link>
+
+                    <Link
+                      href="/register"
+                      className="inline-flex items-center justify-center px-4 sm:px-5 py-2.5 rounded-xl bg-brand-primary text-white text-sm font-semibold hover:opacity-90 transition shadow-lg shadow-brand-primary/10"
+                    >
+                      Get Updates
+                    </Link>
+                  </>
+                )}
+
+
+                {!loading && user && (
+                  <div
+                    ref={accountRef}
+                    className="relative"
                   >
-                    Dashboard
-                    <span>↗</span>
-                  </Link>
-                ) : (
-                  <Link
-                    href="/login"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-800 text-sm font-semibold hover:bg-slate-900 transition"
-                  >
-                    Sign In
-                  </Link>
+
+                    <button
+                      onClick={() => setAccountOpen(!accountOpen)}
+                      className="flex items-center gap-2.5 rounded-xl pl-2 pr-2 py-1.5 hover:bg-slate-800 transition"
+                    >
+
+                      {avatar ? (
+                        <img
+                          src={avatar}
+                          alt={displayName}
+                          className="w-9 h-9 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center text-sm font-bold">
+                          {firstName.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+
+                      <span className="hidden sm:block text-sm font-semibold max-w-[100px] truncate">
+                        {firstName}
+                      </span>
+
+                      <span
+                        className={`text-slate-500 text-xs transition-transform ${
+                          accountOpen ? 'rotate-180' : ''
+                        }`}
+                      >
+                        ▾
+                      </span>
+
+                    </button>
+
+
+                    {accountOpen && (
+                      <div className="absolute right-0 mt-3 w-60 rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl overflow-hidden">
+
+                        <div className="px-4 py-4 border-b border-slate-800">
+
+                          <p className="text-sm font-semibold text-white truncate">
+                            {displayName}
+                          </p>
+
+                          <p className="text-xs text-slate-500 truncate mt-1">
+                            {user.email}
+                          </p>
+
+                        </div>
+
+
+                        <div className="p-2">
+
+                          <AccountLink
+                            href="/dashboard"
+                            icon="⌂"
+                            label="Dashboard"
+                          />
+
+                          <AccountLink
+                            href="/products"
+                            icon="📘"
+                            label="Products"
+                          />
+
+                          <AccountLink
+                            href="/profile"
+                            icon="◉"
+                            label="Profile"
+                          />
+
+                          <AccountLink
+                            href="/settings"
+                            icon="⚙"
+                            label="Settings"
+                          />
+
+                          <div className="my-2 border-t border-slate-800" />
+
+                          <button
+                            onClick={signOut}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-400 hover:bg-red-500/10 transition"
+                          >
+                            <span>↪</span>
+                            Sign Out
+                          </button>
+
+                        </div>
+
+                      </div>
+                    )}
+
+                  </div>
                 )}
 
               </div>
@@ -214,89 +292,102 @@ export default function HomePage() {
           HERO
       ===================================================== */}
 
-      <section className="relative min-h-screen pt-36 pb-20 flex items-center overflow-hidden">
+      <section className="relative pt-36 pb-20 sm:pt-44 sm:pb-28">
 
-        {/* Background atmosphere */}
+        {/* ambient background */}
         <div className="absolute inset-0 pointer-events-none">
 
-          <div className="absolute w-[500px] h-[500px] rounded-full bg-brand-primary/10 blur-[150px] -top-40 -left-40" />
+          <div className="absolute top-20 left-[5%] w-72 h-72 rounded-full bg-brand-primary/10 blur-[120px]" />
 
-          <div className="absolute w-[500px] h-[500px] rounded-full bg-brand-secondary/10 blur-[160px] right-[-200px] top-[20%]" />
+          <div className="absolute top-40 right-[5%] w-96 h-96 rounded-full bg-brand-secondary/10 blur-[140px]" />
+
+          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-slate-950 to-transparent" />
 
         </div>
 
 
-        <div className="relative max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-          <div className="grid lg:grid-cols-[1fr_.9fr] gap-14 items-center">
+          <div className="grid lg:grid-cols-[1.05fr_.95fr] gap-12 lg:gap-16 items-center">
 
 
-            {/* Copy */}
+            {/* Hero copy */}
             <div>
 
-              <div className="inline-flex items-center gap-2 mb-7 px-3.5 py-2 rounded-full border border-brand-primary/20 bg-brand-primary/5">
+              <div className="inline-flex items-center gap-2 rounded-full border border-brand-primary/20 bg-brand-primary/5 px-3.5 py-2 mb-7">
 
-                <span className="w-1.5 h-1.5 rounded-full bg-brand-primary" />
+                <span className="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse" />
 
                 <span className="text-xs font-semibold text-brand-primary">
-                  {profile?.location || 'Welcome to my space'}
+                  Writing • Projects • Ideas
                 </span>
 
               </div>
 
 
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-[-.05em] leading-[.95]">
+              <h1 className="text-5xl sm:text-6xl lg:text-[70px] leading-[.98] font-black tracking-[-0.045em]">
 
-                {name}
+                I'm {YOUR_NAME}.
+
+                <br />
+
+                <span className="text-brand-primary">
+                  {YOUR_ROLE}.
+                </span>
+
+                <br />
+
+                Focused on {YOUR_TOPICS}.
 
               </h1>
 
 
-              <p className="mt-5 text-xl sm:text-2xl text-brand-primary font-semibold">
-                {title}
+              <p className="mt-7 max-w-xl text-base sm:text-lg leading-8 text-slate-400">
+
+                This is my corner of the internet: writing, projects, and a few
+                things I've made. If you're into {YOUR_TOPICS}, you're in the
+                right place.
+
               </p>
 
 
-              <p className="mt-6 max-w-xl text-base sm:text-lg text-slate-500 leading-8">
-                {bio}
-              </p>
-
-
-              <div className="flex flex-wrap gap-3 mt-9">
+              <div className="flex flex-wrap items-center gap-3 mt-9">
 
                 <Link
-                  href="/about"
-                  className="px-6 py-3.5 rounded-xl bg-brand-primary text-white text-sm font-bold hover:opacity-90 transition"
+                  href="/writing"
+                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-brand-primary text-white font-semibold text-sm hover:opacity-90 transition shadow-xl shadow-brand-primary/10"
                 >
-                  Discover My Story
+                  Read my writing
+                  <span>→</span>
                 </Link>
 
                 <Link
-                  href="/courses"
-                  className="px-6 py-3.5 rounded-xl border border-slate-800 bg-slate-900 text-sm font-semibold hover:bg-slate-800 transition"
+                  href="/projects"
+                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border border-slate-800 bg-slate-900 text-white font-semibold text-sm hover:bg-slate-800 transition"
                 >
-                  Explore My Work
+                  See my projects
+                  <span>↗</span>
                 </Link>
 
               </div>
 
 
-              {/* Personal stats */}
-              <div className="flex flex-wrap gap-8 mt-12 pt-7 border-t border-slate-900">
+              {/* Mini stats */}
+              <div className="flex flex-wrap items-center gap-7 mt-11 pt-7 border-t border-slate-800/70">
 
-                <PersonalStat
-                  value="01"
-                  label="Personal Journey"
+                <MiniStat
+                  value="Writing"
+                  label="Essays and notes"
                 />
 
-                <PersonalStat
-                  value="∞"
-                  label="Knowledge to Share"
+                <MiniStat
+                  value="Projects"
+                  label="Things I've built"
                 />
 
-                <PersonalStat
-                  value="✦"
-                  label="Ideas & Projects"
+                <MiniStat
+                  value="Products"
+                  label="Courses & resources"
                 />
 
               </div>
@@ -304,75 +395,129 @@ export default function HomePage() {
             </div>
 
 
-            {/* Portrait / hero */}
+            {/* Hero visual */}
             <div className="relative">
 
-              <div className="relative aspect-[.85] max-w-[500px] ml-auto rounded-[30px] overflow-hidden border border-slate-800 bg-slate-900">
+              <div className="relative min-h-[470px] rounded-[28px] border border-slate-800 bg-slate-900 overflow-hidden">
 
-                {profile?.hero_image_url ? (
-                  <img
-                    src={profile.hero_image_url}
-                    alt={name}
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/20 via-slate-900 to-slate-950">
+                {/* decorative grid */}
+                <div
+                  className="absolute inset-0 opacity-[0.08]"
+                  style={{
+                    backgroundImage:
+                      'linear-gradient(rgba(255,255,255,.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.4) 1px, transparent 1px)',
+                    backgroundSize: '42px 42px',
+                  }}
+                />
 
-                    <div className="absolute inset-0 flex items-center justify-center">
 
-                      <div className="text-center">
+                {/* gradient glow */}
+                <div className="absolute -top-32 -right-20 w-80 h-80 rounded-full bg-brand-primary/20 blur-[90px]" />
 
-                        <div className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center text-5xl font-black shadow-2xl">
-                          {name.charAt(0)}
-                        </div>
 
-                        <p className="mt-6 text-sm text-slate-500">
-                          {name}
-                        </p>
+                {/* Main visual card */}
+                <div className="absolute inset-7 sm:inset-10 rounded-2xl border border-slate-700/70 bg-slate-950/90 shadow-2xl overflow-hidden">
+
+                  <div className="h-11 px-4 flex items-center justify-between border-b border-slate-800">
+
+                    <div className="flex gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-slate-700" />
+                      <span className="w-2 h-2 rounded-full bg-slate-700" />
+                      <span className="w-2 h-2 rounded-full bg-slate-700" />
+                    </div>
+
+                    <span className="text-[9px] uppercase tracking-[.2em] text-slate-600">
+                      {brand?.display_name?.toUpperCase() || 'ME'}
+                    </span>
+
+                  </div>
+
+
+                  <div className="p-6 sm:p-8">
+
+                    <p className="text-[10px] uppercase tracking-[.18em] text-brand-primary font-bold">
+                      My working space
+                    </p>
+
+                    <h3 className="mt-3 text-2xl sm:text-3xl font-bold">
+                      Ideas I'm thinking about.
+                    </h3>
+
+
+                    <div className="grid grid-cols-2 gap-3 mt-8">
+
+                      <VisualCard
+                        emoji="✍️"
+                        title="Write"
+                        text="Essays"
+                      />
+
+                      <VisualCard
+                        emoji="🛠️"
+                        title="Build"
+                        text="Projects"
+                      />
+
+                      <VisualCard
+                        emoji="✦"
+                        title="Explore"
+                        text="Notes"
+                      />
+
+                      <VisualCard
+                        emoji="🚀"
+                        title="Share"
+                        text="Products"
+                      />
+
+                    </div>
+
+
+                    <div className="mt-5 rounded-xl bg-brand-primary/10 border border-brand-primary/10 p-4">
+
+                      <div className="flex items-center justify-between mb-3">
+
+                        <span className="text-xs text-slate-400">
+                          Current focus
+                        </span>
+
+                        <span className="text-xs font-bold text-brand-primary">
+                          {YOUR_TOPICS}
+                        </span>
+
+                      </div>
+
+                      <div className="h-1.5 rounded-full bg-slate-800 overflow-hidden">
+
+                        <div className="w-[68%] h-full rounded-full bg-brand-primary" />
 
                       </div>
 
                     </div>
 
                   </div>
-                )}
-
-
-                {/* Image gradient */}
-                <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
-
-
-                <div className="absolute left-6 right-6 bottom-6">
-
-                  <p className="text-[10px] uppercase tracking-[.2em] text-brand-primary font-bold">
-                    Welcome
-                  </p>
-
-                  <h2 className="mt-2 text-2xl font-bold">
-                    My world. My work.
-                  </h2>
 
                 </div>
 
-              </div>
 
+                {/* floating card */}
+                <div className="absolute bottom-7 left-5 sm:left-7 rounded-2xl border border-slate-700 bg-slate-900/95 backdrop-blur-md p-4 shadow-xl">
 
-              {/* Floating card */}
-              <div className="absolute -bottom-6 -left-4 sm:left-[-35px] rounded-2xl border border-slate-800 bg-slate-900/95 backdrop-blur-xl p-4 shadow-2xl">
+                  <div className="flex items-center gap-3">
 
-                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-brand-primary/10 flex items-center justify-center text-lg">
+                      ✦
+                    </div>
 
-                  <div className="w-11 h-11 rounded-xl bg-brand-primary/10 flex items-center justify-center text-xl">
-                    ✦
-                  </div>
+                    <div>
+                      <p className="text-xs text-slate-500">
+                        Based in
+                      </p>
+                      <p className="text-sm font-bold">
+                        {YOUR_LOCATION}
+                      </p>
+                    </div>
 
-                  <div>
-                    <p className="text-[10px] uppercase tracking-wider text-slate-600">
-                      Currently
-                    </p>
-                    <p className="text-sm font-bold">
-                      Sharing & Teaching
-                    </p>
                   </div>
 
                 </div>
@@ -389,46 +534,311 @@ export default function HomePage() {
 
 
       {/* =====================================================
-          ABOUT PREVIEW
+          WHAT I DO
       ===================================================== */}
 
-      <section className="py-24 border-t border-slate-900">
+      <section className="py-20 sm:py-28 border-t border-slate-900">
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-          <div className="grid lg:grid-cols-[.7fr_1.3fr] gap-14">
+          <div className="grid lg:grid-cols-[.7fr_1.3fr] gap-12 items-end mb-12">
 
             <div>
 
-              <p className="text-xs uppercase tracking-[.2em] text-brand-primary font-bold">
+              <p className="text-xs uppercase tracking-[.2em] text-brand-primary font-bold mb-4">
+                What I do
+              </p>
+
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+                Work that overlaps
+                <br />
+                <span className="text-slate-500">
+                  writing, building, and teaching.
+                </span>
+              </h2>
+
+            </div>
+
+            <p className="max-w-2xl text-slate-500 leading-7">
+              I spend my time writing about {YOUR_TOPICS}, building projects
+              and tools, and occasionally turning what I learn into courses and
+              resources. Everything here is an extension of that.
+            </p>
+
+          </div>
+
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+            <FeatureCard
+              number="01"
+              emoji="✍️"
+              title="Write"
+              text="Essays, notes, and longer pieces about design, systems, and learning."
+            />
+
+            <FeatureCard
+              number="02"
+              emoji="🛠️"
+              title="Build"
+              text="Projects and experiments that explore ideas in a concrete way."
+            />
+
+            <FeatureCard
+              number="03"
+              emoji="✦"
+              title="Explore"
+              text="Curated resources, references, and things I'm learning from."
+            />
+
+            <FeatureCard
+              number="04"
+              emoji="🚀"
+              title="Teach"
+              text="Courses and products that package what I've learned so far."
+            />
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      {/* =====================================================
+          LATEST WRITING
+      ===================================================== */}
+
+      <section className="py-20 sm:py-28 bg-slate-900/35 border-y border-slate-900">
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+          <SectionHeading
+            eyebrow="Writing"
+            title="Recent essays and notes."
+            description="A selection of recent pieces on design, systems, and learning."
+            action="View all writing"
+            href="/writing"
+          />
+
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 mt-10">
+
+            <WritingCard
+              category="ESSAY"
+              title="On building durable systems"
+              description="What makes a system last, and how to design for change without losing clarity."
+              date="Aug 2026"
+              href="/writing"
+            />
+
+            <WritingCard
+              category="NOTE"
+              title="Learning as a design problem"
+              description="Treating your own learning like a product: constraints, feedback loops, and iteration."
+              date="Jul 2026"
+              href="/writing"
+            />
+
+            <WritingCard
+              category="ESSAY"
+              title="Small sites, serious thinking"
+              description="Why personal websites are the best place for deep, unoptimized thought."
+              date="Jun 2026"
+              href="/writing"
+            />
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      {/* =====================================================
+          PRODUCTS / COURSES
+      ===================================================== */}
+
+      <section className="py-20 sm:py-28">
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+          <div className="relative rounded-[28px] overflow-hidden border border-slate-800 bg-slate-900">
+
+            <div className="absolute top-0 right-0 w-[45%] h-full bg-brand-primary/5" />
+
+            <div className="relative grid lg:grid-cols-[1fr_.8fr] items-center">
+
+              <div className="p-7 sm:p-10 lg:p-14">
+
+                <p className="text-xs uppercase tracking-[.2em] text-brand-primary font-bold">
+                  Products
+                </p>
+
+                <h2 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
+                  Things I've made
+                  <br />
+                  <span className="text-slate-500">
+                    and stand behind.
+                  </span>
+                </h2>
+
+                <p className="mt-5 max-w-lg text-slate-500 leading-7">
+                  A small set of courses, templates, and resources. I only
+                  publish what I actually use and believe in.
+                </p>
+
+                <Link
+                  href="/products"
+                  className="inline-flex items-center gap-2 mt-8 px-5 py-3 rounded-xl bg-brand-primary text-white text-sm font-semibold hover:opacity-90 transition"
+                >
+                  Browse products
+                  <span>→</span>
+                </Link>
+
+              </div>
+
+
+              {/* Product visual */}
+              <div className="p-8 lg:p-12">
+
+                <div className="relative mx-auto max-w-[300px] aspect-[.78] rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary p-7 shadow-2xl shadow-brand-primary/10 rotate-[-4deg]">
+
+                  <div className="absolute inset-3 rounded-lg border border-white/15" />
+
+                  <div className="relative h-full flex flex-col justify-between">
+
+                    <div>
+
+                      <p className="text-[9px] uppercase tracking-[.25em] text-white/60">
+                        {brand?.display_name?.toUpperCase() || 'ME'}
+                      </p>
+
+                      <div className="mt-12">
+
+                        <p className="text-3xl font-black text-white leading-none">
+                          IDEAS
+                        </p>
+
+                        <p className="text-3xl font-black text-white leading-none">
+                          INTO
+                        </p>
+
+                        <p className="text-3xl font-black text-white leading-none">
+                          PRACTICE.
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                    <p className="text-xs text-white/60">
+                      Courses & resources
+                    </p>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      {/* =====================================================
+          ABOUT / PERSONAL
+      ===================================================== */}
+
+      <section className="py-20 sm:py-28 bg-slate-900/35 border-y border-slate-900">
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+          <div className="grid lg:grid-cols-[.8fr_1.2fr] gap-14 items-center">
+
+            <div className="relative">
+
+              <div className="aspect-square max-w-[420px] rounded-[28px] border border-slate-800 bg-slate-950 p-7">
+
+                <div className="h-full rounded-2xl border border-slate-800 bg-slate-900 flex flex-col items-center justify-center text-center p-8">
+
+                  {/* Replace with your image or illustration if you like */}
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center text-3xl font-black mb-6">
+                    {YOUR_NAME.charAt(0)}
+                  </div>
+
+                  <p className="text-xs uppercase tracking-[.2em] text-brand-primary font-bold">
+                    {brand?.display_name || YOUR_NAME}
+                  </p>
+
+                  <h3 className="text-2xl font-bold mt-3">
+                    {YOUR_ROLE.split(',')[0]}.
+                    <br />
+                    {YOUR_LOCATION}.
+                    <br />
+                    Focused on {YOUR_TOPICS}.
+                  </h3>
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div>
+
+              <p className="text-xs uppercase tracking-[.2em] text-brand-primary font-bold mb-4">
                 About me
               </p>
 
-              <h2 className="mt-4 text-3xl sm:text-4xl font-bold">
-                The person
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
+                A website with
                 <br />
-                behind the work.
+                <span className="text-slate-500">
+                  a specific human behind it.
+                </span>
               </h2>
 
-            </div>
-
-
-            <div>
-
-              <p className="text-lg text-slate-500 leading-8">
-                {profile?.about ||
-                  `Welcome to my personal space. This is where I share
-                  the knowledge, experiences, ideas and work that have
-                  shaped my journey.`}
+              <p className="mt-6 text-slate-500 leading-8 max-w-xl">
+                I'm {YOUR_NAME}, {YOUR_ROLE} based in {YOUR_LOCATION}. I work on
+                {YOUR_TOPICS}, write about what I learn, and occasionally turn
+                that into courses and resources. This site is where I share that
+                work and thinking.
               </p>
 
-              <Link
-                href="/about"
-                className="inline-flex items-center gap-2 mt-7 text-sm font-bold text-brand-primary"
-              >
-                Read my full story
-                <span>→</span>
-              </Link>
+              <div className="grid sm:grid-cols-2 gap-3 mt-8">
+
+                <SimpleLink
+                  emoji="✦"
+                  title="About me"
+                  href="/about"
+                />
+
+                <SimpleLink
+                  emoji="✍️"
+                  title="All writing"
+                  href="/writing"
+                />
+
+                <SimpleLink
+                  emoji="🛠️"
+                  title="Projects"
+                  href="/projects"
+                />
+
+                <SimpleLink
+                  emoji="✉️"
+                  title="Contact"
+                  href="/contact"
+                />
+
+              </div>
 
             </div>
 
@@ -440,78 +850,92 @@ export default function HomePage() {
 
 
       {/* =====================================================
-          FEATURED CONTENT
+          PERSONALIZED MEMBER SECTION
       ===================================================== */}
 
-      <section className="py-24 bg-slate-900/30 border-y border-slate-900">
+      <section className="py-20 sm:py-28">
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5">
+          {user ? (
 
-            <div>
+            <div className="rounded-[28px] border border-brand-primary/15 bg-gradient-to-br from-brand-primary/10 to-slate-900 p-7 sm:p-10 lg:p-12">
 
               <p className="text-xs uppercase tracking-[.2em] text-brand-primary font-bold">
-                Featured
+                Welcome back
               </p>
 
               <h2 className="mt-3 text-3xl sm:text-4xl font-bold">
-                Things worth exploring.
+                Good to see you, {firstName}.
               </h2>
 
-              <p className="mt-3 text-sm text-slate-600">
-                Some of my latest courses, books, ideas and projects.
+              <p className="mt-3 text-slate-500">
+                Pick up where you left off or explore something new.
               </p>
 
-            </div>
+              <div className="grid sm:grid-cols-3 gap-3 mt-8">
 
-            <Link
-              href="/resources"
-              className="text-sm font-semibold text-brand-primary"
-            >
-              View everything →
-            </Link>
-
-          </div>
-
-
-          {featured.length > 0 ? (
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 mt-10">
-
-              {featured.map((item) => (
-                <ContentCard
-                  key={item.id}
-                  item={item}
+                <MemberAction
+                  emoji="✍️"
+                  title="Latest Writing"
+                  text="Read recent essays"
+                  href="/writing"
                 />
-              ))}
+
+                <MemberAction
+                  emoji="🛠️"
+                  title="Projects"
+                  text="See what I'm building"
+                  href="/projects"
+                />
+
+                <MemberAction
+                  emoji="🧰"
+                  title="Products"
+                  text="Browse courses & resources"
+                  href="/products"
+                />
+
+              </div>
 
             </div>
 
           ) : (
 
-            <div className="grid md:grid-cols-3 gap-5 mt-10">
+            <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-r from-brand-primary to-brand-secondary p-8 sm:p-12">
 
-              <PlaceholderCard
-                emoji="🧠"
-                title="Courses"
-                text="Knowledge and lessons to explore."
-                href="/courses"
-              />
+              <div className="absolute -right-20 -top-24 w-80 h-80 rounded-full bg-white/10" />
 
-              <PlaceholderCard
-                emoji="📖"
-                title="Books"
-                text="Ideas worth reading and keeping."
-                href="/store"
-              />
+              <div className="relative grid lg:grid-cols-[1fr_auto] gap-8 items-center">
 
-              <PlaceholderCard
-                emoji="✦"
-                title="Resources"
-                text="Thoughts, projects and useful material."
-                href="/resources"
-              />
+                <div>
+
+                  <p className="text-xs uppercase tracking-[.2em] text-white/60 font-bold">
+                    Stay in the loop
+                  </p>
+
+                  <h2 className="mt-3 text-3xl sm:text-4xl font-bold text-white">
+                    New writing and projects
+                    <br className="hidden sm:block" />
+                    every few weeks.
+                  </h2>
+
+                  <p className="mt-4 text-white/65 max-w-xl leading-7">
+                    Create a free account to get updates when I publish new
+                    essays, projects, or resources.
+                  </p>
+
+                </div>
+
+                <Link
+                  href="/register"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-white text-slate-950 text-sm font-bold hover:bg-slate-100 transition whitespace-nowrap"
+                >
+                  Create Your Account
+                  <span>→</span>
+                </Link>
+
+              </div>
 
             </div>
 
@@ -523,147 +947,80 @@ export default function HomePage() {
 
 
       {/* =====================================================
-          PHILOSOPHY / QUOTE
-      ===================================================== */}
-
-      <section className="py-28">
-
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center">
-
-          <div className="text-4xl text-brand-primary mb-7">
-            “
-          </div>
-
-          <blockquote className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight tracking-tight">
-            Knowledge becomes powerful when it is shared,
-            practiced and passed forward.
-          </blockquote>
-
-          <div className="mt-7 text-sm text-slate-600">
-            — {name}
-          </div>
-
-        </div>
-
-      </section>
-
-
-      {/* =====================================================
-          CTA
-      ===================================================== */}
-
-      <section className="pb-24">
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-          <div className="relative overflow-hidden rounded-[30px] bg-gradient-to-br from-brand-primary to-brand-secondary p-8 sm:p-12 lg:p-16">
-
-            <div className="absolute -right-32 -top-32 w-96 h-96 rounded-full bg-white/10" />
-
-            <div className="relative max-w-2xl">
-
-              <p className="text-xs uppercase tracking-[.2em] text-white/60 font-bold">
-                Let's connect
-              </p>
-
-              <h2 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">
-                Let's continue the conversation.
-              </h2>
-
-              <p className="mt-5 text-white/65 leading-7">
-                Explore my work, learn something new or get in touch.
-              </p>
-
-              <div className="flex flex-wrap gap-3 mt-8">
-
-                <Link
-                  href="/contact"
-                  className="px-6 py-3.5 rounded-xl bg-white text-slate-950 text-sm font-bold hover:bg-slate-100 transition"
-                >
-                  Get in Touch
-                </Link>
-
-                <Link
-                  href="/courses"
-                  className="px-6 py-3.5 rounded-xl border border-white/20 text-white text-sm font-semibold hover:bg-white/10 transition"
-                >
-                  Explore Courses
-                </Link>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </section>
-
-
-      {/* =====================================================
           FOOTER
       ===================================================== */}
 
-      <footer className="border-t border-slate-900">
+      <footer className="border-t border-slate-900 bg-slate-950">
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
 
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
 
-            <div>
+            <div className="lg:col-span-2">
 
-              <p className="font-bold">
-                {name}
-              </p>
+              <Link
+                href="/"
+                className="text-2xl font-black tracking-tight bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent"
+              >
+                {brand?.display_name || YOUR_NAME}
+              </Link>
 
-              <p className="mt-1 text-xs text-slate-700">
-                {title}
+              <p className="mt-4 max-w-sm text-sm leading-6 text-slate-600">
+                A personal site for writing, projects, and products around{' '}
+                {YOUR_TOPICS}.
               </p>
 
             </div>
 
 
-            <div className="flex flex-wrap gap-5">
+            <FooterColumn
+              title="Explore"
+              links={[
+                ['Writing', '/writing'],
+                ['Projects', '/projects'],
+                ['Products', '/products'],
+                ['About', '/about'],
+              ]}
+            />
 
-              <Link
-                href="/about"
-                className="text-xs text-slate-600 hover:text-white transition"
-              >
-                About
-              </Link>
 
-              <Link
-                href="/courses"
-                className="text-xs text-slate-600 hover:text-white transition"
-              >
-                Courses
-              </Link>
-
-              <Link
-                href="/store"
-                className="text-xs text-slate-600 hover:text-white transition"
-              >
-                Store
-              </Link>
-
-              <Link
-                href="/contact"
-                className="text-xs text-slate-600 hover:text-white transition"
-              >
-                Contact
-              </Link>
-
-            </div>
+            <FooterColumn
+              title="Account"
+              links={[
+                ['Dashboard', '/dashboard'],
+                ['Profile', '/profile'],
+                ['Settings', '/settings'],
+                ['Contact', '/contact'],
+              ]}
+            />
 
           </div>
 
 
-          <div className="mt-8 pt-6 border-t border-slate-900">
+          <div className="mt-12 pt-6 border-t border-slate-900 flex flex-col sm:flex-row justify-between gap-3">
 
-            <p className="text-[11px] text-slate-700">
-              © {new Date().getFullYear()} {name}. All rights reserved.
+            <p className="text-xs text-slate-700">
+              © {new Date().getFullYear()} {brand?.display_name || YOUR_NAME}.
+              All rights reserved.
             </p>
+
+            <div className="flex gap-5">
+
+              <Link
+                href="/privacy"
+                className="text-xs text-slate-700 hover:text-slate-400 transition"
+              >
+                Privacy
+              </Link>
+
+              <Link
+                href="/terms"
+                className="text-xs text-slate-700 hover:text-slate-400 transition"
+              >
+                Terms
+              </Link>
+
+            </div>
 
           </div>
 
@@ -680,7 +1037,7 @@ export default function HomePage() {
    COMPONENTS
 ========================================================= */
 
-function SiteLink({
+function NavLink({
   href,
   children,
   active = false,
@@ -704,7 +1061,31 @@ function SiteLink({
 }
 
 
-function PersonalStat({
+function AccountLink({
+  href,
+  icon,
+  label,
+}: {
+  href: string
+  icon: string
+  label: string
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-slate-400 hover:text-white hover:bg-slate-800 transition"
+    >
+      <span className="w-5 text-center">
+        {icon}
+      </span>
+
+      {label}
+    </Link>
+  )
+}
+
+
+function MiniStat({
   value,
   label,
 }: {
@@ -714,11 +1095,11 @@ function PersonalStat({
   return (
     <div>
 
-      <p className="text-lg font-bold text-slate-200">
+      <p className="text-sm font-bold text-slate-200">
         {value}
       </p>
 
-      <p className="mt-1 text-[11px] text-slate-600">
+      <p className="text-[11px] text-slate-600 mt-1">
         {label}
       </p>
 
@@ -727,7 +1108,202 @@ function PersonalStat({
 }
 
 
-function PlaceholderCard({
+function VisualCard({
+  emoji,
+  title,
+  text,
+}: {
+  emoji: string
+  title: string
+  text: string
+}) {
+  return (
+    <div className="group rounded-xl border border-slate-800 bg-slate-900/70 p-4 hover:border-brand-primary/30 transition">
+
+      <div className="text-2xl mb-5">
+        {emoji}
+      </div>
+
+      <p className="text-sm font-bold">
+        {title}
+      </p>
+
+      <p className="text-[11px] text-slate-600 mt-1">
+        {text}
+      </p>
+
+    </div>
+  )
+}
+
+
+function FeatureCard({
+  number,
+  emoji,
+  title,
+  text,
+}: {
+  number: string
+  emoji: string
+  title: string
+  text: string
+}) {
+  return (
+    <div className="group relative min-h-[230px] rounded-2xl border border-slate-800 bg-slate-900 p-6 hover:-translate-y-1 hover:border-slate-700 transition duration-300">
+
+      <div className="flex items-start justify-between">
+
+        <div className="w-12 h-12 rounded-xl bg-brand-primary/10 flex items-center justify-center text-2xl">
+          {emoji}
+        </div>
+
+        <span className="text-[10px] text-slate-700 font-bold tracking-wider">
+          {number}
+        </span>
+
+      </div>
+
+      <h3 className="mt-8 text-lg font-bold">
+        {title}
+      </h3>
+
+      <p className="mt-2 text-sm leading-6 text-slate-600">
+        {text}
+      </p>
+
+      <span className="absolute bottom-6 right-6 text-slate-700 group-hover:text-brand-primary transition">
+        →
+      </span>
+
+    </div>
+  )
+}
+
+
+function SectionHeading({
+  eyebrow,
+  title,
+  description,
+  action,
+  href,
+}: {
+  eyebrow: string
+  title: string
+  description: string
+  action: string
+  href: string
+}) {
+  return (
+    <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+
+      <div>
+
+        <p className="text-xs uppercase tracking-[.2em] text-brand-primary font-bold mb-3">
+          {eyebrow}
+        </p>
+
+        <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+          {title}
+        </h2>
+
+        <p className="mt-3 max-w-xl text-sm leading-6 text-slate-600">
+          {description}
+        </p>
+
+      </div>
+
+      <Link
+        href={href}
+        className="shrink-0 inline-flex items-center gap-2 text-sm font-semibold text-brand-primary hover:gap-3 transition-all"
+      >
+        {action}
+        <span>→</span>
+      </Link>
+
+    </div>
+  )
+}
+
+
+function WritingCard({
+  category,
+  title,
+  description,
+  date,
+  href,
+}: {
+  category: string
+  title: string
+  description: string
+  date: string
+  href: string
+}) {
+  return (
+    <Link
+      href={href}
+      className="group rounded-2xl border border-slate-800 bg-slate-900 p-5 hover:border-slate-700 transition"
+    >
+      <span className="text-[10px] tracking-[.15em] text-brand-primary font-bold">
+        {category}
+      </span>
+
+      <h3 className="mt-3 text-lg font-bold group-hover:text-brand-primary transition">
+        {title}
+      </h3>
+
+      <p className="mt-2 text-sm leading-6 text-slate-600">
+        {description}
+      </p>
+
+      <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-800">
+
+        <span className="text-[11px] text-slate-600">
+          {date}
+        </span>
+
+        <span className="text-brand-primary text-sm group-hover:translate-x-1 transition-transform">
+          →
+        </span>
+
+      </div>
+    </Link>
+  )
+}
+
+
+function SimpleLink({
+  emoji,
+  title,
+  href,
+}: {
+  emoji: string
+  title: string
+  href: string
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-950 p-4 hover:border-brand-primary/30 transition"
+    >
+
+      <span className="text-lg">
+        {emoji}
+      </span>
+
+      <span className="text-sm font-semibold">
+        {title}
+      </span>
+
+      <span className="ml-auto text-slate-700">
+        →
+      </span>
+
+    </Link>
+  )
+}
+
+
+function MemberAction({
   emoji,
   title,
   text,
@@ -741,107 +1317,54 @@ function PlaceholderCard({
   return (
     <Link
       href={href}
-      className="group min-h-[240px] rounded-2xl border border-slate-800 bg-slate-900 p-6 hover:border-brand-primary/30 hover:-translate-y-1 transition"
+      className="rounded-xl border border-slate-800 bg-slate-950/50 p-4 hover:bg-slate-950 hover:border-brand-primary/30 transition"
     >
 
-      <div className="w-12 h-12 rounded-xl bg-brand-primary/10 flex items-center justify-center text-2xl">
+      <div className="text-xl">
         {emoji}
       </div>
 
-      <h3 className="mt-8 text-xl font-bold group-hover:text-brand-primary transition">
+      <p className="mt-4 text-sm font-bold">
         {title}
-      </h3>
-
-      <p className="mt-2 text-sm text-slate-600 leading-6">
-        {text}
       </p>
 
-      <span className="block mt-8 text-brand-primary text-sm">
-        Explore →
-      </span>
+      <p className="mt-1 text-xs text-slate-600">
+        {text}
+      </p>
 
     </Link>
   )
 }
 
 
-function ContentCard({
-  item,
+function FooterColumn({
+  title,
+  links,
 }: {
-  item: ContentItem
+  title: string
+  links: [string, string][]
 }) {
-  const href =
-    item.type === 'course'
-      ? `/courses/${item.slug || item.id}`
-      : item.type === 'ebook'
-        ? `/store/${item.slug || item.id}`
-        : `/resources/${item.slug || item.id}`
-
   return (
-    <Link
-      href={href}
-      className="group rounded-2xl border border-slate-800 bg-slate-900 overflow-hidden hover:border-slate-700 transition"
-    >
+    <div>
 
-      <div className="h-48 bg-slate-950 relative overflow-hidden">
+      <h4 className="text-xs uppercase tracking-[.15em] text-slate-500 font-bold">
+        {title}
+      </h4>
 
-        {item.image_url ? (
-          <img
-            src={item.image_url}
-            alt={item.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-brand-primary/10 to-slate-950 text-4xl">
-            {item.type === 'course'
-              ? '🧠'
-              : item.type === 'ebook'
-                ? '📖'
-                : '✦'}
-          </div>
-        )}
+      <div className="mt-4 space-y-3">
+
+        {links.map(([label, href]) => (
+          <Link
+            key={href}
+            href={href}
+            className="block text-sm text-slate-700 hover:text-slate-300 transition"
+          >
+            {label}
+          </Link>
+        ))}
 
       </div>
 
-
-      <div className="p-5">
-
-        {item.category && (
-          <p className="text-[9px] uppercase tracking-[.18em] text-brand-primary font-bold">
-            {item.category}
-          </p>
-        )}
-
-        <h3 className="mt-2 text-lg font-bold group-hover:text-brand-primary transition">
-          {item.title}
-        </h3>
-
-        {item.description && (
-          <p className="mt-2 text-sm text-slate-600 leading-6 line-clamp-2">
-            {item.description}
-          </p>
-        )}
-
-        <div className="mt-5 flex items-center justify-between">
-
-          {item.price !== undefined ? (
-            <span className="text-sm font-bold">
-              ₦{item.price.toLocaleString()}
-            </span>
-          ) : (
-            <span className="text-xs text-slate-600">
-              Explore
-            </span>
-          )}
-
-          <span className="text-brand-primary">
-            →
-          </span>
-
-        </div>
-
-      </div>
-
-    </Link>
+    </div>
   )
 }
