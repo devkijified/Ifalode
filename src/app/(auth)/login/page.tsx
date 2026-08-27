@@ -116,6 +116,16 @@ export default function LoginPage() {
               </div>
             </div>
 
+            {/* Forgot Password Link */}
+            <div className="flex items-center justify-end">
+              <Link 
+                href="/forgot-password"
+                className="text-sm text-slate-400 hover:text-brand-primary transition"
+              >
+                Forgot password?
+              </Link>
+            </div>
+
             {error && (
               <div className="p-3 rounded-lg bg-red-950/50 border border-red-800/60 text-red-400 text-sm text-center">
                 {error}
