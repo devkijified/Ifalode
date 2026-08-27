@@ -1,6 +1,21 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { BrandSettings } from '@/types'
+
+// Define the BrandSettings interface locally
+interface BrandSettings {
+  id: string
+  brand_name: string
+  display_name: string
+  primary_color: string
+  secondary_color: string
+  accent_color: string
+  font_family: string
+  logo_url: string | null
+  favicon_url: string | null
+  meta_title: string | null
+  meta_description: string | null
+  updated_at: string
+}
 
 export const useBrand = () => {
   const [brand, setBrand] = useState<BrandSettings | null>(null)
@@ -29,10 +44,18 @@ export const useBrand = () => {
   }, [])
 
   const updateBrand = async (updates: Partial<BrandSettings>) => {
-    // Use type assertion for the update
+    // Convert to a plain object that Supabase accepts
+    const updateData: Record<string, any> = {}
+    Object.keys(updates).forEach(key => {
+      const typedKey = key as keyof BrandSettings
+      if (updates[typedKey] !== undefined) {
+        updateData[key] = updates[typedKey]
+      }
+    })
+
     const { data, error } = await supabase
       .from('brand_settings')
-      .update(updates as any)  // Type assertion here
+      .update(updateData)
       .eq('id', brand?.id)
       .select()
       .single()
