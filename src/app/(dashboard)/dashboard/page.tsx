@@ -2,32 +2,10 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import {
-  LayoutDashboard,
-  GraduationCap,
-  Store as StoreIcon,
-  Shield,
-  PhoneCall,
-  User,
-  ArrowRight,
-  ArrowLeft,
-  Activity,
-  Zap,
-  Clock,
-  Lock,
-  Search,
-  CreditCard,
-  ShieldAlert,
-  HelpCircle,
-  Cloud,
-  CheckCircle2,
-  AlertTriangle,
-  Server,
-  FileText
-} from 'lucide-react'
 
-export default function Dashboard({ brand }: { brand?: { display_name?: string } }) {
+export default function Dashboard() {
   const [collapsed, setCollapsed] = useState(false)
+  const brandName = 'TRUSTLINE'
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex">
@@ -41,7 +19,7 @@ export default function Dashboard({ brand }: { brand?: { display_name?: string }
           <div className="flex items-center justify-between">
             {!collapsed && (
               <span className="font-extrabold text-xl tracking-wider text-white">
-                {brand?.display_name || 'TRUSTLINE'}
+                {brandName}
               </span>
             )}
             <button
@@ -49,17 +27,17 @@ export default function Dashboard({ brand }: { brand?: { display_name?: string }
               className="p-2 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition"
               aria-label="Toggle Sidebar"
             >
-              {collapsed ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
+              {collapsed ? '→' : '←'}
             </button>
           </div>
 
           <nav className="flex flex-col gap-1">
-            <SidebarLink href="/dashboard" icon={<LayoutDashboard className="w-5 h-5" />} label="Dashboard" active collapsed={collapsed} />
-            <SidebarLink href="/courses" icon={<GraduationCap className="w-5 h-5" />} label="Courses" collapsed={collapsed} />
-            <SidebarLink href="/store" icon={<StoreIcon className="w-5 h-5" />} label="Store" collapsed={collapsed} />
-            <SidebarLink href="/security" icon={<Shield className="w-5 h-5" />} label="Security" collapsed={collapsed} />
-            <SidebarLink href="/contact" icon={<PhoneCall className="w-5 h-5" />} label="Contact" collapsed={collapsed} />
-            <SidebarLink href="/profile" icon={<User className="w-5 h-5" />} label="Profile" collapsed={collapsed} />
+            <SidebarLink href="/dashboard" icon="📊" label="Dashboard" active collapsed={collapsed} />
+            <SidebarLink href="/courses" icon="🎓" label="Courses" collapsed={collapsed} />
+            <SidebarLink href="/store" icon="🛒" label="Store" collapsed={collapsed} />
+            <SidebarLink href="/security" icon="🔒" label="Security" collapsed={collapsed} />
+            <SidebarLink href="/contact" icon="📞" label="Contact" collapsed={collapsed} />
+            <SidebarLink href="/profile" icon="👤" label="Profile" collapsed={collapsed} />
           </nav>
         </div>
 
@@ -71,7 +49,7 @@ export default function Dashboard({ brand }: { brand?: { display_name?: string }
             } py-3 rounded-lg bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 transition`}
             title={collapsed ? 'Get Help Now' : undefined}
           >
-            <HelpCircle className="w-5 h-5 shrink-0" />
+            <span className="text-lg w-6 text-center">🆘</span>
             {!collapsed && <span className="text-sm font-bold">Get Help Now</span>}
           </Link>
         </div>
@@ -81,7 +59,7 @@ export default function Dashboard({ brand }: { brand?: { display_name?: string }
       <main className="flex-1 flex flex-col min-w-0">
         <nav className="border-b border-slate-800 px-6 py-4 flex items-center justify-between bg-slate-900/50 backdrop-blur sticky top-0 z-10">
           <div className="flex items-center gap-4">
-            <span className="font-bold text-lg md:hidden text-white">{brand?.display_name || 'TRUSTLINE'}</span>
+            <span className="font-bold text-lg md:hidden text-white">{brandName}</span>
             <h1 className="text-xl font-bold text-white">Dashboard Overview</h1>
           </div>
           <div className="flex items-center gap-4">
@@ -107,10 +85,10 @@ export default function Dashboard({ brand }: { brand?: { display_name?: string }
         <div className="p-6 md:p-8 flex-1 flex flex-col gap-8 max-w-7xl w-full mx-auto">
           {/* Stats Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard label="Active Protections" value="12" change="+2 this month" icon={<Shield className="w-5 h-5 text-brand-primary" />} positive />
-            <StatCard label="Resolved Issues" value="48" change="+12% success rate" icon={<Zap className="w-5 h-5 text-brand-primary" />} positive />
-            <StatCard label="Pending Cases" value="3" change="Requires attention" icon={<Clock className="w-5 h-5 text-amber-400" />} />
-            <StatCard label="System Security" value="98%" change="Optimal status" icon={<Lock className="w-5 h-5 text-brand-primary" />} positive />
+            <StatCard label="Active Protections" value="12" change="+2 this month" icon="🛡️" positive />
+            <StatCard label="Resolved Issues" value="48" change="+12% success rate" icon="⚡" positive />
+            <StatCard label="Pending Cases" value="3" change="Requires attention" icon="⏳" />
+            <StatCard label="System Security" value="98%" change="Optimal status" icon="🔒" positive />
           </div>
 
           {/* Courses & Modules Section */}
@@ -122,7 +100,7 @@ export default function Dashboard({ brand }: { brand?: { display_name?: string }
                 status="Active"
                 progress="75%"
                 remaining="2 modules left"
-                icon={<Search className="w-6 h-6 text-brand-primary" />}
+                icon="🔍"
                 color="primary"
               />
               <CourseCard
@@ -130,7 +108,7 @@ export default function Dashboard({ brand }: { brand?: { display_name?: string }
                 status="Paused"
                 progress="40%"
                 remaining="5 steps remaining"
-                icon={<CreditCard className="w-6 h-6 text-orange-400" />}
+                icon="💳"
                 color="orange"
               />
               <CourseCard
@@ -138,7 +116,7 @@ export default function Dashboard({ brand }: { brand?: { display_name?: string }
                 status="Finished"
                 progress="100%"
                 remaining="Completed successfully"
-                icon={<ShieldCheckIcon className="w-6 h-6 text-green-400" />}
+                icon="🛡️"
                 color="green"
               />
             </div>
@@ -149,10 +127,10 @@ export default function Dashboard({ brand }: { brand?: { display_name?: string }
             <div className="lg:col-span-2 flex flex-col gap-4">
               <SectionHeader title="Recommended Interventions" action="Explore Store" href="/store" />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <LessonCard title="Anti-Malware Audit" subtitle="Comprehensive deep scan" icon={<ShieldAlert className="w-5 h-5" />} color="primary" />
-                <LessonCard title="Identity Theft Recovery" subtitle="Restore compromised data" icon={<User className="w-5 h-5" />} color="purple" />
-                <LessonCard title="Secure Comm Setup" subtitle="Encrypted channels configuration" icon={<Lock className="w-5 h-5" />} color="green" />
-                <LessonCard title="Emergency Lockout Help" subtitle="Immediate expert assistance" icon={<ShieldAlert className="w-5 h-5" />} color="red" />
+                <LessonCard title="Anti-Malware Audit" subtitle="Comprehensive deep scan" icon="🦠" color="primary" />
+                <LessonCard title="Identity Theft Recovery" subtitle="Restore compromised data" icon="👤" color="purple" />
+                <LessonCard title="Secure Comm Setup" subtitle="Encrypted channels configuration" icon="🔐" color="green" />
+                <LessonCard title="Emergency Lockout Help" subtitle="Immediate expert assistance" icon="🚨" color="red" />
               </div>
             </div>
 
@@ -168,7 +146,7 @@ export default function Dashboard({ brand }: { brand?: { display_name?: string }
               </div>
               <div className="mt-6">
                 <ActivityItem
-                  icon={<Shield className="w-5 h-5 text-brand-primary" />}
+                  icon="🛡️"
                   title="Perimeter Secured"
                   description="All nodes successfully verified against threats."
                   time="10 mins ago"
@@ -194,8 +172,8 @@ export default function Dashboard({ brand }: { brand?: { display_name?: string }
                   </tr>
                 </thead>
                 <tbody>
-                  <LibraryRow title="Primary Cloud Vault" subtitle="Encrypted storage instance" icon={<Cloud className="w-4 h-4 text-brand-primary" />} type="Storage" status="Protected" />
-                  <LibraryRow title="Financial Gateway Shield" subtitle="Transaction surveillance" icon={<CreditCard className="w-4 h-4 text-brand-primary" />} type="Finance" status="Active" />
+                  <LibraryRow title="Primary Cloud Vault" subtitle="Encrypted storage instance" icon="☁️" type="Storage" status="Protected" />
+                  <LibraryRow title="Financial Gateway Shield" subtitle="Transaction surveillance" icon="💳" type="Finance" status="Active" />
                 </tbody>
               </table>
             </div>
@@ -207,8 +185,8 @@ export default function Dashboard({ brand }: { brand?: { display_name?: string }
             className="group rounded-2xl p-6 bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-95 transition"
           >
             <div className="flex items-center gap-5">
-              <div className="w-16 h-16 rounded-full border border-white/30 flex items-center justify-center text-white">
-                <GraduationCap className="w-8 h-8" />
+              <div className="w-16 h-16 rounded-full border border-white/30 flex items-center justify-center text-2xl">
+                🎓
               </div>
               <div>
                 <h3 className="font-bold text-lg text-white">
@@ -223,7 +201,7 @@ export default function Dashboard({ brand }: { brand?: { display_name?: string }
 
           <footer className="border-t border-slate-800 pt-6 pb-4 flex flex-col md:flex-row justify-between gap-3 text-xs text-slate-600">
             <p>
-              © {new Date().getFullYear()} {brand?.display_name || 'Ifalode'}. All rights reserved.
+              © {new Date().getFullYear()} {brandName}. All rights reserved.
             </p>
             <div className="flex gap-5">
               <Link href="/store" className="hover:text-slate-400">
@@ -243,15 +221,6 @@ export default function Dashboard({ brand }: { brand?: { display_name?: string }
   )
 }
 
-function ShieldCheckIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-      <path d="m9 12 2 2 4-4" />
-    </svg>
-  )
-}
-
 function SidebarLink({
   href,
   icon,
@@ -260,7 +229,7 @@ function SidebarLink({
   collapsed = false,
 }: {
   href: string
-  icon: React.ReactNode
+  icon: string
   label: string
   active?: boolean
   collapsed?: boolean
@@ -277,14 +246,16 @@ function SidebarLink({
           : 'text-slate-400 hover:bg-slate-800 hover:text-white'
       }`}
     >
-      <span className="shrink-0 flex items-center justify-center w-6">
+      <span className="text-lg w-6 text-center">
         {icon}
       </span>
+
       {!collapsed && (
         <span className="text-sm font-medium">
           {label}
         </span>
       )}
+
       {!collapsed && active && (
         <span className="ml-auto w-1.5 h-1.5 rounded-full bg-brand-primary" />
       )}
@@ -306,6 +277,7 @@ function SectionHeader({
       <h2 className="text-lg font-bold text-white">
         {title}
       </h2>
+
       {href ? (
         <Link
           href={href}
@@ -334,7 +306,7 @@ function CourseCard({
   status: string
   progress: string
   remaining: string
-  icon: React.ReactNode
+  icon: string
   color: 'primary' | 'purple' | 'green' | 'orange'
 }) {
   const colors = {
@@ -372,23 +344,29 @@ function CourseCard({
             >
               {status}
             </span>
-            <span className="px-2 py-1 rounded-md bg-slate-800 text-slate-400 text-xs flex items-center justify-center">
-              <Lock className="w-3 h-3" />
+
+            <span className="px-2 py-1 rounded-md bg-slate-800 text-slate-500 text-xs">
+              🔒
             </span>
           </div>
+
           <button className="text-slate-600 hover:text-white">
             •••
           </button>
         </div>
-        <div className="p-3 bg-slate-800/50 w-fit rounded-xl mb-4 border border-slate-700/50">
+
+        <div className="text-3xl mb-4">
           {icon}
         </div>
+
         <h3 className="font-bold text-white mb-1">
           {title}
         </h3>
+
         <p className="text-xs text-slate-500 mb-4">
           {remaining}
         </p>
+
         <div className="flex items-center gap-3">
           <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
             <div
@@ -396,6 +374,7 @@ function CourseCard({
               style={{ width: progress }}
             />
           </div>
+
           <span className={`text-xs font-bold ${textColors[color]}`}>
             {progress}
           </span>
@@ -415,7 +394,7 @@ function StatCard({
   label: string
   value: string
   change: string
-  icon: React.ReactNode
+  icon: string
   positive?: boolean
 }) {
   return (
@@ -425,9 +404,11 @@ function StatCard({
           <p className="text-sm text-slate-500 mb-2">
             {label}
           </p>
+
           <h3 className="text-3xl font-bold text-white">
             {value}
           </h3>
+
           <p
             className={`text-xs mt-2 ${
               positive ? 'text-slate-500' : 'text-red-400'
@@ -436,7 +417,8 @@ function StatCard({
             {change}
           </p>
         </div>
-        <div className="w-11 h-11 rounded-xl bg-brand-primary/10 flex items-center justify-center">
+
+        <div className="w-11 h-11 rounded-xl bg-brand-primary/10 flex items-center justify-center text-lg">
           {icon}
         </div>
       </div>
@@ -459,10 +441,12 @@ function ProgressItem({
         <span className="text-sm text-brand-primary">
           {label}
         </span>
+
         <span className="text-xs text-slate-500">
           {users}
         </span>
       </div>
+
       <div className="flex items-center gap-3">
         <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
           <div
@@ -470,6 +454,7 @@ function ProgressItem({
             style={{ width: `${percentage}%` }}
           />
         </div>
+
         <span className="text-xs text-slate-400 w-8 text-right">
           {percentage}%
         </span>
@@ -486,7 +471,7 @@ function LessonCard({
 }: {
   title: string
   subtitle: string
-  icon: React.ReactNode
+  icon: string
   color: 'primary' | 'orange' | 'red' | 'purple' | 'green' | 'blue'
 }) {
   const bg = {
@@ -505,21 +490,24 @@ function LessonCard({
     >
       <div className="flex items-center gap-4">
         <div
-          className={`w-12 h-12 rounded-xl flex items-center justify-center ${bg[color]}`}
+          className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl ${bg[color]}`}
         >
           {icon}
         </div>
+
         <div>
           <h3 className="text-sm font-semibold text-white group-hover:text-brand-primary transition">
             {title}
           </h3>
+
           <p className="text-xs text-slate-500 mt-1">
             {subtitle}
           </p>
         </div>
       </div>
-      <span className="text-slate-600 group-hover:text-brand-primary transition">
-        <ArrowRight className="w-5 h-5" />
+
+      <span className="text-xl text-slate-600 group-hover:text-brand-primary transition">
+        →
       </span>
     </Link>
   )
@@ -531,7 +519,7 @@ function ActivityItem({
   description,
   time,
 }: {
-  icon: React.ReactNode
+  icon: string
   title: string
   description: string
   time: string
@@ -541,13 +529,16 @@ function ActivityItem({
       <div className="w-10 h-10 rounded-lg bg-brand-primary/10 flex items-center justify-center shrink-0">
         {icon}
       </div>
+
       <div className="min-w-0">
         <h4 className="text-sm font-semibold text-white">
           {title}
         </h4>
+
         <p className="text-xs text-slate-500 mt-1">
           {description}
         </p>
+
         <p className="text-[10px] text-slate-600 mt-2">
           {time}
         </p>
@@ -565,7 +556,7 @@ function LibraryRow({
 }: {
   title: string
   subtitle: string
-  icon: React.ReactNode
+  icon: string
   type: string
   status: string
 }) {
@@ -573,34 +564,39 @@ function LibraryRow({
     <tr className="border-b border-slate-800 last:border-0">
       <td className="px-5 py-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center text-xs font-bold">
             {icon}
           </div>
+
           <div>
             <p className="text-sm font-semibold text-white">
               {title}
             </p>
+
             <p className="text-xs text-slate-500 mt-1">
               {subtitle}
             </p>
           </div>
         </div>
       </td>
+
       <td className="px-5 py-4 text-sm text-slate-400">
         {type}
       </td>
+
       <td className="px-5 py-4">
         <span className="inline-flex items-center gap-2 text-xs text-slate-400">
           <span className="w-2 h-2 rounded-full bg-brand-primary" />
           {status}
         </span>
       </td>
+
       <td className="px-5 py-4">
         <Link
           href="/store"
-          className="text-xs font-semibold text-brand-primary hover:underline flex items-center gap-1"
+          className="text-xs font-semibold text-brand-primary hover:underline"
         >
-          Explore <ArrowRight className="w-3 h-3" />
+          Explore →
         </Link>
       </td>
     </tr>
