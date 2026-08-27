@@ -36,6 +36,7 @@ export const useBrand = () => {
         document.documentElement.style.setProperty('--brand-secondary', brandData.secondary_color)
         document.documentElement.style.setProperty('--brand-accent', brandData.accent_color)
       }
+
       setLoading(false)
     }
 
@@ -43,19 +44,24 @@ export const useBrand = () => {
   }, [])
 
   const updateBrand = async (updates: Partial<BrandSettings>) => {
-    // Use a simple object with type assertion
-    const updateData = { ...updates } as any
+    if (!brand?.id) {
+      return {
+        success: false,
+        error: new Error('No brand loaded yet'),
+      }
+    }
 
     const { data, error } = await supabase
       .from('brand_settings')
-      .update(updateData)
-      .eq('id', brand?.id)
+      .update(updates)
+      .eq('id', brand.id)
       .select()
       .single()
 
     if (!error && data) {
       const brandData = data as BrandSettings
       setBrand(brandData)
+
       if (updates.primary_color) {
         document.documentElement.style.setProperty('--brand-primary', updates.primary_color)
       }
@@ -65,8 +71,10 @@ export const useBrand = () => {
       if (updates.accent_color) {
         document.documentElement.style.setProperty('--brand-accent', updates.accent_color)
       }
+
       return { success: true, data: brandData }
     }
+
     return { success: false, error }
   }
 
