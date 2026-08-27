@@ -13,6 +13,7 @@ export default function SignupPage() {
   const [fullName, setFullName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -20,6 +21,7 @@ export default function SignupPage() {
     e.preventDefault()
     setLoading(true)
     setError('')
+    setSuccess(false)
 
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -39,22 +41,37 @@ export default function SignupPage() {
       }
 
       if (data.user) {
-        // Try to create profile
-        const { error: profileError } = await supabase
+        // Wait a moment for the trigger to work
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
+        // Check if profile was created
+        const { data: profile, error: checkError } = await supabase
           .from('profiles')
-          .insert({
-            id: data.user.id,
-            email: email,
-            full_name: fullName,
-            role: 'user',
-          } as any)
+          .select('*')
+          .eq('id', data.user.id)
+          .single()
 
-        if (profileError) {
-          console.error('Profile creation error:', profileError)
-          // Still redirect - user can try again
-          setError('Account created but profile setup had issues. Please try logging in.')
+        if (checkError || !profile) {
+          // Try to create profile manually if trigger didn't work
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              id: data.user.id,
+              email: email,
+              full_name: fullName,
+              role: 'user',
+            } as any)
+
+          if (insertError) {
+            console.error('Profile creation error:', insertError)
+            setError('Account created but profile setup had issues. Please try logging in.')
+          } else {
+            setSuccess(true)
+            setTimeout(() => router.push('/login?verified=true'), 1500)
+          }
         } else {
-          router.push('/login?verified=true')
+          setSuccess(true)
+          setTimeout(() => router.push('/login?verified=true'), 1500)
         }
       }
     } catch (err) {
@@ -115,66 +132,73 @@ export default function SignupPage() {
             </p>
           </div>
 
-          <form className="mt-8 space-y-5" onSubmit={handleSignup}>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition text-sm"
-                  placeholder="Your full name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition text-sm"
-                  placeholder="name@example.com"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition text-sm"
-                  placeholder="Min 6 characters"
-                  minLength={6}
-                />
-              </div>
+          {success ? (
+            <div className="rounded-xl bg-green-500/10 border border-green-500/20 p-6 text-center">
+              <p className="text-green-400 font-medium text-lg">✅ Account Created Successfully!</p>
+              <p className="text-sm text-slate-400 mt-2">Redirecting to sign in...</p>
             </div>
+          ) : (
+            <form className="mt-8 space-y-5" onSubmit={handleSignup}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition text-sm"
+                    placeholder="Your full name"
+                  />
+                </div>
 
-            {error && (
-              <div className="p-3 rounded-lg bg-red-950/50 border border-red-800/60 text-red-400 text-sm text-center">
-                {error}
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition text-sm"
+                    placeholder="name@example.com"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition text-sm"
+                    placeholder="Min 6 characters"
+                    minLength={6}
+                  />
+                </div>
               </div>
-            )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3.5 px-4 bg-brand-primary text-white font-semibold rounded-xl shadow-lg shadow-brand-primary/20 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary disabled:opacity-50 transition active:scale-[0.98]"
-            >
-              {loading ? 'Creating account...' : 'Create Account'}
-            </button>
-          </form>
+              {error && (
+                <div className="p-3 rounded-lg bg-red-950/50 border border-red-800/60 text-red-400 text-sm text-center">
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 px-4 bg-brand-primary text-white font-semibold rounded-xl shadow-lg shadow-brand-primary/20 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary disabled:opacity-50 transition active:scale-[0.98]"
+              >
+                {loading ? 'Creating account...' : 'Create Account'}
+              </button>
+            </form>
+          )}
         </div>
       </div>
     </div>
