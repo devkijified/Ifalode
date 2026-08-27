@@ -53,7 +53,7 @@ export const useBrand = () => {
 
     const { data, error } = await supabase
       .from('brand_settings')
-      .update(updates)
+      .update(updates as any)
       .eq('id', brand.id)
       .select()
       .single()
