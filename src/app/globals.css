@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+  /* Default brand colors - these will be overridden by admin settings */
   --brand-primary: #8B5E3C;
   --brand-secondary: #D4A574;
   --brand-accent: #C41E3A;
@@ -11,8 +12,38 @@
 
 body {
   font-family: var(--brand-font);
+  background-color: #0f172a; /* slate-950 */
 }
 
+/* Smooth transitions for color changes */
 * {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  transition: background-color 0.3s ease, 
+              color 0.3s ease, 
+              border-color 0.3s ease,
+              box-shadow 0.3s ease;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--brand-primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--brand-secondary);
+}
+
+/* Selection color */
+::selection {
+  background-color: var(--brand-primary);
+  color: white;
 }
