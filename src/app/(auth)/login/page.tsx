@@ -31,12 +31,12 @@ export default function LoginPage() {
       return
     }
 
-    // Get user role after login
+    // Get user role after login with type assertion
     const { data: { user } } = await supabase.auth.getUser()
     
     if (user) {
-      const { data: profile } = await supabase
-        .from('profiles')
+      const { data: profile } = await (supabase
+        .from('profiles') as any)
         .select('role')
         .eq('id', user.id)
         .single()
@@ -45,7 +45,7 @@ export default function LoginPage() {
       if (profile?.role === 'admin') {
         router.push('/admin')
       } else {
-        router.push('/dashboard') // Create this page for regular users
+        router.push('/dashboard')
       }
     } else {
       router.push('/')
