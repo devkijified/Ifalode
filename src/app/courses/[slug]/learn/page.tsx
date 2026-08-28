@@ -1,7 +1,7 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@/utils/supabase/server' // Adjust if your server client helper is elsewhere
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import LessonClientView from '@/components/courses/LessonClientView'
+import LessonInteractiveView from '@/components/courses/LessonInteractiveView'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -65,7 +65,6 @@ export default async function CourseLearnPage({ params, searchParams }: PageProp
     )
   }
 
-  // Determine initial lesson
   let currentLesson = lessons[0]
   if (lessonParam) {
     const found = lessons.find((l) => l.id === lessonParam)
@@ -74,14 +73,14 @@ export default async function CourseLearnPage({ params, searchParams }: PageProp
 
   // 5. Fetch initial related records for the current lesson server-side
   const [{ data: notes }, { data: qaList }, { data: reviews }, { data: quizzes }] = await Promise.all([
-    supabase.from('lesson_notes').select('*').eq('user_id', user.id).eq('lesson_id', currentLesson.id).order('timestamp', { ascending: true }),
-    supabase.from('lesson_qa').select('*').eq('lesson_id', currentLesson.id).order('created_at', { ascending: false }),
-    supabase.from('course_reviews').select('*').eq('course_id', slug).order('created_at', { ascending: false }),
-    supabase.from('quizzes').select('*').eq('lesson_id', currentLesson.id)
+    supabase.from('lesson_notes' as any).select('*').eq('user_id', user.id).eq('lesson_id', currentLesson.id).order('timestamp', { ascending: true }),
+    supabase.from('lesson_qa' as any).select('*').eq('lesson_id', currentLesson.id).order('created_at', { ascending: false }),
+    supabase.from('course_reviews' as any).select('*').eq('course_id', slug).order('created_at', { ascending: false }),
+    supabase.from('quizzes' as any).select('*').eq('lesson_id', currentLesson.id)
   ])
 
   return (
-    <LessonClientView
+    <LessonInteractiveView
       course={course}
       lessons={lessons}
       initialLesson={currentLesson}
