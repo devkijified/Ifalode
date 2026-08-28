@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server' // Adjust if your server client helper is elsewhere
+import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import LessonInteractiveView from '@/components/courses/LessonInteractiveView'
