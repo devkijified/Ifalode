@@ -1,36 +1,55 @@
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'not-found' // or next/navigation
 import LessonClientView from '@/app/courses/LessonClientView'
 
-export default async function LearnPage({ params, searchParams }: { params: Promise<{ id: string }>, searchParams: Promise<{ lesson?: string }> }) {
+export default async function LearnPage({ 
+  params, 
+  searchParams 
+}: { 
+  params: Promise<{ slug: string }> 
+  searchParams: Promise<{ lesson?: string }> 
+}) {
   const resolvedParams = await params
   const resolvedSearch = await searchParams
-  const courseId = resolvedParams.id
+  const courseIdOrSlug = resolvedParams.slug
   
   const supabase = await createClient()
 
   // 1. Get authenticated user
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
-    return redirect(`/auth/login?redirect=/courses/${courseId}/learn`)
+    return (
+      <div className="min-h-screen bg-[#07090e] text-white flex flex-col items-center justify-center p-6 text-center">
+        <h1 className="text-2xl font-bold mb-2">Authentication Required</h1>
+        <p className="text-slate-400 mb-6">Please log in to access this course.</p>
+        <a href={`/auth/login?redirect=/courses/${courseIdOrSlug}/learn`} className="px-6 py-3 bg-brand-primary rounded-xl font-bold text-sm text-white">Log In</a>
+      </div>
+    )
   }
 
-  // 2. Fetch Course Details (bypassing is_published check for enrolled students/owners)
-  const { data: course, error: courseError } = await supabase
-    .from('courses')
-    .select('*')
-    .eq('id', courseId)
-    .single()
+  // 2. Fetch Course Details (supporting lookup by UUID id or text slug depending on your schema)
+  let courseQuery = supabase.from('courses').select('*')
+  
+  // Check if slug is a valid UUID or a text slug string
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(courseIdOrSlug)
+  if (isUuid) {
+    courseQuery = courseQuery.eq('id', courseIdOrSlug)
+  } else {
+    courseQuery = courseQuery.eq('slug', courseIdOrSlug)
+  }
+
+  const { data: course, error: courseError } = await courseQuery.single()
 
   if (courseError || !course) {
     return (
       <div className="min-h-screen bg-[#07090e] text-white flex flex-col items-center justify-center p-6 text-center">
         <h1 className="text-2xl font-bold mb-2">Course Not Found</h1>
         <p className="text-slate-400 mb-6">This course does not exist or has been removed.</p>
-        <a href="/dashboard" className="px-6 py-3 bg-brand-primary rounded-xl font-bold text-sm">Return to Dashboard</a>
+        <a href="/dashboard" className="px-6 py-3 bg-brand-primary rounded-xl font-bold text-sm text-white">Return to Dashboard</a>
       </div>
     )
   }
+
+  const courseId = course.id
 
   // 3. Fetch Lessons for this course, ordered by order_number
   const { data: lessons, error: lessonsError } = await supabase
@@ -39,9 +58,7 @@ export default async function LearnPage({ params, searchParams }: { params: Prom
     .eq('course_id', courseId)
     .order('order_number', { ascending: true })
 
-  console.log('DEBUG: Fetched lessons for course', courseId, lessons)
-
-  // 4. Handle Empty Lessons scenario
+  // 4. Handle Empty Lessons scenario safely
   if (lessonsError || !lessons || lessons.length === 0) {
     return (
       <div className="min-h-screen bg-[#07090e] text-white flex flex-col items-center justify-center p-6 text-center">
