@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useBrand } from '@/hooks/useBrand'
 
-interface LessonClientViewProps {
+interface LessonInteractiveViewProps {
   course: any
   lessons: any[]
   initialLesson: any
@@ -18,7 +18,7 @@ interface LessonClientViewProps {
   userId: string
 }
 
-export default function LessonClientView({
+export default function LessonInteractiveView({
   course,
   lessons,
   initialLesson,
@@ -28,7 +28,7 @@ export default function LessonClientView({
   initialQuizzes,
   initialProgress,
   userId
-}: LessonClientViewProps) {
+}: LessonInteractiveViewProps) {
   const { brand } = useBrand()
   const router = useRouter()
   const supabase = createClient()
@@ -65,15 +65,12 @@ export default function LessonClientView({
   const handleAddNote = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newNoteText.trim()) return
-    const timestamp = videoRef.current ? Math.floor(videoRef.current.currentTime) : 0
 
-    const { data, error } = await supabase
-      .from('lesson_notes')
+    const { data, error } = await (supabase.from('lesson_notes' as any) as any)
       .insert({
         user_id: userId,
         lesson_id: currentLesson.id,
-        timestamp,
-        note: newNoteText
+        content: newNoteText
       })
       .select()
       .single()
@@ -84,19 +81,11 @@ export default function LessonClientView({
     }
   }
 
-  const handleSeekVideo = (timestamp: number) => {
-    if (videoRef.current) {
-      videoRef.current.currentTime = timestamp
-      videoRef.current.play()
-    }
-  }
-
   const handleAddQuestion = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newQuestion.trim()) return
 
-    const { data, error } = await supabase
-      .from('lesson_qa')
+    const { data, error } = await (supabase.from('lesson_qa' as any) as any)
       .insert({
         user_id: userId,
         lesson_id: currentLesson.id,
@@ -113,8 +102,7 @@ export default function LessonClientView({
 
   const handleAddReview = async (e: React.FormEvent) => {
     e.preventDefault()
-    const { data, error } = await supabase
-      .from('course_reviews')
+    const { data, error } = await (supabase.from('course_reviews' as any) as any)
       .upsert({
         user_id: userId,
         course_id: course.id,
@@ -146,8 +134,7 @@ export default function LessonClientView({
 
   const updateProgress = async () => {
     const newProg = Math.min(100, Math.round(((currentIndex + 1) / lessons.length) * 100))
-    await supabase
-      .from('enrollments')
+    await (supabase.from('enrollments' as any) as any)
       .update({ progress: newProg })
       .eq('user_id', userId)
       .eq('course_id', course.id)
@@ -156,7 +143,7 @@ export default function LessonClientView({
 
   return (
     <div className="min-h-screen bg-[#07090e] text-slate-100 flex flex-col selection:bg-brand-primary selection:text-white">
-      {/* Sleek Top Navigation Bar */}
+      {/* Top Navbar */}
       <nav className="sticky top-0 z-50 backdrop-blur-xl bg-[#07090e]/85 border-b border-slate-800/60 px-6 h-18 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link href="/" className="text-xl font-black tracking-wider bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
@@ -196,7 +183,7 @@ export default function LessonClientView({
               </div>
             ) : (
               <div className="max-w-4xl mx-auto rounded-3xl bg-slate-900/60 border border-slate-800/80 p-16 text-center backdrop-blur-xl">
-                <div className="w-16 h-16 bg-brand-primary/10 text-brand-primary rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl font-bold">🎬</div>
+                <div className="w-16 h-16 bg-brand-primary/10 text-brand-primary rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl font-bold">📂</div>
                 <h3 className="text-lg font-bold text-white mb-1">Text-Based Module</h3>
                 <p className="text-slate-400 text-sm">Read through the lesson notes and resources below.</p>
               </div>
@@ -212,7 +199,7 @@ export default function LessonClientView({
             )}
           </div>
 
-          {/* Modern Tabs Bar */}
+          {/* Tabs Navigation */}
           <div className="flex border-b border-slate-800/60 bg-slate-900/40 px-8 gap-8 text-sm overflow-x-auto scrollbar-none">
             {(['overview', 'notes', 'qa', 'announcements', 'reviews', 'quiz'] as const).map((tab) => (
               <button
@@ -229,10 +216,10 @@ export default function LessonClientView({
             ))}
           </div>
 
-          {/* Tab Content Panels */}
+          {/* Tab Panels */}
           <div className="p-8 flex-1">
             {activeTab === 'overview' && (
-              <div className="space-y-6 max-w-3xl animate-fadeIn">
+              <div className="space-y-6 max-w-3xl">
                 <div className="space-y-3">
                   <h3 className="text-lg font-bold text-white">Lesson Overview</h3>
                   <p className="text-slate-300 leading-relaxed text-sm bg-slate-900/40 p-6 rounded-2xl border border-slate-800/60">
@@ -253,21 +240,21 @@ export default function LessonClientView({
             )}
 
             {activeTab === 'notes' && (
-              <div className="max-w-3xl space-y-6 animate-fadeIn">
+              <div className="max-w-3xl space-y-6">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-white">Timestamped Notes</h3>
-                  <span className="text-xs text-slate-500">Auto-links current video position</span>
+                  <h3 className="text-lg font-bold text-white">Lesson Notes</h3>
+                  <span className="text-xs text-slate-500">Record your key learnings</span>
                 </div>
                 <form onSubmit={handleAddNote} className="space-y-3">
                   <textarea
                     value={newNoteText}
                     onChange={(e) => setNewNoteText(e.target.value)}
-                    placeholder="Capture a note at the current video timestamp..."
+                    placeholder="Write your study notes for this lesson..."
                     className="w-full p-4 bg-slate-900/80 border border-slate-800 rounded-2xl text-white text-sm focus:outline-none focus:border-brand-primary transition"
                     rows={3}
                   />
                   <button type="submit" className="px-6 py-2.5 bg-brand-primary text-white text-xs font-bold rounded-xl hover:opacity-90 transition shadow-lg shadow-brand-primary/20">
-                    Save Note at {videoRef.current ? Math.floor(videoRef.current.currentTime) : 0}s
+                    Save Note
                   </button>
                 </form>
 
@@ -278,13 +265,10 @@ export default function LessonClientView({
                     notes.map((n: any) => (
                       <div key={n.id} className="p-4 bg-slate-900/60 rounded-2xl border border-slate-800/80 flex items-start justify-between gap-4">
                         <div>
-                          <button
-                            onClick={() => handleSeekVideo(n.timestamp)}
-                            className="px-2.5 py-1 bg-brand-primary/15 text-brand-primary text-xs font-extrabold rounded-lg mb-2 hover:bg-brand-primary/25 transition"
-                          >
-                            ⏱️ {Math.floor(n.timestamp / 60)}:{(n.timestamp % 60).toString().padStart(2, '0')}
-                          </button>
-                          <p className="text-slate-300 text-sm">{n.note}</p>
+                          <span className="text-xs text-slate-500 block mb-1">
+                            {new Date(n.created_at).toLocaleDateString()}
+                          </span>
+                          <p className="text-slate-300 text-sm">{n.content}</p>
                         </div>
                       </div>
                     ))
@@ -294,7 +278,7 @@ export default function LessonClientView({
             )}
 
             {activeTab === 'qa' && (
-              <div className="max-w-3xl space-y-6 animate-fadeIn">
+              <div className="max-w-3xl space-y-6">
                 <h3 className="text-lg font-bold text-white">Course Q&A Discussion</h3>
                 <form onSubmit={handleAddQuestion} className="space-y-3">
                   <input
@@ -325,7 +309,7 @@ export default function LessonClientView({
             )}
 
             {activeTab === 'announcements' && (
-              <div className="max-w-3xl space-y-4 animate-fadeIn">
+              <div className="max-w-3xl space-y-4">
                 <h3 className="text-lg font-bold text-white">Instructor Announcements</h3>
                 <div className="p-5 bg-slate-900/60 rounded-2xl border border-slate-800/80 space-y-2">
                   <div className="flex items-center justify-between">
@@ -338,7 +322,7 @@ export default function LessonClientView({
             )}
 
             {activeTab === 'reviews' && (
-              <div className="max-w-3xl space-y-6 animate-fadeIn">
+              <div className="max-w-3xl space-y-6">
                 <h3 className="text-lg font-bold text-white">Student Reviews</h3>
                 <form onSubmit={handleAddReview} className="space-y-4 p-5 bg-slate-900/60 rounded-2xl border border-slate-800/80">
                   <h4 className="text-sm font-bold text-white">Leave Your Rating</h4>
@@ -381,7 +365,7 @@ export default function LessonClientView({
             )}
 
             {activeTab === 'quiz' && (
-              <div className="max-w-3xl space-y-6 animate-fadeIn">
+              <div className="max-w-3xl space-y-6">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-bold text-white">Knowledge Check Quiz</h3>
                   <span className="text-xs px-3 py-1 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20 font-bold">Mandatory</span>
