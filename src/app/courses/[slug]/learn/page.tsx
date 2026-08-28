@@ -12,7 +12,7 @@ export default async function LearnPage({
   const resolvedSearch = await searchParams
   const courseIdOrSlug = resolvedParams.slug
   
-  const supabase = await createServerClient()
+  const supabase = (await createServerClient()) as any
 
   // 1. Get authenticated user
   const { data: { user } } = await supabase.auth.getUser()
@@ -26,7 +26,7 @@ export default async function LearnPage({
     )
   }
 
-  // 2. Fetch Course Details by ID (since courses table uses id as primary identifier)
+  // 2. Fetch Course Details safely using type-erased client
   const { data: course, error: courseError } = await supabase
     .from('courses')
     .select('*')
@@ -80,10 +80,10 @@ export default async function LearnPage({
     { data: initialQuizzes }
   ] = await Promise.all([
     supabase.from('enrollments').select('*').eq('user_id', user.id).eq('course_id', courseId).maybeSingle(),
-    supabase.from('lesson_notes' as any).select('*').eq('user_id', user.id).eq('lesson_id', lessonId).order('created_at', { ascending: false }),
-    supabase.from('lesson_qa' as any).select('*').eq('lesson_id', lessonId).order('created_at', { ascending: false }),
+    supabase.from('lesson_notes').select('*').eq('user_id', user.id).eq('lesson_id', lessonId).order('created_at', { ascending: false }),
+    supabase.from('lesson_qa').select('*').eq('lesson_id', lessonId).order('created_at', { ascending: false }),
     supabase.from('course_reviews').select('*').eq('course_id', courseId),
-    supabase.from('quizzes' as any).select('*').eq('lesson_id', lessonId)
+    supabase.from('quizzes').select('*').eq('lesson_id', lessonId)
   ])
 
   return (
