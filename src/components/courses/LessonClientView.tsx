@@ -18,7 +18,7 @@ interface LessonInteractiveViewProps {
   userId: string
 }
 
-export default function LessonInteractiveView({
+export default function LessonClientView({
   course,
   lessons,
   initialLesson,
