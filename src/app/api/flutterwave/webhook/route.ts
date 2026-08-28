@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createServerClient } from '@/lib/supabase/server'
 
 const FLUTTERWAVE_SECRET_KEY = "FLWSECK_TEST-9906a6bc52447d89af0acef6ac6e8ed7-X"
 
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     const { event, data } = body
 
     if (event === 'charge.completed') {
-      const supabase = createClient()
+      const supabase = createServerClient()
       const { tx_ref, status, transaction_id, amount, currency } = data
 
       if (status === 'successful') {
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
               course_id: orderData.course_id,
               progress: 0,
               completed: false
-            })
+            } as any)
 
           if (enrollError) {
             console.error('Error creating enrollment:', enrollError)
