@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       const { tx_ref, status, transaction_id, amount, currency } = data
 
       if (status === 'successful') {
-        // Update order status
+        // Update order status - use type assertion
         const { error: orderError } = await supabase
           .from('orders')
           .update({
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
               amount: amount,
               currency: currency
             }
-          })
+          } as any)
           .eq('id', tx_ref)
 
         if (orderError) {
