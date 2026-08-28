@@ -12,7 +12,6 @@ export default async function LearnPage({
   const resolvedSearch = await searchParams
   const courseIdOrSlug = resolvedParams.slug
   
-  // Await the server client because cookies() is async in Next.js 14+
   const supabase = await createServerClient()
 
   // 1. Get authenticated user
@@ -27,17 +26,12 @@ export default async function LearnPage({
     )
   }
 
-  // 2. Fetch Course Details (supporting lookup by UUID id or text slug)
-  let courseQuery = supabase.from('courses').select('*')
-  
+  // 2. Fetch Course Details (type-safe query depending on whether slug is UUID or text string)
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(courseIdOrSlug)
-  if (isUuid) {
-    courseQuery = courseQuery.eq('id', courseIdOrSlug)
-  } else {
-    courseQuery = courseQuery.eq('slug', courseIdOrSlug)
-  }
-
-  const { data: course, error: courseError } = await courseQuery.single()
+  
+  const { data: course, error: courseError } = isUuid
+    ? await supabase.from('courses').select('*').eq('id', courseIdOrSlug).single()
+    : await supabase.from('courses').select('*').eq('slug', courseIdOrSlug).single()
 
   if (courseError || !course) {
     return (
