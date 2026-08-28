@@ -22,7 +22,7 @@ export default function CourseLearnPage() {
   const params = useParams()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const supabase = createClient()
+  const supabase = createClient() as any
   const slug = params?.slug as string
   const lessonParam = searchParams?.get('lesson')
 
@@ -84,7 +84,7 @@ export default function CourseLearnPage() {
           // Set current lesson based on URL param or first lesson
           let targetLesson = lessonsData[0]
           if (lessonParam) {
-            const found = lessonsData.find(l => l.id === lessonParam)
+            const found = lessonsData.find((l: Lesson) => l.id === lessonParam)
             if (found) targetLesson = found
           }
           setCurrentLesson(targetLesson)
@@ -110,7 +110,6 @@ export default function CourseLearnPage() {
     
     // Calculate new progress
     const watchedCount = lessons.filter(l => {
-      // In a real app, you'd track which lessons are watched
       return l.id === currentLesson.id
     }).length
     
