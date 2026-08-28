@@ -17,8 +17,10 @@ export default function CourseDetailPage() {
   const [course, setCourse] = useState<Course | null>(null)
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [loading, setLoading] = useState(true)
+  const [enrolling, setEnrolling] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [isEnrolled, setIsEnrolled] = useState(false)
+  const [enrollment, setEnrollment] = useState<any>(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -59,6 +61,9 @@ export default function CourseDetailPage() {
           .single()
         
         setIsEnrolled(!!enrollment)
+        if (enrollment) {
+          setEnrollment(enrollment)
+        }
       }
 
       setLoading(false)
@@ -73,8 +78,10 @@ export default function CourseDetailPage() {
       return
     }
 
-    // Use type assertion to fix the TypeScript error
-    const { error } = await supabase
+    setEnrolling(true)
+
+    // Create enrollment
+    const { data, error } = await supabase
       .from('enrollments')
       .insert({
         user_id: user.id,
@@ -82,11 +89,23 @@ export default function CourseDetailPage() {
         progress: 0,
         completed: false
       } as any)
+      .select()
+      .single()
 
-    if (!error) {
+    if (!error && data) {
       setIsEnrolled(true)
+      setEnrollment(data)
+      // Redirect to the course learning page
+      router.push(`/courses/${slug}/learn`)
+    } else {
+      alert('Failed to enroll. Please try again.')
     }
+
+    setEnrolling(false)
   }
+
+  // Calculate progress percentage
+  const progress = enrollment ? Math.round((enrollment.progress / lessons.length) * 100) : 0
 
   if (loading) {
     return (
@@ -125,19 +144,27 @@ export default function CourseDetailPage() {
           <div className="flex items-center gap-6 text-sm text-slate-400">
             <Link href="/store" className="hover:text-white transition">Store</Link>
             <Link href="/courses" className="text-brand-primary font-semibold transition">Courses</Link>
-            <Link 
-              href="/login"
-              className="px-5 py-2.5 text-sm font-semibold bg-brand-primary text-white rounded-xl shadow-lg shadow-brand-primary/20 hover:opacity-90 transition"
-            >
-              Sign In
-            </Link>
+            {user ? (
+              <Link 
+                href="/dashboard"
+                className="px-5 py-2.5 text-sm font-semibold bg-brand-primary text-white rounded-xl shadow-lg shadow-brand-primary/20 hover:opacity-90 transition"
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <Link 
+                href="/login"
+                className="px-5 py-2.5 text-sm font-semibold bg-brand-primary text-white rounded-xl shadow-lg shadow-brand-primary/20 hover:opacity-90 transition"
+              >
+                Sign In
+              </Link>
+            )}
           </div>
         </div>
       </nav>
 
       {/* Course Content */}
       <main className="container mx-auto px-4 py-12 max-w-4xl">
-        {/* Back link */}
         <Link href="/courses" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-white transition mb-8">
           ← Back to Courses
         </Link>
@@ -157,6 +184,11 @@ export default function CourseDetailPage() {
                 Draft
               </span>
             )}
+            {isEnrolled && (
+              <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                ✅ Enrolled
+              </span>
+            )}
           </div>
 
           <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">
@@ -173,16 +205,48 @@ export default function CourseDetailPage() {
             {course.description || 'No description available.'}
           </p>
 
+          {/* Progress bar for enrolled users */}
+          {isEnrolled && (
+            <div className="mb-6 p-4 bg-slate-900 rounded-xl border border-slate-800">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-slate-400">Your Progress</span>
+                <span className="text-sm font-semibold text-brand-primary">{progress}%</span>
+              </div>
+              <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-brand-primary rounded-full transition-all duration-500"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <Link 
+                href={`/courses/${slug}/learn`}
+                className="mt-4 inline-block px-6 py-2 bg-brand-primary text-white rounded-xl text-sm font-semibold hover:opacity-90 transition"
+              >
+                Continue Learning →
+              </Link>
+            </div>
+          )}
+
           <div className="flex items-center gap-4">
             <span className="text-3xl font-bold text-brand-primary">
-              {course.price ? `$${course.price}` : 'Free'}
+              {course.price === 0 ? 'FREE' : `$${course.price}`}
             </span>
-            <button
-              onClick={handleEnroll}
-              className={`px-8 py-3 rounded-xl font-semibold transition ${isEnrolled ? 'bg-green-600 hover:bg-green-700' : 'bg-brand-primary hover:opacity-90'} text-white shadow-lg shadow-brand-primary/20`}
-            >
-              {isEnrolled ? '✅ Enrolled' : user ? 'Enroll Now' : 'Sign in to Enroll'}
-            </button>
+            {!isEnrolled ? (
+              <button
+                onClick={handleEnroll}
+                disabled={enrolling}
+                className={`px-8 py-3 rounded-xl font-semibold transition ${course.price === 0 ? 'bg-brand-primary hover:opacity-90' : 'bg-brand-primary hover:opacity-90'} text-white shadow-lg shadow-brand-primary/20 disabled:opacity-50`}
+              >
+                {enrolling ? 'Enrolling...' : course.price === 0 ? 'Enroll Free' : 'Enroll Now'}
+              </button>
+            ) : (
+              <Link
+                href={`/courses/${slug}/learn`}
+                className="px-8 py-3 rounded-xl font-semibold bg-green-600 hover:bg-green-700 transition text-white shadow-lg shadow-green-600/20"
+              >
+                Continue Learning →
+              </Link>
+            )}
           </div>
         </div>
 
@@ -195,24 +259,37 @@ export default function CourseDetailPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {lessons.map((lesson, index) => (
-                <div key={lesson.id} className="flex items-center gap-4 p-4 bg-slate-900 rounded-xl border border-slate-800 hover:border-slate-700 transition">
-                  <div className="w-8 h-8 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center text-sm font-bold">
-                    {index + 1}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-white">{lesson.title}</h3>
-                    {lesson.duration && (
-                      <p className="text-xs text-slate-500">⏱️ {lesson.duration} min</p>
+              {lessons.map((lesson, index) => {
+                const isLocked = !isEnrolled
+                return (
+                  <div 
+                    key={lesson.id} 
+                    className={`flex items-center gap-4 p-4 bg-slate-900 rounded-xl border ${
+                      isLocked ? 'border-slate-800 opacity-60' : 'border-slate-800 hover:border-slate-700 cursor-pointer'
+                    } transition`}
+                    onClick={() => {
+                      if (!isLocked) {
+                        router.push(`/courses/${slug}/learn?lesson=${lesson.id}`)
+                      }
+                    }}
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center text-sm font-bold">
+                      {index + 1}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-white">{lesson.title}</h3>
+                      {lesson.duration && (
+                        <p className="text-xs text-slate-500">⏱️ {lesson.duration} min</p>
+                      )}
+                    </div>
+                    {isLocked ? (
+                      <span className="text-sm text-slate-500">🔒 Locked</span>
+                    ) : (
+                      <span className="text-sm text-brand-primary">▶️ Watch</span>
                     )}
                   </div>
-                  {isEnrolled ? (
-                    <span className="text-sm text-brand-primary">▶️ Watch</span>
-                  ) : (
-                    <span className="text-sm text-slate-500">🔒 Locked</span>
-                  )}
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
