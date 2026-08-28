@@ -38,7 +38,7 @@ export default function CoursesPage() {
           .eq('user_id', user.id)
         
         if (enrollData) {
-          const enrolledIds = new Set(enrollData.map((e: any) => e.course_id))
+          const enrolledIds = new Set<string>(enrollData.map((e: any) => String(e.course_id)))
           setEnrollments(enrolledIds)
         }
       }
