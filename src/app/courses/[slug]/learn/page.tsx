@@ -26,12 +26,21 @@ export default async function LearnPage({
     )
   }
 
-  // 2. Fetch Course Details (type-safe query depending on whether slug is UUID or text string)
+  // 2. Fetch Course Details with type casting to prevent 'never' inference
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(courseIdOrSlug)
   
-  const { data: course, error: courseError } = isUuid
-    ? await supabase.from('courses').select('*').eq('id', courseIdOrSlug).single()
-    : await supabase.from('courses').select('*').eq('slug', courseIdOrSlug).single()
+  let course: any = null
+  let courseError: any = null
+
+  if (isUuid) {
+    const res = await supabase.from('courses').select('*').eq('id', courseIdOrSlug).single()
+    course = res.data
+    courseError = res.error
+  } else {
+    const res = await supabase.from('courses').select('*').eq('slug', courseIdOrSlug).single()
+    course = res.data
+    courseError = res.error
+  }
 
   if (courseError || !course) {
     return (
@@ -66,7 +75,7 @@ export default async function LearnPage({
 
   // 5. Select current lesson (either from URL query param or default to first lesson)
   const selectedLessonId = resolvedSearch.lesson
-  const initialLesson = lessons.find(l => l.id === selectedLessonId) || lessons[0]
+  const initialLesson = lessons.find((l: any) => l.id === selectedLessonId) || lessons[0]
 
   // 6. Fetch user enrollment, notes, Q&A, reviews, quizzes in parallel
   const [
@@ -77,8 +86,8 @@ export default async function LearnPage({
     { data: initialQuizzes }
   ] = await Promise.all([
     supabase.from('enrollments').select('*').eq('user_id', user.id).eq('course_id', courseId).maybeSingle(),
-    supabase.from('lesson_notes').select('*').eq('user_id', user.id).eq('lesson_id', initialLesson.id).order('created_at', { ascending: false }),
-    supabase.from('lesson_qa').select('*').eq('lesson_id', initialLesson.id).order('created_at', { ascending: false }),
+    supabase.from('lesson_notes' as any).select('*').eq('user_id', user.id).eq('lesson_id', initialLesson.id).order('created_at', { ascending: false }),
+    supabase.from('lesson_qa' as any).select('*').eq('lesson_id', initialLesson.id).order('created_at', { ascending: false }),
     supabase.from('course_reviews').select('*').eq('course_id', courseId),
     supabase.from('quizzes').select('*').eq('lesson_id', initialLesson.id)
   ])
