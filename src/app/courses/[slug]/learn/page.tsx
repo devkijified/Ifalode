@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServerClient } from '@/lib/supabase/server'
 import LessonClientView from '@/app/courses/LessonClientView'
 
 export default async function LearnPage({ 
@@ -12,7 +12,8 @@ export default async function LearnPage({
   const resolvedSearch = await searchParams
   const courseIdOrSlug = resolvedParams.slug
   
-  const supabase = await createClient()
+  // Await the server client because cookies() is async in Next.js 14+
+  const supabase = await createServerClient()
 
   // 1. Get authenticated user
   const { data: { user } } = await supabase.auth.getUser()
@@ -26,10 +27,9 @@ export default async function LearnPage({
     )
   }
 
-  // 2. Fetch Course Details (supporting lookup by UUID id or text slug depending on your schema)
+  // 2. Fetch Course Details (supporting lookup by UUID id or text slug)
   let courseQuery = supabase.from('courses').select('*')
   
-  // Check if slug is a valid UUID or a text slug string
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(courseIdOrSlug)
   if (isUuid) {
     courseQuery = courseQuery.eq('id', courseIdOrSlug)
