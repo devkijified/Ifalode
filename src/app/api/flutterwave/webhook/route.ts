@@ -19,11 +19,11 @@ export async function POST(request: NextRequest) {
     const { event, data } = body
 
     if (event === 'charge.completed') {
-      const supabase = createServerClient()
+      const supabase = createServerClient() as any
       const { tx_ref, status, transaction_id, amount, currency } = data
 
       if (status === 'successful') {
-        // Update order status - use type assertion
+        // Update order status
         const { error: orderError } = await supabase
           .from('orders')
           .update({
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
               amount: amount,
               currency: currency
             }
-          } as any)
+          })
           .eq('id', tx_ref)
 
         if (orderError) {
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
               course_id: orderData.course_id,
               progress: 0,
               completed: false
-            } as any)
+            })
 
           if (enrollError) {
             console.error('Error creating enrollment:', enrollError)
