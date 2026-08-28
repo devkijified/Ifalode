@@ -18,7 +18,7 @@ interface LessonInteractiveViewProps {
   userId: string
 }
 
-export default function LessonClientView({
+export default function LessonInteractiveView({
   course,
   lessons,
   initialLesson,
@@ -143,8 +143,7 @@ export default function LessonClientView({
 
   const updateProgress = async () => {
     const newProg = Math.min(100, Math.round(((currentIndex + 1) / lessons.length) * 100))
-    await supabase
-      .from('enrollments')
+    await (supabase.from('enrollments' as any) as any)
       .update({ progress: newProg })
       .eq('user_id', userId)
       .eq('course_id', course.id)
