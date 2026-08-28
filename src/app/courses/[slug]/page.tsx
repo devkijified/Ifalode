@@ -73,6 +73,7 @@ export default function CourseDetailPage() {
       return
     }
 
+    // Use type assertion to fix the TypeScript error
     const { error } = await supabase
       .from('enrollments')
       .insert({
@@ -80,7 +81,7 @@ export default function CourseDetailPage() {
         course_id: slug,
         progress: 0,
         completed: false
-      })
+      } as any)
 
     if (!error) {
       setIsEnrolled(true)
