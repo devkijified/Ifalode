@@ -1,0 +1,241 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { useParams, useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { useBrand } from '@/hooks/useBrand'
+import { Course, Lesson } from '@/types'
+
+export default function CourseDetailPage() {
+  const { brand } = useBrand()
+  const params = useParams()
+  const router = useRouter()
+  const supabase = createClient()
+  const slug = params?.slug as string
+
+  const [course, setCourse] = useState<Course | null>(null)
+  const [lessons, setLessons] = useState<Lesson[]>([])
+  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<any>(null)
+  const [isEnrolled, setIsEnrolled] = useState(false)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!slug) return
+
+      // Fetch course
+      const { data: courseData } = await supabase
+        .from('courses')
+        .select('*')
+        .eq('id', slug)
+        .single()
+
+      if (courseData) {
+        setCourse(courseData)
+      }
+
+      // Fetch lessons
+      const { data: lessonsData } = await supabase
+        .from('lessons')
+        .select('*')
+        .eq('course_id', slug)
+        .order('order_number', { ascending: true })
+
+      if (lessonsData) {
+        setLessons(lessonsData)
+      }
+
+      // Check if user is logged in
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        setUser(user)
+        // Check if enrolled
+        const { data: enrollment } = await supabase
+          .from('enrollments')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('course_id', slug)
+          .single()
+        
+        setIsEnrolled(!!enrollment)
+      }
+
+      setLoading(false)
+    }
+
+    fetchData()
+  }, [slug])
+
+  const handleEnroll = async () => {
+    if (!user) {
+      router.push('/login')
+      return
+    }
+
+    const { error } = await supabase
+      .from('enrollments')
+      .insert({
+        user_id: user.id,
+        course_id: slug,
+        progress: 0,
+        completed: false
+      })
+
+    if (!error) {
+      setIsEnrolled(true)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-10 h-10 border-2 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-slate-400">Loading course...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!course) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-white mb-4">Course Not Found</h1>
+          <p className="text-slate-400 mb-6">The course you're looking for doesn't exist.</p>
+          <Link href="/courses" className="text-brand-primary hover:underline">← Back to Courses</Link>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100">
+      {/* Navigation */}
+      <nav className="sticky top-0 z-50 backdrop-blur-md bg-slate-950/80 border-b border-slate-800/60">
+        <div className="container mx-auto px-4 h-20 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 group">
+            <span className="text-2xl">🪵</span>
+            <span className="text-2xl font-black tracking-wider bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
+              {brand?.display_name || 'IFALODE'}
+            </span>
+          </Link>
+          <div className="flex items-center gap-6 text-sm text-slate-400">
+            <Link href="/store" className="hover:text-white transition">Store</Link>
+            <Link href="/courses" className="text-brand-primary font-semibold transition">Courses</Link>
+            <Link 
+              href="/login"
+              className="px-5 py-2.5 text-sm font-semibold bg-brand-primary text-white rounded-xl shadow-lg shadow-brand-primary/20 hover:opacity-90 transition"
+            >
+              Sign In
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      {/* Course Content */}
+      <main className="container mx-auto px-4 py-12 max-w-4xl">
+        {/* Back link */}
+        <Link href="/courses" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-white transition mb-8">
+          ← Back to Courses
+        </Link>
+
+        {/* Course Header */}
+        <div className="mb-10">
+          <div className="flex items-center gap-3 mb-4">
+            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase border ${course.level === 'beginner' ? 'bg-green-500/10 text-green-400 border-green-500/20' : course.level === 'intermediate' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>
+              {course.level || 'All Levels'}
+            </span>
+            {course.is_published ? (
+              <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-green-500/10 text-green-400 border border-green-500/20">
+                Published
+              </span>
+            ) : (
+              <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                Draft
+              </span>
+            )}
+          </div>
+
+          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">
+            {course.title}
+          </h1>
+
+          {course.instructor && (
+            <p className="text-lg text-slate-400 mb-4">
+              👤 Taught by {course.instructor}
+            </p>
+          )}
+
+          <p className="text-lg text-slate-300 leading-relaxed mb-6">
+            {course.description || 'No description available.'}
+          </p>
+
+          <div className="flex items-center gap-4">
+            <span className="text-3xl font-bold text-brand-primary">
+              {course.price ? `$${course.price}` : 'Free'}
+            </span>
+            <button
+              onClick={handleEnroll}
+              className={`px-8 py-3 rounded-xl font-semibold transition ${isEnrolled ? 'bg-green-600 hover:bg-green-700' : 'bg-brand-primary hover:opacity-90'} text-white shadow-lg shadow-brand-primary/20`}
+            >
+              {isEnrolled ? '✅ Enrolled' : user ? 'Enroll Now' : 'Sign in to Enroll'}
+            </button>
+          </div>
+        </div>
+
+        {/* Lessons */}
+        <div>
+          <h2 className="text-2xl font-bold text-white mb-6">📚 Course Lessons</h2>
+          {lessons.length === 0 ? (
+            <div className="text-center py-12 bg-slate-900 rounded-2xl border border-slate-800">
+              <p className="text-slate-400">No lessons available for this course yet.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {lessons.map((lesson, index) => (
+                <div key={lesson.id} className="flex items-center gap-4 p-4 bg-slate-900 rounded-xl border border-slate-800 hover:border-slate-700 transition">
+                  <div className="w-8 h-8 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center text-sm font-bold">
+                    {index + 1}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-white">{lesson.title}</h3>
+                    {lesson.duration && (
+                      <p className="text-xs text-slate-500">⏱️ {lesson.duration} min</p>
+                    )}
+                  </div>
+                  {isEnrolled ? (
+                    <span className="text-sm text-brand-primary">▶️ Watch</span>
+                  ) : (
+                    <span className="text-sm text-slate-500">🔒 Locked</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-slate-800 bg-slate-950 py-12">
+        <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">🪵</span>
+            <p className="text-lg font-bold bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
+              {brand?.display_name || 'IFALODE'}
+            </p>
+          </div>
+          <p className="text-xs text-slate-500">
+            © {new Date().getFullYear()} {brand?.display_name || 'IFALODE'}. Preserving Ifá wisdom for future generations.
+          </p>
+          <div className="flex gap-6 text-sm text-slate-500">
+            <Link href="/store" className="hover:text-white transition">Store</Link>
+            <Link href="/courses" className="hover:text-white transition">Courses</Link>
+            <Link href="/login" className="hover:text-white transition">Sign In</Link>
+          </div>
+        </div>
+      </footer>
+    </div>
+  )
+}
