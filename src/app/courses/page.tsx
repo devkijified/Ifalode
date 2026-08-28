@@ -12,7 +12,7 @@ export default function CoursesPage() {
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
   const [enrollments, setEnrollments] = useState<Set<string>>(new Set())
-  const supabase = createClient()
+  const supabase = createClient() as any
 
   useEffect(() => {
     const fetchData = async () => {
@@ -38,7 +38,7 @@ export default function CoursesPage() {
           .eq('user_id', user.id)
         
         if (enrollData) {
-          const enrolledIds = new Set(enrollData.map(e => e.course_id))
+          const enrolledIds = new Set(enrollData.map((e: any) => e.course_id))
           setEnrollments(enrolledIds)
         }
       }
@@ -47,7 +47,7 @@ export default function CoursesPage() {
     }
 
     fetchData()
-  }, [])
+  }, [supabase])
 
   // Get icon based on course title
   const getIcon = (title: string) => {
