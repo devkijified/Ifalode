@@ -36,7 +36,7 @@ export default function CourseDetailPage() {
   const params = useParams()
   const router = useRouter()
   const supabase = createClient()
-  const slug = params?.slug as string
+  const courseId = params?.slug as string
 
   const [course, setCourse] = useState<Course | null>(null)
   const [lessons, setLessons] = useState<Lesson[]>([])
@@ -48,31 +48,31 @@ export default function CourseDetailPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!slug) return
+      if (!courseId) return
 
       try {
-        // Fetch course
+        // Fetch course by id
         const { data: courseData, error: courseError } = await supabase
           .from('courses')
           .select('*')
-          .eq('id', slug)
+          .eq('id', courseId)
           .single()
 
         if (courseError) {
-          console.error('Course fetch error:', courseError)
+          console.error('Course fetch error:', courseError.message)
         } else if (courseData) {
           setCourse(courseData)
         }
 
-        // Fetch lessons
+        // Fetch lessons for this course
         const { data: lessonsData, error: lessonsError } = await supabase
           .from('lessons')
           .select('*')
-          .eq('course_id', slug)
+          .eq('course_id', courseId)
           .order('order_number', { ascending: true })
 
         if (lessonsError) {
-          console.error('Lessons fetch error:', lessonsError)
+          console.error('Lessons fetch error:', lessonsError.message)
         } else if (lessonsData) {
           setLessons(lessonsData)
         }
@@ -81,17 +81,22 @@ export default function CourseDetailPage() {
         const { data: { user } } = await supabase.auth.getUser()
         if (user) {
           setUser(user)
+          
           // Check if enrolled
-          const { data: enrollment } = await supabase
+          const { data: enrollmentData, error: enrollError } = await supabase
             .from('enrollments')
             .select('*')
             .eq('user_id', user.id)
-            .eq('course_id', slug)
-            .single()
+            .eq('course_id', courseId)
+            .maybeSingle()
           
-          setIsEnrolled(!!enrollment)
-          if (enrollment) {
-            setEnrollment(enrollment)
+          if (enrollError) {
+            console.error('Enrollment check error:', enrollError.message)
+          }
+
+          if (enrollmentData) {
+            setIsEnrolled(true)
+            setEnrollment(enrollmentData)
           }
         }
       } catch (error) {
@@ -102,7 +107,7 @@ export default function CourseDetailPage() {
     }
 
     fetchData()
-  }, [slug])
+  }, [courseId, supabase])
 
   const handleEnroll = async () => {
     if (!user) {
@@ -110,31 +115,45 @@ export default function CourseDetailPage() {
       return
     }
 
-    setEnrolling(true)
+    if (!course || !courseId) return
 
-    const { data, error } = await supabase
-      .from('enrollments')
-      .insert({
-        user_id: user.id,
-        course_id: slug,
-        progress: 0,
-        completed: false
-      } as any)
-      .select()
-      .single()
-
-    if (!error && data) {
-      setIsEnrolled(true)
-      setEnrollment(data)
-      router.push(`/courses/${slug}/learn`)
-    } else {
-      alert('Failed to enroll. Please try again.')
+    // If course is paid (price > 0), redirect to payment/checkout page instead of direct enrollment
+    if (course.price && course.price > 0) {
+      router.push(`/checkout?courseId=${courseId}`)
+      return
     }
 
-    setEnrolling(false)
+    setEnrolling(true)
+
+    try {
+      const { data, error } = await supabase
+        .from('enrollments')
+        .insert({
+          user_id: user.id,
+          course_id: courseId,
+          progress: 0,
+          completed: false
+        })
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Enrollment insertion error details:', error)
+        alert(`Failed to enroll: ${error.message || 'Please check database constraints or RLS policies.'}`)
+      } else if (data) {
+        setIsEnrolled(true)
+        setEnrollment(data)
+        router.push(`/courses/${courseId}/learn`)
+      }
+    } catch (err: any) {
+      console.error('Unexpected enrollment error:', err)
+      alert('An unexpected error occurred during enrollment.')
+    } finally {
+      setEnrolling(false)
+    }
   }
 
-  const progress = enrollment ? Math.round((enrollment.progress / (lessons.length || 1)) * 100) : 0
+  const progress = enrollment && lessons.length > 0 ? Math.round((enrollment.progress / lessons.length) * 100) : 0
 
   if (loading) {
     return (
@@ -248,7 +267,7 @@ export default function CourseDetailPage() {
                 />
               </div>
               <Link 
-                href={`/courses/${slug}/learn`}
+                href={`/courses/${courseId}/learn`}
                 className="mt-4 inline-block px-6 py-2 bg-brand-primary text-white rounded-xl text-sm font-semibold hover:opacity-90 transition"
               >
                 Continue Learning →
@@ -258,19 +277,19 @@ export default function CourseDetailPage() {
 
           <div className="flex items-center gap-4">
             <span className="text-3xl font-bold text-brand-primary">
-              {course.price === 0 ? 'FREE' : `$${course.price}`}
+              {!course.price || course.price === 0 ? 'FREE' : `$${course.price}`}
             </span>
             {!isEnrolled ? (
               <button
                 onClick={handleEnroll}
                 disabled={enrolling}
-                className={`px-8 py-3 rounded-xl font-semibold transition ${course.price === 0 ? 'bg-brand-primary hover:opacity-90' : 'bg-brand-primary hover:opacity-90'} text-white shadow-lg shadow-brand-primary/20 disabled:opacity-50`}
+                className="px-8 py-3 rounded-xl font-semibold bg-brand-primary hover:opacity-90 text-white shadow-lg shadow-brand-primary/20 disabled:opacity-50 transition"
               >
-                {enrolling ? 'Enrolling...' : course.price === 0 ? 'Enroll Free' : 'Enroll Now'}
+                {enrolling ? 'Processing...' : (!course.price || course.price === 0 ? 'Enroll Free' : 'Enroll Now')}
               </button>
             ) : (
               <Link
-                href={`/courses/${slug}/learn`}
+                href={`/courses/${courseId}/learn`}
                 className="px-8 py-3 rounded-xl font-semibold bg-green-600 hover:bg-green-700 transition text-white shadow-lg shadow-green-600/20"
               >
                 Continue Learning →
@@ -298,7 +317,7 @@ export default function CourseDetailPage() {
                     } transition`}
                     onClick={() => {
                       if (!isLocked) {
-                        router.push(`/courses/${slug}/learn?lesson=${lesson.id}`)
+                        router.push(`/courses/${courseId}/learn?lesson=${lesson.id}`)
                       }
                     }}
                   >
