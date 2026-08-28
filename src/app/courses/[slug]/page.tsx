@@ -133,7 +133,7 @@ export default function CourseDetailPage() {
           course_id: courseId,
           progress: 0,
           completed: false
-        })
+        } as any)
         .select()
         .single()
 
