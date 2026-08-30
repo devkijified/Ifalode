@@ -74,7 +74,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<SupabaseUser | null>(null)
   const [loading, setLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(true)
-  
+
   const [enrollments, setEnrollments] = useState<Enrollment[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [orders, setOrders] = useState<Order[]>([])
@@ -107,24 +107,20 @@ export default function DashboardPage() {
 
     const fetchDashboardData = async () => {
       try {
-        const { data: enrollmentsData, error: enrollmentsError } = await supabase
+        // ------------------------------------------------------------------
+        // ENROLLMENTS
+        // Fetched WITHOUT an embedded `course:courses(...)` join.
+        // Reason: an embedded join is subject to RLS on the `courses` table.
+        // If courses has a policy like `is_published = true`, any enrollment
+        // pointing at an unpublished/draft course silently comes back with
+        // course: null, which made the card disappear even though the
+        // enrollment row (and the "Courses Enrolled" count) was correct.
+        // Fetching courses separately and merging client-side sidesteps that,
+        // and lets us log a warning instead of silently hiding the row.
+        // ------------------------------------------------------------------
+        const { data: enrollmentsRaw, error: enrollmentsError } = await supabase
           .from('enrollments')
-          .select(`
-            *,
-            course:courses (
-              id,
-              title,
-              description,
-              instructor,
-              price,
-              cover_image,
-              category,
-              level,
-              is_published,
-              created_at,
-              updated_at
-            )
-          `)
+          .select('*')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
 
@@ -132,48 +128,119 @@ export default function DashboardPage() {
           console.error('Enrollments error:', enrollmentsError)
           throw enrollmentsError
         }
-        
-        console.log('✅ Enrollments found:', enrollmentsData?.length || 0)
-        setEnrollments(enrollmentsData || [])
 
-        const { data: ordersData, error: ordersError } = await supabase
-          .from('orders')
-          .select(`
-            *,
-            product:products (
-              id,
-              title,
-              description,
-              price,
-              cover_image,
-              file_url,
-              category,
-              is_ebook,
-              stock,
-              created_at,
-              updated_at
-            ),
-            course:courses (
-              id,
-              title,
-              description,
-              instructor,
-              price,
-              cover_image,
-              category,
-              level,
-              is_published,
-              created_at,
-              updated_at
+        const enrollmentCourseIds = Array.from(
+          new Set((enrollmentsRaw || []).map((e) => e.course_id).filter(Boolean))
+        )
+
+        let coursesForEnrollments: Course[] = []
+        if (enrollmentCourseIds.length > 0) {
+          const { data: coursesData, error: coursesError } = await supabase
+            .from('courses')
+            .select('*')
+            .in('id', enrollmentCourseIds)
+
+          if (coursesError) {
+            console.error('Courses (for enrollments) error:', coursesError)
+            throw coursesError
+          }
+          coursesForEnrollments = coursesData || []
+        }
+
+        const enrollmentsData: Enrollment[] = (enrollmentsRaw || []).map((e) => {
+          const course = coursesForEnrollments.find((c) => c.id === e.course_id)
+          if (!course) {
+            // Most likely cause: RLS on `courses` is hiding this course from
+            // the current user (e.g. is_published = false and no policy
+            // grants enrolled users access to their own unpublished course).
+            console.warn(
+              '[dashboard] Enrollment has no matching course (likely RLS or deleted course):',
+              { enrollmentId: e.id, courseId: e.course_id }
             )
-          `)
+          }
+          return { ...e, course }
+        })
+
+        console.log('✅ Enrollments found:', enrollmentsData.length)
+        console.log(
+          '✅ Enrollments with resolved course data:',
+          enrollmentsData.filter((e) => e.course).length
+        )
+        setEnrollments(enrollmentsData)
+
+        // ------------------------------------------------------------------
+        // ORDERS
+        // Same fix applied: fetch orders, then fetch products/courses for
+        // the referenced ids separately, then merge. Avoids the same RLS
+        // blind spot on embedded `product:products(...)` / `course:courses(...)`.
+        // ------------------------------------------------------------------
+        const { data: ordersRaw, error: ordersError } = await supabase
+          .from('orders')
+          .select('*')
           .eq('user_id', user.id)
           .eq('status', 'completed')
           .order('created_at', { ascending: false })
 
         if (ordersError) throw ordersError
-        setOrders(ordersData || [])
 
+        const orderProductIds = Array.from(
+          new Set((ordersRaw || []).map((o) => o.product_id).filter(Boolean))
+        ) as string[]
+        const orderCourseIds = Array.from(
+          new Set((ordersRaw || []).map((o) => o.course_id).filter(Boolean))
+        ) as string[]
+
+        let productsForOrders: Product[] = []
+        if (orderProductIds.length > 0) {
+          const { data: productsData, error: productsForOrdersError } = await supabase
+            .from('products')
+            .select('*')
+            .in('id', orderProductIds)
+
+          if (productsForOrdersError) throw productsForOrdersError
+          productsForOrders = productsData || []
+        }
+
+        let coursesForOrders: Course[] = []
+        if (orderCourseIds.length > 0) {
+          const { data: coursesData, error: coursesForOrdersError } = await supabase
+            .from('courses')
+            .select('*')
+            .in('id', orderCourseIds)
+
+          if (coursesForOrdersError) throw coursesForOrdersError
+          coursesForOrders = coursesData || []
+        }
+
+        const ordersData: Order[] = (ordersRaw || []).map((o) => {
+          const product = o.product_id
+            ? productsForOrders.find((p) => p.id === o.product_id)
+            : undefined
+          const course = o.course_id
+            ? coursesForOrders.find((c) => c.id === o.course_id)
+            : undefined
+
+          if (o.product_id && !product) {
+            console.warn('[dashboard] Order has no matching product (likely RLS or deleted product):', {
+              orderId: o.id,
+              productId: o.product_id,
+            })
+          }
+          if (o.course_id && !course) {
+            console.warn('[dashboard] Order has no matching course (likely RLS or deleted course):', {
+              orderId: o.id,
+              courseId: o.course_id,
+            })
+          }
+
+          return { ...o, product, course }
+        })
+
+        setOrders(ordersData)
+
+        // ------------------------------------------------------------------
+        // STORE PRODUCTS (unrelated to the enrollment bug, unchanged)
+        // ------------------------------------------------------------------
         const { data: productsData, error: productsError } = await supabase
           .from('products')
           .select('*')
@@ -183,9 +250,11 @@ export default function DashboardPage() {
         if (productsError) throw productsError
         setProducts(productsData || [])
 
-        if (enrollmentsData && enrollmentsData.length > 0) {
-          const typedEnrollments = enrollmentsData as any[]
-          const courseIds = typedEnrollments.map(e => e.course_id)
+        // ------------------------------------------------------------------
+        // LESSONS
+        // ------------------------------------------------------------------
+        if (enrollmentsData.length > 0) {
+          const courseIds = enrollmentsData.map((e) => e.course_id)
           const { data: lessonsData, error: lessonsError } = await supabase
             .from('lessons')
             .select('*')
@@ -196,7 +265,6 @@ export default function DashboardPage() {
           if (lessonsError) throw lessonsError
           setLessons(lessonsData || [])
         }
-
       } catch (error) {
         console.error('Error fetching dashboard data:', error)
       } finally {
@@ -340,7 +408,7 @@ export default function DashboardPage() {
                 <span className="inline-flex px-3 py-1 rounded-full bg-white/15 text-white text-xs font-semibold mb-4">Your Learning Dashboard</span>
                 <h1 className="text-2xl md:text-3xl font-bold text-white mb-3">Hello {firstName}, Welcome Back!</h1>
                 <p className="text-white/70 text-sm md:text-base max-w-2xl">
-                  You are enrolled in <strong>{coursesEnrolled}</strong> {coursesEnrolled === 1 ? 'course' : 'courses'}. 
+                  You are enrolled in <strong>{coursesEnrolled}</strong> {coursesEnrolled === 1 ? 'course' : 'courses'}.
                   {averageProgress > 0 ? ` Average progress: ${averageProgress}%` : ' Start learning today!'}
                 </p>
                 <div className="flex flex-wrap gap-3 mt-6">
@@ -386,11 +454,31 @@ export default function DashboardPage() {
             <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
               {enrollments.map((enrollment) => {
                 const course = enrollment.course
-                if (!course) return null
+                if (!course) {
+                  // Enrollment exists but course data couldn't be resolved
+                  // (see console.warn logged during fetch). Show a fallback
+                  // card instead of silently hiding the enrollment.
+                  return (
+                    <div
+                      key={enrollment.id}
+                      className="bg-slate-900 border border-red-500/20 rounded-2xl p-5 flex flex-col justify-between"
+                    >
+                      <div>
+                        <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-red-500/10 text-red-400">
+                          Unavailable
+                        </span>
+                        <h3 className="font-bold text-white mt-4 mb-1">Course data unavailable</h3>
+                        <p className="text-xs text-slate-500">
+                          This course couldn't be loaded. It may be unpublished or removed.
+                        </p>
+                      </div>
+                    </div>
+                  )
+                }
                 const status = enrollment.completed ? 'Finished' : enrollment.progress > 0 ? 'Active' : 'Not Started'
                 const color = getCourseColor(course.level)
                 const icon = getCourseIcon(course.title)
-                
+
                 return (
                   <CourseCard
                     key={enrollment.id}
@@ -537,7 +625,7 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.filter(o => o.product).length === 0 && orders.filter(o => o.course).length === 0 ? (
+                  {orders.filter(o => o.product).length === 0 && orders.filter(o => o.course).length === 0 && enrollments.length === 0 ? (
                     <>
                       <LibraryRow title="No ebooks purchased yet" subtitle="Visit the store to build your library" icon="A1" type="Ebook" status="Available" />
                       <LibraryRow title="No courses enrolled yet" subtitle="Explore courses to get started" icon="B1" type="Course" status="Available" />
