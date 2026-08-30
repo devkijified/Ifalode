@@ -107,7 +107,6 @@ export default function DashboardPage() {
 
     const fetchDashboardData = async () => {
       try {
-        // Fetch enrollments with course details
         const { data: enrollmentsData, error: enrollmentsError } = await supabase
           .from('enrollments')
           .select(`
@@ -135,7 +134,6 @@ export default function DashboardPage() {
         }
         
         console.log('✅ Enrollments found:', enrollmentsData?.length || 0)
-        console.log('📚 Enrollments:', enrollmentsData)
         setEnrollments(enrollmentsData || [])
 
         const { data: ordersData, error: ordersError } = await supabase
@@ -241,26 +239,23 @@ export default function DashboardPage() {
   const completedCourses = enrollments.filter(e => e.completed)
   const notStartedCourses = enrollments.filter(e => e.progress === 0)
 
-  // Course icons based on title
   const getCourseIcon = (title: string) => {
     if (title.includes('Divination')) return '🔮'
     if (title.includes('Practices')) return '📿'
     return '📘'
   }
 
-  // Course color based on level
   const getCourseColor = (level: string | null): 'primary' | 'purple' | 'green' | 'orange' => {
     switch (level) {
       case 'beginner': return 'green'
       case 'intermediate': return 'orange'
-      case 'advanced': return 'red'
+      case 'advanced': return 'primary'  // ✅ FIXED: Changed from 'red' to 'primary'
       default: return 'primary'
     }
   }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
-
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 h-[72px] bg-slate-900/95 backdrop-blur-xl border-b border-slate-800">
         <div className="h-full flex items-center">
@@ -335,7 +330,6 @@ export default function DashboardPage() {
       <main className={`pt-[72px] min-h-screen transition-all duration-300 ${sidebarOpen ? 'ml-[250px]' : 'ml-[80px]'}`}>
         <div className="p-5 md:p-7 lg:p-8 max-w-[1600px] mx-auto">
 
-          {/* Hero Section */}
           <div className="grid xl:grid-cols-[1fr_280px] gap-5 mb-7">
             <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-brand-primary to-brand-secondary p-7 md:p-8">
               <div className="absolute -right-20 -top-20 w-64 h-64 rounded-full bg-white/10" />
@@ -361,7 +355,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Your Courses Section */}
+          {/* Your Courses */}
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-white">Your Courses</h2>
             <Link href="/courses" className="text-xs font-semibold text-brand-primary hover:underline">View All</Link>
@@ -390,10 +384,7 @@ export default function DashboardPage() {
             <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
               {enrollments.map((enrollment) => {
                 const course = enrollment.course
-                if (!course) {
-                  console.warn('Course not found for enrollment:', enrollment.id)
-                  return null
-                }
+                if (!course) return null
                 const status = enrollment.completed ? 'Finished' : enrollment.progress > 0 ? 'Active' : 'Not Started'
                 const color = getCourseColor(course.level)
                 const icon = getCourseIcon(course.title)
@@ -417,27 +408,9 @@ export default function DashboardPage() {
 
           {/* Stats */}
           <div className="grid lg:grid-cols-3 gap-5 mb-8">
-            <StatCard 
-              label="Total Ebooks" 
-              value={totalEbooks.toString()} 
-              change={totalEbooks === 0 ? "Start building your library" : `${totalEbooks} ebook${totalEbooks > 1 ? 's' : ''} purchased`} 
-              icon="📚" 
-              positive 
-            />
-            <StatCard 
-              label="Courses Enrolled" 
-              value={coursesEnrolled.toString()} 
-              change={coursesEnrolled === 0 ? "Explore courses to begin" : `${coursesEnrolled} course${coursesEnrolled > 1 ? 's' : ''} enrolled`} 
-              icon="🎓" 
-              positive 
-            />
-            <StatCard 
-              label="Learning Progress" 
-              value={`${averageProgress}%`} 
-              change={averageProgress === 0 ? "Start your first lesson!" : "Keep up the great work!"} 
-              icon="📈" 
-              positive 
-            />
+            <StatCard label="Total Ebooks" value={totalEbooks.toString()} change={totalEbooks === 0 ? "Start building your library" : `${totalEbooks} ebook${totalEbooks > 1 ? 's' : ''} purchased`} icon="📚" positive />
+            <StatCard label="Courses Enrolled" value={coursesEnrolled.toString()} change={coursesEnrolled === 0 ? "Explore courses to begin" : `${coursesEnrolled} course${coursesEnrolled > 1 ? 's' : ''} enrolled`} icon="🎓" positive />
+            <StatCard label="Learning Progress" value={`${averageProgress}%`} change={averageProgress === 0 ? "Start your first lesson!" : "Keep up the great work!"} icon="📈" positive />
           </div>
 
           {/* Performance */}
@@ -453,21 +426,9 @@ export default function DashboardPage() {
                 <button className="text-xs px-3 py-1.5 rounded-lg bg-brand-primary/10 text-brand-primary">View All</button>
               </div>
               <div className="p-5 space-y-6">
-                <ProgressItem 
-                  label="In Progress" 
-                  users={`${inProgressCourses.length} Course${inProgressCourses.length !== 1 ? 's' : ''}`} 
-                  percentage={coursesEnrolled > 0 ? Math.round((inProgressCourses.length / coursesEnrolled) * 100) : 0} 
-                />
-                <ProgressItem 
-                  label="Completed" 
-                  users={`${completedCourses.length} Course${completedCourses.length !== 1 ? 's' : ''}`} 
-                  percentage={coursesEnrolled > 0 ? Math.round((completedCourses.length / coursesEnrolled) * 100) : 0} 
-                />
-                <ProgressItem 
-                  label="Not Started" 
-                  users={`${notStartedCourses.length} Course${notStartedCourses.length !== 1 ? 's' : ''}`} 
-                  percentage={coursesEnrolled > 0 ? Math.round((notStartedCourses.length / coursesEnrolled) * 100) : 0} 
-                />
+                <ProgressItem label="In Progress" users={`${inProgressCourses.length} Course${inProgressCourses.length !== 1 ? 's' : ''}`} percentage={coursesEnrolled > 0 ? Math.round((inProgressCourses.length / coursesEnrolled) * 100) : 0} />
+                <ProgressItem label="Completed" users={`${completedCourses.length} Course${completedCourses.length !== 1 ? 's' : ''}`} percentage={coursesEnrolled > 0 ? Math.round((completedCourses.length / coursesEnrolled) * 100) : 0} />
+                <ProgressItem label="Not Started" users={`${notStartedCourses.length} Course${notStartedCourses.length !== 1 ? 's' : ''}`} percentage={coursesEnrolled > 0 ? Math.round((notStartedCourses.length / coursesEnrolled) * 100) : 0} />
                 <ProgressItem label="Expired" users="0 Courses" percentage={0} />
               </div>
             </div>
@@ -493,7 +454,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Lessons & Activity */}
+          {/* Lessons */}
           <div className="grid xl:grid-cols-[1.2fr_1fr] gap-5 mb-8">
             <div>
               <div className="flex items-center justify-between mb-4">
@@ -524,13 +485,7 @@ export default function DashboardPage() {
                     const icons = ['📖', '✦', '🎯', '📝', '🔬', '💡']
                     const colors = ['orange', 'primary', 'red', 'purple', 'green', 'blue']
                     return (
-                      <LessonCard 
-                        key={lesson.id} 
-                        title={lesson.title} 
-                        subtitle={lesson.content ? lesson.content.substring(0, 50) + '...' : 'Course lesson'} 
-                        icon={icons[index % icons.length]} 
-                        color={colors[index % colors.length] as any} 
-                      />
+                      <LessonCard key={lesson.id} title={lesson.title} subtitle={lesson.content ? lesson.content.substring(0, 50) + '...' : 'Course lesson'} icon={icons[index % icons.length]} color={colors[index % colors.length] as any} />
                     )
                   })}
                 </div>
