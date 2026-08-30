@@ -178,7 +178,6 @@ export default function DashboardPage() {
         if (productsError) throw productsError
         setProducts(productsData || [])
 
-        // ✅ FIX: Use type assertion to fix the TypeScript error
         if (enrollmentsData && enrollmentsData.length > 0) {
           const typedEnrollments = enrollmentsData as any[]
           const courseIds = typedEnrollments.map(e => e.course_id)
@@ -529,6 +528,7 @@ export default function DashboardPage() {
                 return (
                   <CourseCard
                     key={enrollment.id}
+                    courseId={enrollment.course_id}
                     title={course?.title || 'Untitled Course'}
                     status={status}
                     progress={`${enrollment.progress}%`}
@@ -960,6 +960,10 @@ export default function DashboardPage() {
 }
 
 
+// ============================================================
+// COMPONENTS
+// ============================================================
+
 function SidebarLink({
   href,
   icon,
@@ -1044,6 +1048,7 @@ function CourseCard({
   remaining,
   icon,
   color,
+  courseId,
 }: {
   title: string
   status: string
@@ -1051,6 +1056,7 @@ function CourseCard({
   remaining: string
   icon: string
   color: 'primary' | 'purple' | 'green' | 'orange'
+  courseId: string
 }) {
   const colors = {
     primary: 'from-brand-primary/20',
@@ -1067,75 +1073,73 @@ function CourseCard({
   }
 
   return (
-    <div
-      className={`relative overflow-hidden bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition group`}
+    <Link
+      href={`/courses/${courseId}/learn`}
+      className="block group"
     >
-
       <div
-        className={`absolute inset-0 bg-gradient-to-br ${colors[color]} to-transparent opacity-50`}
-      />
+        className={`relative overflow-hidden bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition`}
+      >
+        <div
+          className={`absolute inset-0 bg-gradient-to-br ${colors[color]} to-transparent opacity-50`}
+        />
 
-      <div className="relative">
-
-        <div className="flex items-center justify-between mb-6">
-
-          <div className="flex gap-2">
-
-            <span
-              className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase ${
-                status === 'Finished'
-                  ? 'bg-green-500/10 text-green-400'
-                  : status === 'Paused'
-                  ? 'bg-orange-500/10 text-orange-400'
-                  : 'bg-brand-primary/10 text-brand-primary'
-              }`}
-            >
-              {status}
-            </span>
-
-            <span className="px-2 py-1 rounded-md bg-slate-800 text-slate-500 text-xs">
-              🔒
-            </span>
-
+        <div className="relative">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex gap-2">
+              <span
+                className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase ${
+                  status === 'Finished'
+                    ? 'bg-green-500/10 text-green-400'
+                    : status === 'Paused'
+                    ? 'bg-orange-500/10 text-orange-400'
+                    : 'bg-brand-primary/10 text-brand-primary'
+                }`}
+              >
+                {status}
+              </span>
+              <span className="px-2 py-1 rounded-md bg-slate-800 text-slate-500 text-xs">
+                🔒
+              </span>
+            </div>
+            <button className="text-slate-600 hover:text-white">
+              •••
+            </button>
           </div>
 
-          <button className="text-slate-600 hover:text-white">
-            •••
-          </button>
-
-        </div>
-
-        <div className="text-3xl mb-4">
-          {icon}
-        </div>
-
-        <h3 className="font-bold text-white mb-1">
-          {title}
-        </h3>
-
-        <p className="text-xs text-slate-500 mb-4">
-          {remaining}
-        </p>
-
-        <div className="flex items-center gap-3">
-
-          <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
-
-            <div
-              className="h-full bg-brand-primary rounded-full"
-              style={{ width: progress }}
-            />
-
+          <div className="text-3xl mb-4">
+            {icon}
           </div>
 
-          <span className={`text-xs font-bold ${textColors[color]}`}>
-            {progress}
-          </span>
+          <h3 className="font-bold text-white mb-1 group-hover:text-brand-primary transition">
+            {title}
+          </h3>
 
+          <p className="text-xs text-slate-500 mb-4">
+            {remaining}
+          </p>
+
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-brand-primary rounded-full"
+                style={{ width: progress }}
+              />
+            </div>
+            <span className={`text-xs font-bold ${textColors[color]}`}>
+              {progress}
+            </span>
+          </div>
+
+          {/* Continue Learning Button */}
+          <div className="mt-4 pt-3 border-t border-slate-800">
+            <span className="text-xs font-medium text-brand-primary group-hover:text-brand-secondary transition">
+              Continue Learning →
+            </span>
+          </div>
         </div>
-
       </div>
-    </div>
+    </Link>
   )
 }
 
@@ -1158,237 +1162,4 @@ function StatCard({
 
       <div className="flex items-start justify-between">
 
-        <div>
-          <p className="text-sm text-slate-500 mb-2">
-            {label}
-          </p>
-
-          <h3 className="text-3xl font-bold text-white">
-            {value}
-          </h3>
-
-          <p
-            className={`text-xs mt-2 ${
-              positive ? 'text-slate-500' : 'text-red-400'
-            }`}
-          >
-            {change}
-          </p>
-        </div>
-
-        <div className="w-11 h-11 rounded-xl bg-brand-primary/10 flex items-center justify-center text-lg">
-          {icon}
-        </div>
-
-      </div>
-
-    </div>
-  )
-}
-
-
-function ProgressItem({
-  label,
-  users,
-  percentage,
-}: {
-  label: string
-  users: string
-  percentage: number
-}) {
-  return (
-    <div>
-
-      <div className="flex items-center justify-between mb-2">
-
-        <span className="text-sm text-brand-primary">
-          {label}
-        </span>
-
-        <span className="text-xs text-slate-500">
-          {users}
-        </span>
-
-      </div>
-
-      <div className="flex items-center gap-3">
-
-        <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
-
-          <div
-            className="h-full bg-brand-primary rounded-full transition-all"
-            style={{ width: `${percentage}%` }}
-          />
-
-        </div>
-
-        <span className="text-xs text-slate-400 w-8 text-right">
-          {percentage}%
-        </span>
-
-      </div>
-
-    </div>
-  )
-}
-
-
-function LessonCard({
-  title,
-  subtitle,
-  icon,
-  color,
-}: {
-  title: string
-  subtitle: string
-  icon: string
-  color: 'primary' | 'orange' | 'red' | 'purple' | 'green' | 'blue'
-}) {
-  const bg = {
-    primary: 'bg-brand-primary/10 text-brand-primary',
-    orange: 'bg-orange-500/10 text-orange-400',
-    red: 'bg-red-500/10 text-red-400',
-    purple: 'bg-purple-500/10 text-purple-400',
-    green: 'bg-green-500/10 text-green-400',
-    blue: 'bg-blue-500/10 text-blue-400',
-  }
-
-  return (
-    <Link
-      href="/courses"
-      className="flex items-center justify-between bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-slate-700 transition group"
-    >
-
-      <div className="flex items-center gap-4">
-
-        <div
-          className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl ${bg[color]}`}
-        >
-          {icon}
-        </div>
-
-        <div>
-          <h3 className="text-sm font-semibold text-white group-hover:text-brand-primary transition">
-            {title}
-          </h3>
-
-          <p className="text-xs text-slate-500 mt-1">
-            {subtitle}
-          </p>
-        </div>
-
-      </div>
-
-      <span className="text-xl text-slate-600 group-hover:text-brand-primary transition">
-        →
-      </span>
-
-    </Link>
-  )
-}
-
-
-function ActivityItem({
-  icon,
-  title,
-  description,
-  time,
-}: {
-  icon: string
-  title: string
-  description: string
-  time: string
-}) {
-  return (
-    <div className="p-4 flex gap-4">
-
-      <div className="w-10 h-10 rounded-lg bg-brand-primary/10 flex items-center justify-center shrink-0">
-        {icon}
-      </div>
-
-      <div className="min-w-0">
-
-        <h4 className="text-sm font-semibold text-white">
-          {title}
-        </h4>
-
-        <p className="text-xs text-slate-500 mt-1">
-          {description}
-        </p>
-
-        <p className="text-[10px] text-slate-600 mt-2">
-          {time}
-        </p>
-
-      </div>
-
-    </div>
-  )
-}
-
-
-function LibraryRow({
-  title,
-  subtitle,
-  icon,
-  type,
-  status,
-}: {
-  title: string
-  subtitle: string
-  icon: string
-  type: string
-  status: string
-}) {
-  return (
-    <tr className="border-b border-slate-800 last:border-0">
-
-      <td className="px-5 py-4">
-
-        <div className="flex items-center gap-3">
-
-          <div className="w-10 h-10 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center text-xs font-bold">
-            {icon}
-          </div>
-
-          <div>
-            <p className="text-sm font-semibold text-white">
-              {title}
-            </p>
-
-            <p className="text-xs text-slate-500 mt-1">
-              {subtitle}
-            </p>
-          </div>
-
-        </div>
-
-      </td>
-
-      <td className="px-5 py-4 text-sm text-slate-400">
-        {type}
-      </td>
-
-      <td className="px-5 py-4">
-
-        <span className="inline-flex items-center gap-2 text-xs text-slate-400">
-          <span className="w-2 h-2 rounded-full bg-brand-primary" />
-          {status}
-        </span>
-
-      </td>
-
-      <td className="px-5 py-4">
-
-        <Link
-          href="/store"
-          className="text-xs font-semibold text-brand-primary hover:underline"
-        >
-          Explore →
-        </Link>
-
-      </td>
-
-    </tr>
-  )
-}
+        <
