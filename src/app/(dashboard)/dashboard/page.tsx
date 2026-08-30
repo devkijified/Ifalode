@@ -107,6 +107,7 @@ export default function DashboardPage() {
 
     const fetchDashboardData = async () => {
       try {
+        // Fetch enrollments with course details
         const { data: enrollmentsData, error: enrollmentsError } = await supabase
           .from('enrollments')
           .select(`
@@ -128,7 +129,13 @@ export default function DashboardPage() {
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
 
-        if (enrollmentsError) throw enrollmentsError
+        if (enrollmentsError) {
+          console.error('Enrollments error:', enrollmentsError)
+          throw enrollmentsError
+        }
+        
+        console.log('✅ Enrollments found:', enrollmentsData?.length || 0)
+        console.log('📚 Enrollments:', enrollmentsData)
         setEnrollments(enrollmentsData || [])
 
         const { data: ordersData, error: ordersError } = await supabase
@@ -234,8 +241,26 @@ export default function DashboardPage() {
   const completedCourses = enrollments.filter(e => e.completed)
   const notStartedCourses = enrollments.filter(e => e.progress === 0)
 
+  // Course icons based on title
+  const getCourseIcon = (title: string) => {
+    if (title.includes('Divination')) return '🔮'
+    if (title.includes('Practices')) return '📿'
+    return '📘'
+  }
+
+  // Course color based on level
+  const getCourseColor = (level: string | null): 'primary' | 'purple' | 'green' | 'orange' => {
+    switch (level) {
+      case 'beginner': return 'green'
+      case 'intermediate': return 'orange'
+      case 'advanced': return 'red'
+      default: return 'primary'
+    }
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
+
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 h-[72px] bg-slate-900/95 backdrop-blur-xl border-b border-slate-800">
         <div className="h-full flex items-center">
@@ -251,6 +276,7 @@ export default function DashboardPage() {
               )}
             </div>
           </div>
+
           <div className="flex-1 h-full flex items-center justify-between px-6">
             <div className="hidden md:flex items-center gap-2 text-sm text-slate-400">
               <Link href="/dashboard" className="text-brand-primary">Dashboard</Link>
@@ -269,7 +295,9 @@ export default function DashboardPage() {
               <div className="flex items-center gap-3 pl-3 border-l border-slate-800">
                 <div className="hidden sm:block text-right">
                   <p className="text-sm font-semibold text-white">{fullName}</p>
-                  <p className="text-xs text-slate-500">Student</p>
+                  <p className="text-xs text-slate-500">
+                    {coursesEnrolled} {coursesEnrolled === 1 ? 'Course' : 'Courses'}
+                  </p>
                 </div>
                 <button className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center font-bold text-white">
                   {firstName.charAt(0).toUpperCase()}
@@ -306,6 +334,7 @@ export default function DashboardPage() {
       {/* Main Content */}
       <main className={`pt-[72px] min-h-screen transition-all duration-300 ${sidebarOpen ? 'ml-[250px]' : 'ml-[80px]'}`}>
         <div className="p-5 md:p-7 lg:p-8 max-w-[1600px] mx-auto">
+
           {/* Hero Section */}
           <div className="grid xl:grid-cols-[1fr_280px] gap-5 mb-7">
             <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-brand-primary to-brand-secondary p-7 md:p-8">
@@ -314,7 +343,10 @@ export default function DashboardPage() {
               <div className="relative z-10 max-w-3xl">
                 <span className="inline-flex px-3 py-1 rounded-full bg-white/15 text-white text-xs font-semibold mb-4">Your Learning Dashboard</span>
                 <h1 className="text-2xl md:text-3xl font-bold text-white mb-3">Hello {firstName}, Welcome Back!</h1>
-                <p className="text-white/70 text-sm md:text-base max-w-2xl">Continue your learning journey, explore new courses, and discover more knowledge from your personal dashboard.</p>
+                <p className="text-white/70 text-sm md:text-base max-w-2xl">
+                  You are enrolled in <strong>{coursesEnrolled}</strong> {coursesEnrolled === 1 ? 'course' : 'courses'}. 
+                  {averageProgress > 0 ? ` Average progress: ${averageProgress}%` : ' Start learning today!'}
+                </p>
                 <div className="flex flex-wrap gap-3 mt-6">
                   <Link href="/courses" className="px-5 py-2.5 bg-white text-slate-900 rounded-lg text-sm font-semibold hover:bg-slate-100 transition">Continue Learning</Link>
                   <Link href="/store" className="px-5 py-2.5 bg-white/10 border border-white/20 text-white rounded-lg text-sm font-semibold hover:bg-white/20 transition">Browse Store</Link>
@@ -330,7 +362,11 @@ export default function DashboardPage() {
           </div>
 
           {/* Your Courses Section */}
-          <SectionHeader title="Your Courses" action="View All" href="/courses" />
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-white">Your Courses</h2>
+            <Link href="/courses" className="text-xs font-semibold text-brand-primary hover:underline">View All</Link>
+          </div>
+
           {dataLoading ? (
             <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
               {[1, 2, 3, 4].map(i => (
@@ -352,21 +388,27 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
-              {enrollments.slice(0, 4).map((enrollment, index) => {
+              {enrollments.map((enrollment) => {
                 const course = enrollment.course
-                const status = enrollment.completed ? 'Finished' : enrollment.progress > 0 ? 'Active' : 'Paused'
-                const color = index % 4 === 0 ? 'primary' : index % 4 === 1 ? 'purple' : index % 4 === 2 ? 'green' : 'orange'
-                const icons = ['📘', '🧠', '💼', '💻', '🎯', '⚡', '🚀', '📈']
+                if (!course) {
+                  console.warn('Course not found for enrollment:', enrollment.id)
+                  return null
+                }
+                const status = enrollment.completed ? 'Finished' : enrollment.progress > 0 ? 'Active' : 'Not Started'
+                const color = getCourseColor(course.level)
+                const icon = getCourseIcon(course.title)
+                
                 return (
                   <CourseCard
                     key={enrollment.id}
                     courseId={enrollment.course_id}
-                    title={course?.title || 'Untitled Course'}
+                    title={course.title || 'Untitled Course'}
                     status={status}
                     progress={`${enrollment.progress}%`}
-                    remaining={enrollment.completed ? 'Completed' : `${course ? '12 Lessons' : 'Lessons'}`}
-                    icon={icons[index % icons.length]}
-                    color={color as any}
+                    remaining={enrollment.completed ? 'Completed' : `${course.level || 'All'} Level`}
+                    icon={icon}
+                    color={color}
+                    price={course.price}
                   />
                 )
               })}
@@ -375,13 +417,35 @@ export default function DashboardPage() {
 
           {/* Stats */}
           <div className="grid lg:grid-cols-3 gap-5 mb-8">
-            <StatCard label="Total Ebooks" value={totalEbooks.toString()} change={totalEbooks === 0 ? "Start building your library" : `${totalEbooks} ebook${totalEbooks > 1 ? 's' : ''} purchased`} icon="📚" positive />
-            <StatCard label="Courses Enrolled" value={coursesEnrolled.toString()} change={coursesEnrolled === 0 ? "Explore courses to begin" : `${coursesEnrolled} course${coursesEnrolled > 1 ? 's' : ''} enrolled`} icon="🎓" positive />
-            <StatCard label="Learning Progress" value={`${averageProgress}%`} change={averageProgress === 0 ? "Average completion" : "Keep up the great work!"} icon="📈" positive />
+            <StatCard 
+              label="Total Ebooks" 
+              value={totalEbooks.toString()} 
+              change={totalEbooks === 0 ? "Start building your library" : `${totalEbooks} ebook${totalEbooks > 1 ? 's' : ''} purchased`} 
+              icon="📚" 
+              positive 
+            />
+            <StatCard 
+              label="Courses Enrolled" 
+              value={coursesEnrolled.toString()} 
+              change={coursesEnrolled === 0 ? "Explore courses to begin" : `${coursesEnrolled} course${coursesEnrolled > 1 ? 's' : ''} enrolled`} 
+              icon="🎓" 
+              positive 
+            />
+            <StatCard 
+              label="Learning Progress" 
+              value={`${averageProgress}%`} 
+              change={averageProgress === 0 ? "Start your first lesson!" : "Keep up the great work!"} 
+              icon="📈" 
+              positive 
+            />
           </div>
 
           {/* Performance */}
-          <SectionHeader title="Performance & Statistics" action="This Month" />
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-white">Performance & Statistics</h2>
+            <button className="text-xs px-3 py-1.5 rounded-lg bg-brand-primary/10 text-brand-primary">This Month</button>
+          </div>
+
           <div className="grid xl:grid-cols-[1.2fr_1fr] gap-5 mb-8">
             <div className="bg-slate-900 border border-slate-800 rounded-2xl">
               <div className="flex items-center justify-between p-5 border-b border-slate-800">
@@ -389,12 +453,25 @@ export default function DashboardPage() {
                 <button className="text-xs px-3 py-1.5 rounded-lg bg-brand-primary/10 text-brand-primary">View All</button>
               </div>
               <div className="p-5 space-y-6">
-                <ProgressItem label="In Progress" users={`${inProgressCourses.length} Course${inProgressCourses.length !== 1 ? 's' : ''}`} percentage={coursesEnrolled > 0 ? Math.round((inProgressCourses.length / coursesEnrolled) * 100) : 0} />
-                <ProgressItem label="Completed" users={`${completedCourses.length} Course${completedCourses.length !== 1 ? 's' : ''}`} percentage={coursesEnrolled > 0 ? Math.round((completedCourses.length / coursesEnrolled) * 100) : 0} />
-                <ProgressItem label="Not Started" users={`${notStartedCourses.length} Course${notStartedCourses.length !== 1 ? 's' : ''}`} percentage={coursesEnrolled > 0 ? Math.round((notStartedCourses.length / coursesEnrolled) * 100) : 0} />
+                <ProgressItem 
+                  label="In Progress" 
+                  users={`${inProgressCourses.length} Course${inProgressCourses.length !== 1 ? 's' : ''}`} 
+                  percentage={coursesEnrolled > 0 ? Math.round((inProgressCourses.length / coursesEnrolled) * 100) : 0} 
+                />
+                <ProgressItem 
+                  label="Completed" 
+                  users={`${completedCourses.length} Course${completedCourses.length !== 1 ? 's' : ''}`} 
+                  percentage={coursesEnrolled > 0 ? Math.round((completedCourses.length / coursesEnrolled) * 100) : 0} 
+                />
+                <ProgressItem 
+                  label="Not Started" 
+                  users={`${notStartedCourses.length} Course${notStartedCourses.length !== 1 ? 's' : ''}`} 
+                  percentage={coursesEnrolled > 0 ? Math.round((notStartedCourses.length / coursesEnrolled) * 100) : 0} 
+                />
                 <ProgressItem label="Expired" users="0 Courses" percentage={0} />
               </div>
             </div>
+
             <div className="bg-slate-900 border border-slate-800 rounded-2xl">
               <div className="p-5 border-b border-slate-800"><h3 className="font-bold">Learning Overview</h3></div>
               <div className="p-5">
@@ -419,7 +496,10 @@ export default function DashboardPage() {
           {/* Lessons & Activity */}
           <div className="grid xl:grid-cols-[1.2fr_1fr] gap-5 mb-8">
             <div>
-              <SectionHeader title="Lessons" action="View All" href="/courses" />
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold text-white">Lessons</h2>
+                <Link href="/courses" className="text-xs font-semibold text-brand-primary hover:underline">View All</Link>
+              </div>
               {dataLoading ? (
                 <div className="space-y-3">
                   {[1, 2, 3].map(i => (
@@ -444,22 +524,32 @@ export default function DashboardPage() {
                     const icons = ['📖', '✦', '🎯', '📝', '🔬', '💡']
                     const colors = ['orange', 'primary', 'red', 'purple', 'green', 'blue']
                     return (
-                      <LessonCard key={lesson.id} title={lesson.title} subtitle={lesson.content ? lesson.content.substring(0, 50) + '...' : 'Course lesson'} icon={icons[index % icons.length]} color={colors[index % colors.length] as any} />
+                      <LessonCard 
+                        key={lesson.id} 
+                        title={lesson.title} 
+                        subtitle={lesson.content ? lesson.content.substring(0, 50) + '...' : 'Course lesson'} 
+                        icon={icons[index % icons.length]} 
+                        color={colors[index % colors.length] as any} 
+                      />
                     )
                   })}
                 </div>
               )}
             </div>
+
             <div>
-              <SectionHeader title="Recent Activity" action="View All" />
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold text-white">Recent Activity</h2>
+                <button className="text-xs px-3 py-1.5 rounded-lg bg-brand-primary/10 text-brand-primary">View All</button>
+              </div>
               <div className="bg-slate-900 border border-slate-800 rounded-2xl divide-y divide-slate-800">
                 {orders.length > 0 ? (
                   <>
                     <ActivityItem icon="📚" title="New purchase" description={`You purchased ${orders[0].product?.title || 'a product'}`} time="Today" />
-                    {enrollments.length > 0 && <ActivityItem icon="🎓" title="Course enrollment" description={`You enrolled in ${enrollments[0].course?.title || 'a course'}`} time="Yesterday" />}
+                    {enrollments.length > 0 && <ActivityItem icon="🎓" title="Course enrollment" description={`You enrolled in ${enrollments[0].course?.title || 'a course'}`} time={enrollments[0].enrolled_at ? new Date(enrollments[0].enrolled_at).toLocaleDateString() : 'Recently'} />}
                   </>
                 ) : enrollments.length > 0 ? (
-                  <ActivityItem icon="🎓" title="Course enrollment" description={`You enrolled in ${enrollments[0].course?.title || 'a course'}`} time="Yesterday" />
+                  <ActivityItem icon="🎓" title="Course enrollment" description={`You enrolled in ${enrollments[0].course?.title || 'a course'}`} time={enrollments[0].enrolled_at ? new Date(enrollments[0].enrolled_at).toLocaleDateString() : 'Recently'} />
                 ) : (
                   <>
                     <ActivityItem icon="📚" title="New ebook available" description="Check out the latest addition to the store." time="Today" />
@@ -473,7 +563,11 @@ export default function DashboardPage() {
           </div>
 
           {/* Library */}
-          <SectionHeader title="Your Library" action="View All" href="/store" />
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-white">Your Library</h2>
+            <Link href="/store" className="text-xs font-semibold text-brand-primary hover:underline">View All</Link>
+          </div>
+
           <div className="bg-slate-900 border border-slate-800 rounded-2xl mb-8 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[700px]">
@@ -498,6 +592,9 @@ export default function DashboardPage() {
                       ))}
                       {orders.filter(o => o.course).map(order => (
                         <LibraryRow key={order.id} title={order.course?.title || 'Enrolled Course'} subtitle={order.course?.description || 'Online course'} icon="🎓" type="Course" status="Enrolled" />
+                      ))}
+                      {enrollments.filter(e => !orders.some(o => o.course_id === e.course_id)).map(enrollment => (
+                        <LibraryRow key={enrollment.id} title={enrollment.course?.title || 'Enrolled Course'} subtitle={enrollment.course?.description || 'Online course'} icon="🎓" type="Course" status="Enrolled" />
                       ))}
                     </>
                   )}
@@ -537,14 +634,16 @@ export default function DashboardPage() {
               <Link href="/profile" className="hover:text-slate-400">Profile</Link>
             </div>
           </footer>
+
         </div>
       </main>
+
     </div>
   )
 }
 
 // ============================================================
-// COMPONENTS - All properly closed
+// COMPONENTS
 // ============================================================
 
 function SidebarLink({ href, icon, label, active = false, collapsed = false }: { href: string; icon: string; label: string; active?: boolean; collapsed?: boolean }) {
@@ -557,46 +656,43 @@ function SidebarLink({ href, icon, label, active = false, collapsed = false }: {
   )
 }
 
-function SectionHeader({ title, action, href }: { title: string; action: string; href?: string }) {
-  return (
-    <div className="flex items-center justify-between mb-4">
-      <h2 className="text-lg font-bold text-white">{title}</h2>
-      {href ? (
-        <Link href={href} className="text-xs font-semibold text-brand-primary hover:underline">{action}</Link>
-      ) : (
-        <button className="text-xs px-3 py-1.5 rounded-lg bg-brand-primary/10 text-brand-primary">{action}</button>
-      )}
-    </div>
-  )
-}
-
-function CourseCard({ title, status, progress, remaining, icon, color, courseId }: { title: string; status: string; progress: string; remaining: string; icon: string; color: 'primary' | 'purple' | 'green' | 'orange'; courseId: string }) {
+function CourseCard({ title, status, progress, remaining, icon, color, courseId, price }: { title: string; status: string; progress: string; remaining: string; icon: string; color: 'primary' | 'purple' | 'green' | 'orange'; courseId: string; price?: number | null }) {
   const colors = { primary: 'from-brand-primary/20', purple: 'from-purple-500/20', green: 'from-green-500/20', orange: 'from-orange-500/20' }
   const textColors = { primary: 'text-brand-primary', purple: 'text-purple-400', green: 'text-green-400', orange: 'text-orange-400' }
+  const borderColors = { primary: 'border-brand-primary/30', purple: 'border-purple-500/30', green: 'border-green-500/30', orange: 'border-orange-500/30' }
 
   return (
     <Link href={`/courses/${courseId}/learn`} className="block group">
-      <div className={`relative overflow-hidden bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition`}>
+      <div className={`relative overflow-hidden bg-slate-900 border ${borderColors[color]} rounded-2xl p-5 hover:border-slate-700 transition`}>
         <div className={`absolute inset-0 bg-gradient-to-br ${colors[color]} to-transparent opacity-50`} />
         <div className="relative">
           <div className="flex items-center justify-between mb-6">
             <div className="flex gap-2">
-              <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase ${status === 'Finished' ? 'bg-green-500/10 text-green-400' : status === 'Paused' ? 'bg-orange-500/10 text-orange-400' : 'bg-brand-primary/10 text-brand-primary'}`}>{status}</span>
-              <span className="px-2 py-1 rounded-md bg-slate-800 text-slate-500 text-xs">🔒</span>
+              <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase ${status === 'Finished' ? 'bg-green-500/10 text-green-400' : status === 'Active' ? 'bg-brand-primary/10 text-brand-primary' : 'bg-slate-800 text-slate-400'}`}>
+                {status}
+              </span>
+              {price === 0 && (
+                <span className="px-2 py-1 rounded-md bg-green-500/10 text-green-400 text-[10px] font-bold uppercase">Free</span>
+              )}
             </div>
             <button className="text-slate-600 hover:text-white">•••</button>
           </div>
           <div className="text-3xl mb-4">{icon}</div>
-          <h3 className="font-bold text-white mb-1 group-hover:text-brand-primary transition">{title}</h3>
+          <h3 className="font-bold text-white mb-1 group-hover:text-brand-primary transition line-clamp-1">{title}</h3>
           <p className="text-xs text-slate-500 mb-4">{remaining}</p>
           <div className="flex items-center gap-3">
             <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
-              <div className="h-full bg-brand-primary rounded-full" style={{ width: progress }} />
+              <div className="h-full bg-brand-primary rounded-full transition-all duration-500" style={{ width: progress }} />
             </div>
             <span className={`text-xs font-bold ${textColors[color]}`}>{progress}</span>
           </div>
-          <div className="mt-4 pt-3 border-t border-slate-800">
-            <span className="text-xs font-medium text-brand-primary group-hover:text-brand-secondary transition">Continue Learning →</span>
+          <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
+            {price !== undefined && price > 0 && (
+              <span className="text-xs text-slate-500">${price}</span>
+            )}
+            <span className="text-xs font-medium text-brand-primary group-hover:text-brand-secondary transition ml-auto">
+              {status === 'Finished' ? 'Review →' : status === 'Active' ? 'Continue →' : 'Start →'}
+            </span>
           </div>
         </div>
       </div>
@@ -628,7 +724,7 @@ function ProgressItem({ label, users, percentage }: { label: string; users: stri
       </div>
       <div className="flex items-center gap-3">
         <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
-          <div className="h-full bg-brand-primary rounded-full transition-all" style={{ width: `${percentage}%` }} />
+          <div className="h-full bg-brand-primary rounded-full transition-all duration-500" style={{ width: `${percentage}%` }} />
         </div>
         <span className="text-xs text-slate-400 w-8 text-right">{percentage}%</span>
       </div>
@@ -644,8 +740,8 @@ function LessonCard({ title, subtitle, icon, color }: { title: string; subtitle:
       <div className="flex items-center gap-4">
         <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl ${bg[color]}`}>{icon}</div>
         <div>
-          <h3 className="text-sm font-semibold text-white group-hover:text-brand-primary transition">{title}</h3>
-          <p className="text-xs text-slate-500 mt-1">{subtitle}</p>
+          <h3 className="text-sm font-semibold text-white group-hover:text-brand-primary transition line-clamp-1">{title}</h3>
+          <p className="text-xs text-slate-500 mt-1 line-clamp-1">{subtitle}</p>
         </div>
       </div>
       <span className="text-xl text-slate-600 group-hover:text-brand-primary transition">→</span>
@@ -658,8 +754,8 @@ function ActivityItem({ icon, title, description, time }: { icon: string; title:
     <div className="p-4 flex gap-4">
       <div className="w-10 h-10 rounded-lg bg-brand-primary/10 flex items-center justify-center shrink-0">{icon}</div>
       <div className="min-w-0">
-        <h4 className="text-sm font-semibold text-white">{title}</h4>
-        <p className="text-xs text-slate-500 mt-1">{description}</p>
+        <h4 className="text-sm font-semibold text-white line-clamp-1">{title}</h4>
+        <p className="text-xs text-slate-500 mt-1 line-clamp-2">{description}</p>
         <p className="text-[10px] text-slate-600 mt-2">{time}</p>
       </div>
     </div>
@@ -673,8 +769,8 @@ function LibraryRow({ title, subtitle, icon, type, status }: { title: string; su
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center text-xs font-bold">{icon}</div>
           <div>
-            <p className="text-sm font-semibold text-white">{title}</p>
-            <p className="text-xs text-slate-500 mt-1">{subtitle}</p>
+            <p className="text-sm font-semibold text-white line-clamp-1">{title}</p>
+            <p className="text-xs text-slate-500 mt-1 line-clamp-1">{subtitle}</p>
           </div>
         </div>
       </td>
