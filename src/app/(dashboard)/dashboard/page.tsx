@@ -129,8 +129,10 @@ export default function DashboardPage() {
           throw enrollmentsError
         }
 
+        const enrollmentsRawTyped = (enrollmentsRaw || []) as Enrollment[]
+
         const enrollmentCourseIds = Array.from(
-          new Set((enrollmentsRaw || []).map((e) => e.course_id).filter(Boolean))
+          new Set(enrollmentsRawTyped.map((e) => e.course_id).filter(Boolean))
         )
 
         let coursesForEnrollments: Course[] = []
@@ -147,7 +149,7 @@ export default function DashboardPage() {
           coursesForEnrollments = coursesData || []
         }
 
-        const enrollmentsData: Enrollment[] = (enrollmentsRaw || []).map((e) => {
+        const enrollmentsData: Enrollment[] = enrollmentsRawTyped.map((e) => {
           const course = coursesForEnrollments.find((c) => c.id === e.course_id)
           if (!course) {
             // Most likely cause: RLS on `courses` is hiding this course from
@@ -183,11 +185,13 @@ export default function DashboardPage() {
 
         if (ordersError) throw ordersError
 
+        const ordersRawTyped = (ordersRaw || []) as Order[]
+
         const orderProductIds = Array.from(
-          new Set((ordersRaw || []).map((o) => o.product_id).filter(Boolean))
+          new Set(ordersRawTyped.map((o) => o.product_id).filter(Boolean))
         ) as string[]
         const orderCourseIds = Array.from(
-          new Set((ordersRaw || []).map((o) => o.course_id).filter(Boolean))
+          new Set(ordersRawTyped.map((o) => o.course_id).filter(Boolean))
         ) as string[]
 
         let productsForOrders: Product[] = []
@@ -212,7 +216,7 @@ export default function DashboardPage() {
           coursesForOrders = coursesData || []
         }
 
-        const ordersData: Order[] = (ordersRaw || []).map((o) => {
+        const ordersData: Order[] = ordersRawTyped.map((o) => {
           const product = o.product_id
             ? productsForOrders.find((p) => p.id === o.product_id)
             : undefined
