@@ -249,13 +249,14 @@ export default function DashboardPage() {
     switch (level) {
       case 'beginner': return 'green'
       case 'intermediate': return 'orange'
-      case 'advanced': return 'primary'  // ✅ FIXED: Changed from 'red' to 'primary'
+      case 'advanced': return 'primary'
       default: return 'primary'
     }
   }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
+
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 h-[72px] bg-slate-900/95 backdrop-blur-xl border-b border-slate-800">
         <div className="h-full flex items-center">
@@ -330,6 +331,7 @@ export default function DashboardPage() {
       <main className={`pt-[72px] min-h-screen transition-all duration-300 ${sidebarOpen ? 'ml-[250px]' : 'ml-[80px]'}`}>
         <div className="p-5 md:p-7 lg:p-8 max-w-[1600px] mx-auto">
 
+          {/* Hero Section */}
           <div className="grid xl:grid-cols-[1fr_280px] gap-5 mb-7">
             <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-brand-primary to-brand-secondary p-7 md:p-8">
               <div className="absolute -right-20 -top-20 w-64 h-64 rounded-full bg-white/10" />
@@ -454,7 +456,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Lessons */}
+          {/* Lessons & Activity */}
           <div className="grid xl:grid-cols-[1.2fr_1fr] gap-5 mb-8">
             <div>
               <div className="flex items-center justify-between mb-4">
@@ -642,7 +644,7 @@ function CourseCard({ title, status, progress, remaining, icon, color, courseId,
             <span className={`text-xs font-bold ${textColors[color]}`}>{progress}</span>
           </div>
           <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
-            {price !== undefined && price > 0 && (
+            {price !== undefined && price !== null && price > 0 && (
               <span className="text-xs text-slate-500">${price}</span>
             )}
             <span className="text-xs font-medium text-brand-primary group-hover:text-brand-secondary transition ml-auto">
