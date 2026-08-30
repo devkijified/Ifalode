@@ -544,7 +544,7 @@ export default function DashboardPage() {
 }
 
 // ============================================================
-// COMPONENTS
+// COMPONENTS - All properly closed
 // ============================================================
 
 function SidebarLink({ href, icon, label, active = false, collapsed = false }: { href: string; icon: string; label: string; active?: boolean; collapsed?: boolean }) {
