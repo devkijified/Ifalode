@@ -51,13 +51,13 @@ export const useBrand = () => {
       }
     }
 
-    // Cast payload as any to prevent strict Supabase type-check errors during build
-    const { data, error } = await supabase
+    // Cast the table query chain as any to prevent strict type errors during build
+    const { data, error } = await (supabase as any)
       .from('brand_settings')
       .update({
         ...updates,
         updated_at: new Date().toISOString(),
-      } as any)
+      })
       .eq('id', brand.id)
       .select()
       .single()
