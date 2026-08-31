@@ -1,367 +1,133 @@
-'use client'
-
-import { useEffect, useState } from 'react'
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
 import Link from 'next/link'
-import { useParams, useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
-import { useBrand } from '@/hooks/useBrand'
+import { notFound } from 'next/navigation'
 
-interface Course {
-  id: string
-  title: string
-  description: string | null
-  instructor: string | null
-  price: number | null
-  cover_image: string | null
-  category: string | null
-  level: 'beginner' | 'intermediate' | 'advanced' | null
-  is_published: boolean
-  created_at: string
-  updated_at: string
-}
+export default async function CourseDetailPage({
+  params
+}: {
+  params: { slug: string }
+}) {
+  const supabase = createServerComponentClient({ cookies })
 
-interface Lesson {
-  id: string
-  course_id: string
-  title: string
-  content: string | null
-  video_url: string | null
-  order_number: number | null
-  duration: number | null
-  created_at: string
-}
+  // 1. Fetch the course details by slug
+  const { data: course, error: courseError } = await supabase
+    .from('courses')
+    .select('*')
+    .eq('slug', params.slug)
+    .single()
 
-export default function CourseDetailPage() {
-  const { brand } = useBrand()
-  const params = useParams()
-  const router = useRouter()
-  const supabase = createClient()
-  const courseId = params?.slug as string
-
-  const [course, setCourse] = useState<Course | null>(null)
-  const [lessons, setLessons] = useState<Lesson[]>([])
-  const [loading, setLoading] = useState(true)
-  const [enrolling, setEnrolling] = useState(false)
-  const [user, setUser] = useState<any>(null)
-  const [isEnrolled, setIsEnrolled] = useState(false)
-  const [enrollment, setEnrollment] = useState<any>(null)
-
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!courseId) return
-
-      try {
-        // Fetch course by id
-        const { data: courseData, error: courseError } = await supabase
-          .from('courses')
-          .select('*')
-          .eq('id', courseId)
-          .single()
-
-        if (courseError) {
-          console.error('Course fetch error:', courseError.message)
-        } else if (courseData) {
-          setCourse(courseData)
-        }
-
-        // Fetch lessons for this course
-        const { data: lessonsData, error: lessonsError } = await supabase
-          .from('lessons')
-          .select('*')
-          .eq('course_id', courseId)
-          .order('order_number', { ascending: true })
-
-        if (lessonsError) {
-          console.error('Lessons fetch error:', lessonsError.message)
-        } else if (lessonsData) {
-          setLessons(lessonsData)
-        }
-
-        // Check if user is logged in
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) {
-          setUser(user)
-          
-          // Check if enrolled
-          const { data: enrollmentData, error: enrollError } = await supabase
-            .from('enrollments')
-            .select('*')
-            .eq('user_id', user.id)
-            .eq('course_id', courseId)
-            .maybeSingle()
-          
-          if (enrollError) {
-            console.error('Enrollment check error:', enrollError.message)
-          }
-
-          if (enrollmentData) {
-            setIsEnrolled(true)
-            setEnrollment(enrollmentData)
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchData()
-  }, [courseId, supabase])
-
-  const handleEnroll = async () => {
-    if (!user) {
-      router.push('/login')
-      return
-    }
-
-    if (!course || !courseId) return
-
-    // If course is paid (price > 0), redirect to payment/checkout page instead of direct enrollment
-    if (course.price && course.price > 0) {
-      router.push(`/checkout?courseId=${courseId}`)
-      return
-    }
-
-    setEnrolling(true)
-
-    try {
-      const { data, error } = await supabase
-        .from('enrollments')
-        .insert({
-          user_id: user.id,
-          course_id: courseId,
-          progress: 0,
-          completed: false
-        } as any)
-        .select()
-        .single()
-
-      if (error) {
-        console.error('Enrollment insertion error details:', error)
-        alert(`Failed to enroll: ${error.message || 'Please check database constraints or RLS policies.'}`)
-      } else if (data) {
-        setIsEnrolled(true)
-        setEnrollment(data)
-        router.push(`/courses/${courseId}/learn`)
-      }
-    } catch (err: any) {
-      console.error('Unexpected enrollment error:', err)
-      alert('An unexpected error occurred during enrollment.')
-    } finally {
-      setEnrolling(false)
-    }
+  if (courseError || !course) {
+    notFound()
   }
 
-  const progress = enrollment && lessons.length > 0 ? Math.round((enrollment.progress / lessons.length) * 100) : 0
+  // 2. Fetch modules ordered by module_order
+  const { data: modules } = await supabase
+    .from('modules')
+    .select('*')
+    .eq('course_id', course.id)
+    .order('module_order', { ascending: true })
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-10 h-10 border-2 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-slate-400">Loading course...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!course) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-white mb-4">Course Not Found</h1>
-          <p className="text-slate-400 mb-6">The course you're looking for doesn't exist.</p>
-          <Link href="/courses" className="text-brand-primary hover:underline">← Back to Courses</Link>
-        </div>
-      </div>
-    )
-  }
+  // 3. Fetch lessons ordered by lesson_order
+  const { data: lessons } = await supabase
+    .from('lessons')
+    .select('*')
+    .eq('course_id', course.id)
+    .order('lesson_order', { ascending: true })
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 backdrop-blur-md bg-slate-950/80 border-b border-slate-800/60">
-        <div className="container mx-auto px-4 h-20 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <span className="text-2xl">🪵</span>
-            <span className="text-2xl font-black tracking-wider bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
-              {brand?.display_name || 'IFALODE'}
-            </span>
-          </Link>
-          <div className="flex items-center gap-6 text-sm text-slate-400">
-            <Link href="/store" className="hover:text-white transition">Store</Link>
-            <Link href="/courses" className="text-brand-primary font-semibold transition">Courses</Link>
-            {user ? (
-              <Link 
-                href="/dashboard"
-                className="px-5 py-2.5 text-sm font-semibold bg-brand-primary text-white rounded-xl shadow-lg shadow-brand-primary/20 hover:opacity-90 transition"
-              >
-                Dashboard
-              </Link>
-            ) : (
-              <Link 
-                href="/login"
-                className="px-5 py-2.5 text-sm font-semibold bg-brand-primary text-white rounded-xl shadow-lg shadow-brand-primary/20 hover:opacity-90 transition"
-              >
-                Sign In
-              </Link>
-            )}
-          </div>
-        </div>
-      </nav>
-
-      {/* Course Content */}
-      <main className="container mx-auto px-4 py-12 max-w-4xl">
-        <Link href="/courses" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-white transition mb-8">
-          ← Back to Courses
+    <div className="min-h-screen bg-[#07090e] text-white selection:bg-brand-primary selection:text-white pb-20">
+      {/* Navigation Bar */}
+      <header className="h-16 border-b border-white/10 bg-black/40 backdrop-blur-xl px-6 flex items-center justify-between sticky top-0 z-40">
+        <Link href="/dashboard" className="text-slate-400 hover:text-white text-sm font-medium transition flex items-center space-x-2">
+          <span>←</span>
+          <span>Dashboard</span>
         </Link>
+        <Link
+          href={`/courses/${course.slug}/learn`}
+          className="px-5 py-2 bg-brand-primary hover:opacity-90 text-white rounded-xl font-bold text-xs shadow-lg transition"
+        >
+          Start Learning →
+        </Link>
+      </header>
 
-        {/* Course Header */}
-        <div className="mb-10">
-          <div className="flex items-center gap-3 mb-4">
-            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase border ${course.level === 'beginner' ? 'bg-green-500/10 text-green-400 border-green-500/20' : course.level === 'intermediate' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>
-              {course.level || 'All Levels'}
-            </span>
-            {course.is_published ? (
-              <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-green-500/10 text-green-400 border border-green-500/20">
-                Published
-              </span>
-            ) : (
-              <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
-                Draft
-              </span>
-            )}
-            {isEnrolled && (
-              <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                ✅ Enrolled
-              </span>
-            )}
-          </div>
+      {/* Course Hero Section */}
+      <div className="max-w-5xl mx-auto px-6 pt-12 pb-8 border-b border-white/10">
+        <span className="text-xs font-bold uppercase tracking-wider text-brand-primary bg-brand-primary/10 px-3 py-1 rounded-full border border-brand-primary/20">
+          Course Overview
+        </span>
+        <h1 className="text-3xl md:text-4xl font-extrabold text-white mt-4 tracking-tight">{course.title}</h1>
+        <p className="text-slate-400 text-base mt-3 max-w-2xl leading-relaxed">
+          {course.description || "Master the foundations and practical applications with our comprehensive course curriculum."}
+        </p>
 
-          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">
-            {course.title}
-          </h1>
-
-          {course.instructor && (
-            <p className="text-lg text-slate-400 mb-4">
-              👤 Taught by {course.instructor}
-            </p>
-          )}
-
-          <p className="text-lg text-slate-300 leading-relaxed mb-6">
-            {course.description || 'No description available.'}
-          </p>
-
-          {/* Progress bar for enrolled users */}
-          {isEnrolled && (
-            <div className="mb-6 p-4 bg-slate-900 rounded-xl border border-slate-800">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-slate-400">Your Progress</span>
-                <span className="text-sm font-semibold text-brand-primary">{progress}%</span>
-              </div>
-              <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-brand-primary rounded-full transition-all duration-500"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-              <Link 
-                href={`/courses/${courseId}/learn`}
-                className="mt-4 inline-block px-6 py-2 bg-brand-primary text-white rounded-xl text-sm font-semibold hover:opacity-90 transition"
-              >
-                Continue Learning →
-              </Link>
-            </div>
-          )}
-
-          <div className="flex items-center gap-4">
-            <span className="text-3xl font-bold text-brand-primary">
-              {!course.price || course.price === 0 ? 'FREE' : `$${course.price}`}
-            </span>
-            {!isEnrolled ? (
-              <button
-                onClick={handleEnroll}
-                disabled={enrolling}
-                className="px-8 py-3 rounded-xl font-semibold bg-brand-primary hover:opacity-90 text-white shadow-lg shadow-brand-primary/20 disabled:opacity-50 transition"
-              >
-                {enrolling ? 'Processing...' : (!course.price || course.price === 0 ? 'Enroll Free' : 'Enroll Now')}
-              </button>
-            ) : (
-              <Link
-                href={`/courses/${courseId}/learn`}
-                className="px-8 py-3 rounded-xl font-semibold bg-green-600 hover:bg-green-700 transition text-white shadow-lg shadow-green-600/20"
-              >
-                Continue Learning →
-              </Link>
-            )}
-          </div>
+        <div className="mt-6 flex items-center space-x-6 text-sm text-slate-400">
+          <div><strong className="text-white">{modules?.length || 0}</strong> Modules</div>
+          <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+          <div><strong className="text-white">{lessons?.length || 0}</strong> Lessons</div>
         </div>
+      </div>
 
-        {/* Lessons */}
-        <div>
-          <h2 className="text-2xl font-bold text-white mb-6">📚 Course Lessons</h2>
-          {lessons.length === 0 ? (
-            <div className="text-center py-12 bg-slate-900 rounded-2xl border border-slate-800">
-              <p className="text-slate-400">No lessons available for this course yet.</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {lessons.map((lesson, index) => {
-                const isLocked = !isEnrolled
-                return (
-                  <div 
-                    key={lesson.id} 
-                    className={`flex items-center gap-4 p-4 bg-slate-900 rounded-xl border ${
-                      isLocked ? 'border-slate-800 opacity-60' : 'border-slate-800 hover:border-slate-700 cursor-pointer'
-                    } transition`}
-                    onClick={() => {
-                      if (!isLocked) {
-                        router.push(`/courses/${courseId}/learn?lesson=${lesson.id}`)
-                      }
-                    }}
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center text-sm font-bold">
-                      {index + 1}
+      {/* Curriculum Section */}
+      <div className="max-w-5xl mx-auto px-6 pt-12">
+        <h2 className="text-2xl font-bold text-white mb-6 tracking-tight">Course Curriculum</h2>
+
+        <div className="space-y-4">
+          {modules && modules.length > 0 ? (
+            modules.map((module, index) => {
+              // Filter lessons that belong to this module
+              const moduleLessons = lessons?.filter((l: any) => l.module_id === module.id) || []
+
+              return (
+                <div
+                  key={module.id}
+                  className="bg-white/[0.02] border border-white/10 rounded-2xl p-6 transition hover:border-white/20"
+                >
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-4">
+                    <div>
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Module {index + 1}
+                      </span>
+                      <h3 className="text-lg font-bold text-white mt-0.5">{module.title}</h3>
                     </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-white">{lesson.title}</h3>
-                      {lesson.duration && (
-                        <p className="text-xs text-slate-500">⏱️ {lesson.duration} min</p>
-                      )}
-                    </div>
-                    {isLocked ? (
-                      <span className="text-sm text-slate-500">🔒 Locked</span>
+                    <span className="text-xs font-medium text-slate-400 bg-white/5 px-3 py-1 rounded-full w-fit">
+                      {moduleLessons.length} Lessons
+                    </span>
+                  </div>
+
+                  {module.description && (
+                    <p className="text-sm text-slate-400 mb-4">{module.description}</p>
+                  )}
+
+                  {/* Lessons List */}
+                  <div className="space-y-2 pt-2 border-t border-white/5">
+                    {moduleLessons.length > 0 ? (
+                      moduleLessons.map((lesson: any, lIdx: number) => (
+                        <div
+                          key={lesson.id}
+                          className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-black/30 border border-white/5 text-sm text-slate-300"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <span className="text-xs font-bold text-slate-500 w-5">{lIdx + 1}.</span>
+                            <span className="font-medium">{lesson.title}</span>
+                          </div>
+                          <span className="text-[11px] text-slate-500">Video Lesson</span>
+                        </div>
+                      ))
                     ) : (
-                      <span className="text-sm text-brand-primary">▶️ Watch</span>
+                      <p className="text-xs text-slate-500 italic py-2">No lessons added to this module yet.</p>
                     )}
                   </div>
-                )
-              })}
+                </div>
+              )
+            })
+          ) : (
+            <div className="text-center py-16 bg-white/[0.02] border border-white/10 rounded-2xl">
+              <p className="text-slate-400 text-sm">No curriculum modules have been published for this course yet.</p>
             </div>
           )}
         </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-slate-800 bg-slate-950 py-12">
-        <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">🪵</span>
-            <p className="text-lg font-bold bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
-              {brand?.display_name || 'IFALODE'}
-            </p>
-          </div>
-          <p className="text-xs text-slate-500">
-            © {new Date().getFullYear()} {brand?.display_name || 'IFALODE'}. Preserving Ifá wisdom for future generations.
-          </p>
-          <div className="flex gap-6 text-sm text-slate-500">
-            <Link href="/store" className="hover:text-white transition">Store</Link>
-            <Link href="/courses" className="hover:text-white transition">Courses</Link>
-            <Link href="/login" className="hover:text-white transition">Sign In</Link>
-          </div>
-        </div>
-      </footer>
+      </div>
     </div>
   )
 }
