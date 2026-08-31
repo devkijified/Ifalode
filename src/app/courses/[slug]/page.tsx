@@ -1,4 +1,4 @@
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -8,7 +8,28 @@ export default async function CourseDetailPage({
 }: {
   params: { slug: string }
 }) {
-  const supabase = createServerComponentClient({ cookies })
+  const cookieStore = cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          try {
+            cookieStore.set({ name, value, ...options })
+          } catch (error) {}
+        },
+        remove(name: string, options: CookieOptions) {
+          try {
+            cookieStore.set({ name, value: '', ...options })
+          } catch (error) {}
+        },
+      },
+    }
+  )
 
   // 1. Fetch the course details by slug
   const { data: course, error: courseError } = await supabase
@@ -75,7 +96,6 @@ export default async function CourseDetailPage({
         <div className="space-y-4">
           {modules && modules.length > 0 ? (
             modules.map((module, index) => {
-              // Filter lessons that belong to this module
               const moduleLessons = lessons?.filter((l: any) => l.module_id === module.id) || []
 
               return (
