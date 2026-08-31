@@ -75,6 +75,35 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(true)
 
+  // On mobile the sidebar behaves as an off-canvas drawer that should start
+  // closed; on desktop it starts expanded (matches original behavior).
+  // Also auto-close the drawer if the viewport is resized down to mobile
+  // while it happens to be open, so it never gets stuck covering the screen.
+  useEffect(() => {
+    const applyResponsiveDefault = () => {
+      if (window.innerWidth < 768) {
+        setSidebarOpen(false)
+      }
+    }
+    applyResponsiveDefault()
+
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setSidebarOpen(false)
+      }
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  // Closes the mobile drawer after navigating; no-op on desktop so the
+  // expand/collapse behavior there is unaffected.
+  const closeSidebarOnMobile = () => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setSidebarOpen(false)
+    }
+  }
+
   const [enrollments, setEnrollments] = useState<Enrollment[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [orders, setOrders] = useState<Order[]>([])
@@ -332,26 +361,24 @@ export default function DashboardPage() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 h-[72px] bg-slate-900/95 backdrop-blur-xl border-b border-slate-800">
         <div className="h-full flex items-center">
-          <div className={`h-full flex items-center border-r border-slate-800 transition-all duration-300 ${sidebarOpen ? 'w-[250px]' : 'w-[80px]'}`}>
-            <div className="w-full px-5 flex items-center gap-4">
-              <button onClick={() => setSidebarOpen(!sidebarOpen)} className="w-9 h-9 rounded-lg hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition">
+          <div className={`h-full flex items-center md:border-r border-slate-800 transition-all duration-300 w-auto ${sidebarOpen ? 'md:w-[250px]' : 'md:w-[80px]'}`}>
+            <div className="w-full px-4 md:px-5 flex items-center gap-3 md:gap-4">
+              <button onClick={() => setSidebarOpen(!sidebarOpen)} className="w-9 h-9 shrink-0 rounded-lg hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition">
                 ☰
               </button>
-              {sidebarOpen && (
-                <Link href="/" className="text-xl font-black tracking-wide bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent truncate">
-                  {brand?.display_name || 'Ifalode'}
-                </Link>
-              )}
+              <Link href="/" className={`text-lg md:text-xl font-black tracking-wide bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent truncate ${sidebarOpen ? '' : 'md:hidden'}`}>
+                {brand?.display_name || 'Ifalode'}
+              </Link>
             </div>
           </div>
 
-          <div className="flex-1 h-full flex items-center justify-between px-6">
+          <div className="flex-1 h-full flex items-center justify-between px-3 md:px-6">
             <div className="hidden md:flex items-center gap-2 text-sm text-slate-400">
               <Link href="/dashboard" className="text-brand-primary">Dashboard</Link>
               <span>/</span>
               <span>Overview</span>
             </div>
-            <div className="flex items-center gap-3 ml-auto">
+            <div className="flex items-center gap-2 md:gap-3 ml-auto">
               <div className="hidden lg:flex items-center w-64 h-10 bg-slate-950 border border-slate-800 rounded-lg px-3">
                 <span className="text-slate-500 mr-2">⌕</span>
                 <input type="text" placeholder="Search..." className="bg-transparent outline-none text-sm w-full text-slate-200 placeholder:text-slate-600" />
@@ -376,19 +403,28 @@ export default function DashboardPage() {
         </div>
       </header>
 
+      {/* Mobile backdrop — closes the drawer when tapped, only rendered on mobile */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 top-[72px] z-30 bg-black/60 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className={`fixed left-0 top-[72px] bottom-0 z-40 bg-slate-900 border-r border-slate-800 transition-all duration-300 ${sidebarOpen ? 'w-[250px]' : 'w-[80px]'}`}>
+      <aside className={`fixed left-0 top-[72px] bottom-0 z-40 bg-slate-900 border-r border-slate-800 transition-all duration-300 w-[250px] ${sidebarOpen ? 'translate-x-0 md:w-[250px]' : '-translate-x-full md:translate-x-0 md:w-[80px]'}`}>
         <div className="h-full flex flex-col">
           <nav className="flex-1 px-3 py-6 overflow-y-auto">
             {sidebarOpen && <p className="px-3 mb-3 text-[10px] uppercase tracking-widest font-bold text-slate-600">Dashboard & Apps</p>}
-            <SidebarLink href="/dashboard" icon="▦" label="Dashboard" active collapsed={!sidebarOpen} />
-            <SidebarLink href="/store" icon="🛒" label="Store" collapsed={!sidebarOpen} />
-            <SidebarLink href="/courses" icon="🎓" label="Courses" collapsed={!sidebarOpen} />
-            <SidebarLink href="/dashboard" icon="📚" label="My Learning" collapsed={!sidebarOpen} />
-            <SidebarLink href="/dashboard" icon="📊" label="Progress" collapsed={!sidebarOpen} />
+            <SidebarLink href="/dashboard" icon="▦" label="Dashboard" active collapsed={!sidebarOpen} onNavigate={closeSidebarOnMobile} />
+            <SidebarLink href="/store" icon="🛒" label="Store" collapsed={!sidebarOpen} onNavigate={closeSidebarOnMobile} />
+            <SidebarLink href="/courses" icon="🎓" label="Courses" collapsed={!sidebarOpen} onNavigate={closeSidebarOnMobile} />
+            <SidebarLink href="/dashboard" icon="📚" label="My Learning" collapsed={!sidebarOpen} onNavigate={closeSidebarOnMobile} />
+            <SidebarLink href="/dashboard" icon="📊" label="Progress" collapsed={!sidebarOpen} onNavigate={closeSidebarOnMobile} />
             {sidebarOpen && <p className="px-3 mt-8 mb-3 text-[10px] uppercase tracking-widest font-bold text-slate-600">Account</p>}
-            <SidebarLink href="/profile" icon="👤" label="Profile" collapsed={!sidebarOpen} />
-            <SidebarLink href="/settings" icon="⚙" label="Settings" collapsed={!sidebarOpen} />
+            <SidebarLink href="/profile" icon="👤" label="Profile" collapsed={!sidebarOpen} onNavigate={closeSidebarOnMobile} />
+            <SidebarLink href="/settings" icon="⚙" label="Settings" collapsed={!sidebarOpen} onNavigate={closeSidebarOnMobile} />
           </nav>
           <div className="p-3 border-t border-slate-800">
             <button onClick={signOut} className={`w-full flex items-center ${sidebarOpen ? 'justify-start px-3' : 'justify-center'} gap-3 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition`}>
@@ -400,12 +436,12 @@ export default function DashboardPage() {
       </aside>
 
       {/* Main Content */}
-      <main className={`pt-[72px] min-h-screen transition-all duration-300 ${sidebarOpen ? 'ml-[250px]' : 'ml-[80px]'}`}>
+      <main className={`pt-[72px] min-h-screen transition-all duration-300 ml-0 ${sidebarOpen ? 'md:ml-[250px]' : 'md:ml-[80px]'}`}>
         <div className="p-5 md:p-7 lg:p-8 max-w-[1600px] mx-auto">
 
           {/* Hero Section */}
           <div className="grid xl:grid-cols-[1fr_280px] gap-5 mb-7">
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-brand-primary to-brand-secondary p-7 md:p-8">
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-brand-primary to-brand-secondary p-5 md:p-8">
               <div className="absolute -right-20 -top-20 w-64 h-64 rounded-full bg-white/10" />
               <div className="absolute right-20 -bottom-28 w-48 h-48 rounded-full bg-white/5" />
               <div className="relative z-10 max-w-3xl">
@@ -695,9 +731,9 @@ export default function DashboardPage() {
 // COMPONENTS
 // ============================================================
 
-function SidebarLink({ href, icon, label, active = false, collapsed = false }: { href: string; icon: string; label: string; active?: boolean; collapsed?: boolean }) {
+function SidebarLink({ href, icon, label, active = false, collapsed = false, onNavigate }: { href: string; icon: string; label: string; active?: boolean; collapsed?: boolean; onNavigate?: () => void }) {
   return (
-    <Link href={href} title={collapsed ? label : undefined} className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3 px-3'} py-3 rounded-lg mb-1 transition ${active ? 'bg-brand-primary/10 text-brand-primary' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}>
+    <Link href={href} onClick={onNavigate} title={collapsed ? label : undefined} className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3 px-3'} py-3 rounded-lg mb-1 transition ${active ? 'bg-brand-primary/10 text-brand-primary' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}>
       <span className="text-lg w-6 text-center">{icon}</span>
       {!collapsed && <span className="text-sm font-medium">{label}</span>}
       {!collapsed && active && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-brand-primary" />}
