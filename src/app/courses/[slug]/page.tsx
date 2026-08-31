@@ -32,6 +32,7 @@ export default async function CourseDetailPage({
   )
 
   // 1. Fetch the course details by slug safely
+  // NOTE: requires the `slug` column added to public.courses (see migration).
   const { data: course, error: courseError } = await supabase
     .from('courses')
     .select('*')
@@ -42,19 +43,29 @@ export default async function CourseDetailPage({
     notFound()
   }
 
-  // 2. Fetch modules ordered by module_order
-  const { data: modules } = await supabase
+  // 2. Fetch modules ordered by order_number
+  // (public.modules uses `order_number`, not `module_order`)
+  const { data: modules, error: modulesError } = await supabase
     .from('modules')
     .select('*')
     .eq('course_id', course.id)
-    .order('module_order', { ascending: true })
+    .order('order_number', { ascending: true })
 
-  // 3. Fetch lessons ordered by lesson_order
-  const { data: lessons } = await supabase
+  if (modulesError) {
+    console.error('[course-detail] modules fetch error:', modulesError)
+  }
+
+  // 3. Fetch lessons ordered by order_number
+  // (public.lessons uses `order_number`, not `lesson_order`)
+  const { data: lessons, error: lessonsError } = await supabase
     .from('lessons')
     .select('*')
     .eq('course_id', course.id)
-    .order('lesson_order', { ascending: true })
+    .order('order_number', { ascending: true })
+
+  if (lessonsError) {
+    console.error('[course-detail] lessons fetch error:', lessonsError)
+  }
 
   return (
     <div className="min-h-screen bg-[#07090e] text-white selection:bg-brand-primary selection:text-white pb-20">
