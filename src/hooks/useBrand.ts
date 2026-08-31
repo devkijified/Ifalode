@@ -23,25 +23,29 @@ export const useBrand = () => {
 
   useEffect(() => {
     const fetchBrand = async () => {
-      const { data, error } = await supabase
-        .from('brand_settings')
-        .select('*')
-        .limit(1)
-        .single()
+      try {
+        const { data, error } = await supabase
+          .from('brand_settings')
+          .select('*')
+          .limit(1)
+          .single()
 
-      if (!error && data) {
-        const brandData = data as BrandSettings
-        setBrand(brandData)
-        document.documentElement.style.setProperty('--brand-primary', brandData.primary_color)
-        document.documentElement.style.setProperty('--brand-secondary', brandData.secondary_color)
-        document.documentElement.style.setProperty('--brand-accent', brandData.accent_color)
+        if (!error && data) {
+          const brandData = data as BrandSettings
+          setBrand(brandData)
+          document.documentElement.style.setProperty('--brand-primary', brandData.primary_color)
+          document.documentElement.style.setProperty('--brand-secondary', brandData.secondary_color)
+          document.documentElement.style.setProperty('--brand-accent', brandData.accent_color)
+        }
+      } catch (err) {
+        console.error('Error fetching brand:', err)
+      } finally {
+        setLoading(false)
       }
-
-      setLoading(false)
     }
 
     fetchBrand()
-  }, [supabase])
+  }, [])
 
   const updateBrand = async (updates: Partial<BrandSettings>) => {
     if (!brand?.id) {
@@ -51,40 +55,48 @@ export const useBrand = () => {
       }
     }
 
-    // Cast the table query chain as any to prevent strict type errors during build
-    const { data, error } = await (supabase as any)
-      .from('brand_settings')
-      .update({
+    try {
+      // Build update object
+      const updateData: any = {
         ...updates,
         updated_at: new Date().toISOString(),
-      })
-      .eq('id', brand.id)
-      .select()
-      .single()
+      }
 
-    if (error) {
-      console.error('Error updating brand settings:', error)
-      return { success: false, error }
+      // Use type assertion to bypass TypeScript strict checking
+      const { data, error } = await (supabase as any)
+        .from('brand_settings')
+        .update(updateData)
+        .eq('id', brand.id)
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Error updating brand settings:', error)
+        return { success: false, error }
+      }
+
+      if (data) {
+        const brandData = data as BrandSettings
+        setBrand(brandData)
+
+        if (brandData.primary_color) {
+          document.documentElement.style.setProperty('--brand-primary', brandData.primary_color)
+        }
+        if (brandData.secondary_color) {
+          document.documentElement.style.setProperty('--brand-secondary', brandData.secondary_color)
+        }
+        if (brandData.accent_color) {
+          document.documentElement.style.setProperty('--brand-accent', brandData.accent_color)
+        }
+
+        return { success: true, data: brandData }
+      }
+
+      return { success: false, error: new Error('No data returned from update') }
+    } catch (err) {
+      console.error('Unexpected error updating brand:', err)
+      return { success: false, error: err as Error }
     }
-
-    if (data) {
-      const brandData = data as BrandSettings
-      setBrand(brandData)
-
-      if (brandData.primary_color) {
-        document.documentElement.style.setProperty('--brand-primary', brandData.primary_color)
-      }
-      if (brandData.secondary_color) {
-        document.documentElement.style.setProperty('--brand-secondary', brandData.secondary_color)
-      }
-      if (brandData.accent_color) {
-        document.documentElement.style.setProperty('--brand-accent', brandData.accent_color)
-      }
-
-      return { success: true, data: brandData }
-    }
-
-    return { success: false, error: new Error('No data returned from update') }
   }
 
   return { brand, loading, updateBrand }
