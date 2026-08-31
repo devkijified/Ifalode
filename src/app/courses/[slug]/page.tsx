@@ -31,12 +31,12 @@ export default async function CourseDetailPage({
     }
   )
 
-  // 1. Fetch the course details by slug
+  // 1. Fetch the course details by slug safely
   const { data: course, error: courseError } = await supabase
     .from('courses')
     .select('*')
     .eq('slug', params.slug)
-    .single()
+    .maybeSingle()
 
   if (courseError || !course) {
     notFound()
@@ -96,6 +96,7 @@ export default async function CourseDetailPage({
         <div className="space-y-4">
           {modules && modules.length > 0 ? (
             modules.map((module, index) => {
+              // Filter lessons that belong to this module
               const moduleLessons = lessons?.filter((l: any) => l.module_id === module.id) || []
 
               return (
