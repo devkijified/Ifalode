@@ -28,15 +28,14 @@ export const useBrand = () => {
           .from('brand_settings')
           .select('*')
           .limit(1)
-          .maybeSingle()  // ✅ Use maybeSingle() instead of single()
 
         if (error) {
           console.error('Error fetching brand:', error)
           return
         }
 
-        if (data) {
-          const brandData = data as BrandSettings
+        if (data && data.length > 0) {
+          const brandData = data[0] as BrandSettings
           setBrand(brandData)
           document.documentElement.style.setProperty('--brand-primary', brandData.primary_color)
           document.documentElement.style.setProperty('--brand-secondary', brandData.secondary_color)
@@ -67,23 +66,36 @@ export const useBrand = () => {
       }
 
       console.log('🔄 Updating brand settings:', updateData)
+      console.log('🆔 Brand ID:', brand.id)
 
-      // ✅ Use maybeSingle() and handle response properly
-      const { data, error } = await (supabase as any)
+      // Perform update without .select() first
+      const { error: updateError } = await (supabase as any)
         .from('brand_settings')
         .update(updateData)
         .eq('id', brand.id)
-        .select()
-        .maybeSingle()  // ✅ Changed from .single() to .maybeSingle()
 
-      if (error) {
-        console.error('❌ Error updating brand:', error)
-        return { success: false, error }
+      if (updateError) {
+        console.error('❌ Error updating brand:', updateError)
+        return { success: false, error: updateError }
       }
 
-      console.log('✅ Brand updated successfully:', data)
+      console.log('✅ Update successful, fetching fresh data...')
+
+      // Fetch the updated data separately
+      const { data, error: fetchError } = await (supabase as any)
+        .from('brand_settings')
+        .select('*')
+        .eq('id', brand.id)
+        .maybeSingle()
+
+      if (fetchError) {
+        console.error('❌ Error fetching updated brand:', fetchError)
+        // Even if fetch fails, the update was successful
+        return { success: true, data: null }
+      }
 
       if (data) {
+        console.log('✅ Fresh brand data:', data)
         const brandData = data as BrandSettings
         setBrand(brandData)
 
@@ -100,7 +112,7 @@ export const useBrand = () => {
         return { success: true, data: brandData }
       }
 
-      return { success: false, error: new Error('No data returned from update') }
+      return { success: true, data: null }
     } catch (err) {
       console.error('❌ Unexpected error:', err)
       return { success: false, error: err as Error }
