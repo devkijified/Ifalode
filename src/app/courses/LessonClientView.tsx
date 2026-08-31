@@ -9,10 +9,10 @@ interface LessonClientViewProps {
   modules?: any[]
   lessons: any[]
   initialLesson: any
-  initialNotes: any[]
-  initialQa: any[]
-  initialReviews: any[]
-  initialQuizzes: any[]
+  initialNotes?: any[]
+  initialQa?: any[]
+  initialReviews?: any[]
+  initialQuizzes?: any[]
   initialProgress: number
   userId: string
 }
@@ -22,10 +22,10 @@ export default function LessonClientView({
   modules = [],
   lessons,
   initialLesson,
-  initialNotes,
-  initialQa,
-  initialReviews,
-  initialQuizzes,
+  initialNotes = [],
+  initialQa = [],
+  initialReviews = [],
+  initialQuizzes = [],
   initialProgress,
   userId
 }: LessonClientViewProps) {
