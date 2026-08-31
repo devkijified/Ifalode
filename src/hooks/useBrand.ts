@@ -56,13 +56,12 @@ export const useBrand = () => {
     }
 
     try {
-      // Build update object
-      const updateData: any = {
+      const updateData = {
         ...updates,
         updated_at: new Date().toISOString(),
       }
 
-      // Use type assertion to bypass TypeScript strict checking
+      // Cast to any to bypass TypeScript strict checking
       const { data, error } = await (supabase as any)
         .from('brand_settings')
         .update(updateData)
@@ -71,7 +70,7 @@ export const useBrand = () => {
         .single()
 
       if (error) {
-        console.error('Error updating brand settings:', error)
+        console.error('Error updating brand:', error)
         return { success: false, error }
       }
 
@@ -92,9 +91,9 @@ export const useBrand = () => {
         return { success: true, data: brandData }
       }
 
-      return { success: false, error: new Error('No data returned from update') }
+      return { success: false, error: new Error('No data returned') }
     } catch (err) {
-      console.error('Unexpected error updating brand:', err)
+      console.error('Unexpected error:', err)
       return { success: false, error: err as Error }
     }
   }
