@@ -30,7 +30,7 @@ export const useBrand = () => {
 
       if (error) {
         console.error('Error fetching brand:', error)
-        return
+        return null
       }
 
       if (data && data.length > 0) {
@@ -73,24 +73,36 @@ export const useBrand = () => {
 
       console.log('🔄 Updating brand settings:', updateData)
 
-      // ✅ Use type assertion to fix TypeScript error
-      const { error } = await supabase
+      // ✅ FIX: Use a completely different approach - cast the whole query
+      const result = await (supabase as any)
         .from('brand_settings')
-        .update(updateData as any)
+        .update(updateData)
         .eq('id', brand.id)
+        .select()
+        .single()
 
-      if (error) {
-        console.error('❌ Error updating brand:', error)
-        return { success: false, error }
+      if (result.error) {
+        console.error('❌ Error updating brand:', result.error)
+        return { success: false, error: result.error }
       }
 
-      console.log('✅ Update successful, refetching fresh data...')
+      console.log('✅ Brand updated successfully:', result.data)
 
-      // Refetch fresh data
-      const freshData = await fetchBrand()
+      if (result.data) {
+        const brandData = result.data as BrandSettings
+        setBrand(brandData)
 
-      if (freshData) {
-        return { success: true, data: freshData }
+        if (brandData.primary_color) {
+          document.documentElement.style.setProperty('--brand-primary', brandData.primary_color)
+        }
+        if (brandData.secondary_color) {
+          document.documentElement.style.setProperty('--brand-secondary', brandData.secondary_color)
+        }
+        if (brandData.accent_color) {
+          document.documentElement.style.setProperty('--brand-accent', brandData.accent_color)
+        }
+
+        return { success: true, data: brandData }
       }
 
       return { success: true, data: null }
