@@ -1,7 +1,7 @@
 import { createServerClient } from '@/lib/supabase/server'
-import LessonClientView from './LessonClientView'
+import LessonClientView from '@/app/courses/LessonClientView'
 
-export default async function LearnPage({ 
+export default async function LearnPage({  
   params, 
   searchParams 
 }: { 
