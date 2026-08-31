@@ -27,13 +27,13 @@ export default async function LearnPage({
   }
 
   // 2. Fetch Course Details
-  const { data: course, error: courseError } = await supabase
+  const { data: courseData, error: courseError } = await supabase
     .from('courses')
     .select('*')
     .eq('id', courseIdOrSlug)
     .single()
 
-  if (courseError || !course) {
+  if (courseError || !courseData) {
     return (
       <div className="min-h-screen bg-[#07090e] text-white flex flex-col items-center justify-center p-6 text-center">
         <h1 className="text-2xl font-bold mb-2">Course Not Found</h1>
@@ -43,6 +43,7 @@ export default async function LearnPage({
     )
   }
 
+  const course: any = courseData
   const courseId = course.id
 
   // 3. Fetch Modules for this course
@@ -89,7 +90,7 @@ export default async function LearnPage({
       modules={modules || []}
       lessons={lessons}
       initialLesson={initialLesson}
-      initialProgress={enrollment?.progress || 0}
+      initialProgress={(enrollment as any)?.progress || 0}
       userId={user.id}
     />
   )
