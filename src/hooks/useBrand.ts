@@ -28,9 +28,14 @@ export const useBrand = () => {
           .from('brand_settings')
           .select('*')
           .limit(1)
-          .single()
+          .maybeSingle()  // ✅ Use maybeSingle() instead of single()
 
-        if (!error && data) {
+        if (error) {
+          console.error('Error fetching brand:', error)
+          return
+        }
+
+        if (data) {
           const brandData = data as BrandSettings
           setBrand(brandData)
           document.documentElement.style.setProperty('--brand-primary', brandData.primary_color)
@@ -61,18 +66,22 @@ export const useBrand = () => {
         updated_at: new Date().toISOString(),
       }
 
-      // Cast to any to bypass TypeScript strict checking
+      console.log('🔄 Updating brand settings:', updateData)
+
+      // ✅ Use maybeSingle() and handle response properly
       const { data, error } = await (supabase as any)
         .from('brand_settings')
         .update(updateData)
         .eq('id', brand.id)
         .select()
-        .single()
+        .maybeSingle()  // ✅ Changed from .single() to .maybeSingle()
 
       if (error) {
-        console.error('Error updating brand:', error)
+        console.error('❌ Error updating brand:', error)
         return { success: false, error }
       }
+
+      console.log('✅ Brand updated successfully:', data)
 
       if (data) {
         const brandData = data as BrandSettings
@@ -91,9 +100,9 @@ export const useBrand = () => {
         return { success: true, data: brandData }
       }
 
-      return { success: false, error: new Error('No data returned') }
+      return { success: false, error: new Error('No data returned from update') }
     } catch (err) {
-      console.error('Unexpected error:', err)
+      console.error('❌ Unexpected error:', err)
       return { success: false, error: err as Error }
     }
   }
