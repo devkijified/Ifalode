@@ -1,196 +1,180 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { BrandEditor } from '@/components/admin/BrandEditor'
 
-export function BrandEditor() {
-  const [brand, setBrand] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState<string | null>(null)
+type Status = 'loading' | 'denied' | 'allowed'
 
+export default function AdminDashboard() {
+  const [status, setStatus] = useState<Status>('loading')
+  const router = useRouter()
   const supabase = createClient()
 
   useEffect(() => {
-    const fetchBrand = async () => {
-      const { data, error } = await supabase
-        .from('brand_settings')
-        .select('*')
-        .single()
+    let cancelled = false
 
-      if (!error && data) {
-        setBrand(data)
+    const checkAdmin = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+          if (!cancelled) router.push('/login')
+          return
+        }
+
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single()
+
+        if (error || !profile) {
+          console.error('Error fetching profile:', error?.message || 'No profile')
+          if (!cancelled) router.push('/')
+          return
+        }
+
+        const role = (profile as { role?: string }).role
+
+        if (role !== 'admin') {
+          if (!cancelled) setStatus('denied')
+          return
+        }
+
+        if (!cancelled) setStatus('allowed')
+      } catch (err) {
+        console.error('Unexpected error in admin check:', err)
+        if (!cancelled) router.push('/')
       }
-      setLoading(false)
     }
 
-    fetchBrand()
-  }, [supabase])
+    checkAdmin()
 
-  const handleChange = (field: string, value: string) => {
-    setBrand((prev: any) => ({ ...prev, [field]: value }))
-  }
-
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSaving(true)
-    setMessage(null)
-
-    try {
-      const { error } = await supabase
-        .from('brand_settings')
-        .upsert({ id: 1, ...brand })
-
-      if (error) throw error
-
-      setMessage('Saved successfully')
-      setTimeout(() => setMessage(null), 2000)
-    } catch (err: any) {
-      setMessage('Error saving: ' + (err?.message || 'Unknown error'))
-    } finally {
-      setSaving(false)
+    return () => {
+      cancelled = true
     }
-  }
+  }, [router, supabase])
 
-  if (loading) {
+  if (status === 'loading') {
     return (
-      <div className="bg-teal-950 text-teal-200 p-6 rounded-xl border border-teal-800">
-        Loading brand settings...
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="text-slate-400">Loading...</div>
+      </div>
+    )
+  }
+
+  if (status === 'denied') {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="text-slate-400">Access denied</div>
       </div>
     )
   }
 
   return (
-    <div className="bg-teal-950 rounded-xl shadow-sm p-6 text-white border border-teal-800/60">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-white">Brand Settings</h2>
-        <button
-          type="button"
-          className="px-4 py-2 bg-brand-primary text-white rounded-lg hover:opacity-90 font-medium transition"
-        >
-          Cancel
-        </button>
+    <div className="min-h-screen bg-slate-950 text-slate-100 py-10">
+      <div className="container mx-auto px-4">
+
+        <div className="mb-8">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
+            Admin Dashboard
+          </h1>
+          <p className="text-slate-500 mt-2">
+            Manage your Ifalode platform from here.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-8">
+
+          {/* Brand Editor */}
+          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+            <BrandEditor />
+          </div>
+
+          {/* Management Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            {/* Store */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+              <h3 className="text-lg font-bold mb-3">Store Management</h3>
+              <div className="space-y-2">
+                <a
+                  href="/admin/store"
+                  className="block text-sm text-slate-400 hover:text-brand-primary transition"
+                >
+                  Manage Products
+                </a>
+                <a
+                  href="/admin/store/new"
+                  className="block text-sm text-slate-400 hover:text-brand-primary transition"
+                >
+                  Add New Product
+                </a>
+              </div>
+            </div>
+
+            {/* LMS */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+              <h3 className="text-lg font-bold mb-3">LMS Management</h3>
+              <div className="space-y-2">
+                <a
+                  href="/admin/lms"
+                  className="block text-sm text-slate-400 hover:text-brand-primary transition"
+                >
+                  Manage Courses
+                </a>
+                <a
+                  href="/admin/lms/new"
+                  className="block text-sm text-slate-400 hover:text-brand-primary transition"
+                >
+                  Create New Course
+                </a>
+              </div>
+            </div>
+
+            {/* CMS */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+              <h3 className="text-lg font-bold mb-3">Content Management</h3>
+              <div className="space-y-2">
+                <a
+                  href="/admin/cms"
+                  className="block text-sm text-slate-400 hover:text-brand-primary transition"
+                >
+                  Edit Content
+                </a>
+                <a
+                  href="/admin/cms/pages"
+                  className="block text-sm text-slate-400 hover:text-brand-primary transition"
+                >
+                  Manage Pages
+                </a>
+              </div>
+            </div>
+
+            {/* Users */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+              <h3 className="text-lg font-bold mb-3">Users & Enrollments</h3>
+              <div className="space-y-2">
+                <a
+                  href="/admin/users"
+                  className="block text-sm text-slate-400 hover:text-brand-primary transition"
+                >
+                  Manage Users
+                </a>
+                <a
+                  href="/admin/enrollments"
+                  className="block text-sm text-slate-400 hover:text-brand-primary transition"
+                >
+                  View Enrollments
+                </a>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
       </div>
-
-      {message && (
-        <div className="mb-4 text-sm text-teal-200 bg-teal-900/50 p-3 rounded-lg border border-teal-700">
-          {message}
-        </div>
-      )}
-
-      <form onSubmit={handleSave} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1 text-teal-100">
-            Brand Name
-          </label>
-          <input
-            className="w-full px-4 py-2 bg-teal-900 border border-teal-700 rounded-lg focus:ring-2 focus:ring-brand-primary text-white placeholder-teal-400"
-            type="text"
-            value={brand?.brand_name || ''}
-            onChange={(e) => handleChange('brand_name', e.target.value)}
-            name="brand_name"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1 text-teal-100">
-            Display Name
-          </label>
-          <input
-            className="w-full px-4 py-2 bg-teal-900 border border-teal-700 rounded-lg focus:ring-2 focus:ring-brand-primary text-white placeholder-teal-400"
-            type="text"
-            value={brand?.display_name || ''}
-            onChange={(e) => handleChange('display_name', e.target.value)}
-            name="display_name"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1 text-teal-100">
-              Primary Color
-            </label>
-            <input
-              className="w-full h-12 rounded-lg cursor-pointer bg-teal-900 border border-teal-700 p-1"
-              type="color"
-              value={brand?.primary_color || '#8B5E3C'}
-              onChange={(e) => handleChange('primary_color', e.target.value)}
-              name="primary_color"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1 text-teal-100">
-              Secondary Color
-            </label>
-            <input
-              className="w-full h-12 rounded-lg cursor-pointer bg-teal-900 border border-teal-700 p-1"
-              type="color"
-              value={brand?.secondary_color || '#D4A574'}
-              onChange={(e) => handleChange('secondary_color', e.target.value)}
-              name="secondary_color"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1 text-teal-100">
-              Accent Color
-            </label>
-            <input
-              className="w-full h-12 rounded-lg cursor-pointer bg-teal-900 border border-teal-700 p-1"
-              type="color"
-              value={brand?.accent_color || '#C41E3A'}
-              onChange={(e) => handleChange('accent_color', e.target.value)}
-              name="accent_color"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1 text-teal-100">
-            Font Family
-          </label>
-          <input
-            className="w-full px-4 py-2 bg-teal-900 border border-teal-700 rounded-lg focus:ring-2 focus:ring-brand-primary text-white placeholder-teal-400"
-            type="text"
-            value={brand?.font_family || ''}
-            onChange={(e) => handleChange('font_family', e.target.value)}
-            name="font_family"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1 text-teal-100">
-            Meta Title (SEO)
-          </label>
-          <input
-            className="w-full px-4 py-2 bg-teal-900 border border-teal-700 rounded-lg focus:ring-2 focus:ring-brand-primary text-white placeholder-teal-400"
-            type="text"
-            value={brand?.meta_title || ''}
-            onChange={(e) => handleChange('meta_title', e.target.value)}
-            name="meta_title"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1 text-teal-100">
-            Meta Description (SEO)
-          </label>
-          <input
-            className="w-full px-4 py-2 bg-teal-900 border border-teal-700 rounded-lg focus:ring-2 focus:ring-brand-primary text-white placeholder-teal-400"
-            type="text"
-            value={brand?.meta_description || ''}
-            onChange={(e) => handleChange('meta_description', e.target.value)}
-            name="meta_description"
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full py-3 bg-brand-primary text-white rounded-lg hover:opacity-90 font-semibold transition disabled:opacity-50"
-        >
-          {saving ? 'Saving...' : 'Save Brand Settings'}
-        </button>
-      </form>
     </div>
   )
 }
