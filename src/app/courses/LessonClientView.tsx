@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 
 interface LessonClientViewProps {
   course: any
+  modules?: any[]
   lessons: any[]
   initialLesson: any
   initialNotes: any[]
@@ -18,6 +19,7 @@ interface LessonClientViewProps {
 
 export default function LessonClientView({
   course,
+  modules = [],
   lessons,
   initialLesson,
   initialNotes,
@@ -51,7 +53,6 @@ export default function LessonClientView({
     e.preventDefault()
     if (!newNote.trim()) return
     setIsSubmitting(true)
-    // Client mock sync / state update placeholder or API action
     const mockNote = { id: Date.now(), note: newNote, created_at: new Date().toISOString() }
     setNotes([mockNote, ...notes])
     setNewNote('')
@@ -206,35 +207,81 @@ export default function LessonClientView({
 
           {/* Tab Content Panels */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {/* 1. CURRICULUM TAB */}
+            {/* 1. CURRICULUM TAB (Grouped by Modules) */}
             {activeTab === 'curriculum' && (
-              <div className="space-y-2">
-                {lessons.map((lesson, idx) => {
-                  const isActive = lesson.id === activeLesson.id
-                  return (
-                    <button
-                      key={lesson.id}
-                      onClick={() => handleSelectLesson(lesson)}
-                      className={`w-full text-left p-3.5 rounded-xl border transition flex items-start space-x-3 group ${
-                        isActive
-                          ? 'bg-brand-primary/10 border-brand-primary/40 text-white shadow-lg shadow-brand-primary/5'
-                          : 'bg-white/[0.02] border-white/5 hover:border-white/10 hover:bg-white/[0.04] text-slate-300'
-                      }`}
-                    >
-                      <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 ${
-                        isActive ? 'bg-brand-primary text-white' : 'bg-white/10 text-slate-400 group-hover:text-white'
-                      }`}>
-                        {idx + 1}
+              <div className="space-y-4">
+                {modules && modules.length > 0 ? (
+                  modules.map((module, mIdx) => {
+                    const moduleLessons = lessons.filter((l: any) => l.module_id === module.id)
+
+                    return (
+                      <div key={module.id} className="space-y-2">
+                        {/* Module Header */}
+                        <div className="px-2 py-1 text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+                          <span>Module {mIdx + 1}: {module.title}</span>
+                        </div>
+
+                        {/* Lessons inside this module */}
+                        <div className="space-y-1.5 pl-1">
+                          {moduleLessons.map((lesson: any, lIdx: number) => {
+                            const isActive = lesson.id === activeLesson.id
+                            return (
+                              <button
+                                key={lesson.id}
+                                onClick={() => handleSelectLesson(lesson)}
+                                className={`w-full text-left p-3 rounded-xl border transition flex items-start space-x-3 group ${
+                                  isActive
+                                    ? 'bg-brand-primary/10 border-brand-primary/40 text-white shadow-lg shadow-brand-primary/5'
+                                    : 'bg-white/[0.02] border-white/5 hover:border-white/10 hover:bg-white/[0.04] text-slate-300'
+                                }`}
+                              >
+                                <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 ${
+                                  isActive ? 'bg-brand-primary text-white' : 'bg-white/10 text-slate-400 group-hover:text-white'
+                                }`}>
+                                  {lIdx + 1}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className={`text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-slate-300'}`}>
+                                    {lesson.title}
+                                  </p>
+                                  <span className="text-[11px] text-slate-500">Video Lesson</span>
+                                </div>
+                              </button>
+                            )
+                          })}
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-slate-300'}`}>
-                          {lesson.title}
-                        </p>
-                        <span className="text-[11px] text-slate-500">Module Video</span>
-                      </div>
-                    </button>
-                  )
-                })}
+                    )
+                  })
+                ) : (
+                  // Fallback flat list if modules aren't populated yet
+                  lessons.map((lesson, idx) => {
+                    const isActive = lesson.id === activeLesson.id
+                    return (
+                      <button
+                        key={lesson.id}
+                        onClick={() => handleSelectLesson(lesson)}
+                        className={`w-full text-left p-3.5 rounded-xl border transition flex items-start space-x-3 group ${
+                          isActive
+                            ? 'bg-brand-primary/10 border-brand-primary/40 text-white shadow-lg shadow-brand-primary/5'
+                            : 'bg-white/[0.02] border-white/5 hover:border-white/10 hover:bg-white/[0.04] text-slate-300'
+                        }`}
+                      >
+                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 ${
+                          isActive ? 'bg-brand-primary text-white' : 'bg-white/10 text-slate-400 group-hover:text-white'
+                        }`}>
+                          {idx + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-slate-300'}`}>
+                            {lesson.title}
+                          </p>
+                          <span className="text-[11px] text-slate-500">Module Video</span>
+                        </div>
+                      </button>
+                    )
+                  })
+                )}
               </div>
             )}
 
