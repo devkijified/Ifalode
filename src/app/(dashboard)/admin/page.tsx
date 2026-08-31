@@ -8,46 +8,74 @@ import { BrandEditor } from '@/components/admin/BrandEditor'
 export default function AdminDashboard() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [authorized, setAuthorized] = useState(false)
+
   const router = useRouter()
   const supabase = createClient()
 
   useEffect(() => {
+    let cancelled = false
+
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/login')
-        return
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+          if (!cancelled) router.push('/login')
+          return
+        }
+
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single()
+
+        if (error || !profile) {
+          console.error('Error fetching profile:', error?.message || 'No profile')
+          if (!cancelled) router.push('/')
+          return
+        }
+
+        // Use a safe check for role
+        const role = (profile as { role?: string }).role
+
+        if (role !== 'admin') {
+          if (!cancelled) router.push('/')
+          return
+        }
+
+        if (!cancelled) {
+          setUser(user)
+          setAuthorized(true)
+        }
+      } catch (err) {
+        console.error('Unexpected error in admin check:', err)
+        if (!cancelled) router.push('/')
+      } finally {
+        if (!cancelled) setLoading(false)
       }
-
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-
-      if (error) {
-        console.error('Error fetching profile:', error)
-        router.push('/')
-        return
-      }
-
-      // Check if user is admin - use type assertion to handle the type
-      if (profile && (profile as any).role !== 'admin') {
-        router.push('/')
-        return
-      }
-
-      setUser(user)
-      setLoading(false)
     }
 
     getUser()
-  }, [])
+
+    return () => {
+      cancelled = true
+    }
+  }, [router, supabase])
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-xl">Loading...</div>
+      </div>
+    )
+  }
+
+  if (!authorized) {
+    // This should rarely render; if it does, user isn't admin.
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl">Access denied</div>
       </div>
     )
   }
