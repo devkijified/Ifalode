@@ -51,13 +51,13 @@ export const useBrand = () => {
       }
     }
 
-    // Direct table update instead of relying on a custom RPC function
+    // Cast payload as any to prevent strict Supabase type-check errors during build
     const { data, error } = await supabase
       .from('brand_settings')
       .update({
         ...updates,
         updated_at: new Date().toISOString(),
-      })
+      } as any)
       .eq('id', brand.id)
       .select()
       .single()
