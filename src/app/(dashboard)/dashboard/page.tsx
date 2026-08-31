@@ -122,7 +122,7 @@ export default function DashboardPage() {
           .from('enrollments')
           .select('*')
           .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
+          .order('enrolled_at', { ascending: false })
 
         if (enrollmentsError) {
           console.error('Enrollments error:', enrollmentsError)
