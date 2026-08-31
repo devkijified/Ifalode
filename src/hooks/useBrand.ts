@@ -41,7 +41,7 @@ export const useBrand = () => {
     }
 
     fetchBrand()
-  }, [])
+  }, [supabase])
 
   const updateBrand = async (updates: Partial<BrandSettings>) => {
     if (!brand?.id) {
@@ -51,33 +51,40 @@ export const useBrand = () => {
       }
     }
 
-    // Use `any` type casting to bypass strict Supabase RPC type checking if the database types are out of sync
-    const { data, error } = await (supabase.rpc as any)('update_brand_settings', {
-      p_id: brand.id,
-      p_updates: updates,
-    })
+    // Direct table update instead of relying on a custom RPC function
+    const { data, error } = await supabase
+      .from('brand_settings')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', brand.id)
+      .select()
+      .single()
 
-    if (!error && data) {
-      const brandData = (data as unknown as { brand: BrandSettings } | null)?.brand ?? (data as unknown as BrandSettings | null) ?? null
-
-      if (brandData) {
-        setBrand(brandData)
-
-        if (updates.primary_color) {
-          document.documentElement.style.setProperty('--brand-primary', updates.primary_color)
-        }
-        if (updates.secondary_color) {
-          document.documentElement.style.setProperty('--brand-secondary', updates.secondary_color)
-        }
-        if (updates.accent_color) {
-          document.documentElement.style.setProperty('--brand-accent', updates.accent_color)
-        }
-
-        return { success: true, data: brandData }
-      }
+    if (error) {
+      console.error('Error updating brand settings:', error)
+      return { success: false, error }
     }
 
-    return { success: false, error: error as any }
+    if (data) {
+      const brandData = data as BrandSettings
+      setBrand(brandData)
+
+      if (brandData.primary_color) {
+        document.documentElement.style.setProperty('--brand-primary', brandData.primary_color)
+      }
+      if (brandData.secondary_color) {
+        document.documentElement.style.setProperty('--brand-secondary', brandData.secondary_color)
+      }
+      if (brandData.accent_color) {
+        document.documentElement.style.setProperty('--brand-accent', brandData.accent_color)
+      }
+
+      return { success: true, data: brandData }
+    }
+
+    return { success: false, error: new Error('No data returned from update') }
   }
 
   return { brand, loading, updateBrand }
