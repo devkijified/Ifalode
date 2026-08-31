@@ -21,34 +21,40 @@ export const useBrand = () => {
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
-  useEffect(() => {
-    const fetchBrand = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('brand_settings')
-          .select('*')
-          .limit(1)
+  const fetchBrand = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('brand_settings')
+        .select('*')
+        .limit(1)
 
-        if (error) {
-          console.error('Error fetching brand:', error)
-          return
-        }
-
-        if (data && data.length > 0) {
-          const brandData = data[0] as BrandSettings
-          setBrand(brandData)
-          document.documentElement.style.setProperty('--brand-primary', brandData.primary_color)
-          document.documentElement.style.setProperty('--brand-secondary', brandData.secondary_color)
-          document.documentElement.style.setProperty('--brand-accent', brandData.accent_color)
-        }
-      } catch (err) {
-        console.error('Error fetching brand:', err)
-      } finally {
-        setLoading(false)
+      if (error) {
+        console.error('Error fetching brand:', error)
+        return
       }
-    }
 
-    fetchBrand()
+      if (data && data.length > 0) {
+        const brandData = data[0] as BrandSettings
+        setBrand(brandData)
+        document.documentElement.style.setProperty('--brand-primary', brandData.primary_color)
+        document.documentElement.style.setProperty('--brand-secondary', brandData.secondary_color)
+        document.documentElement.style.setProperty('--brand-accent', brandData.accent_color)
+        return brandData
+      }
+      return null
+    } catch (err) {
+      console.error('Error fetching brand:', err)
+      return null
+    }
+  }
+
+  useEffect(() => {
+    const init = async () => {
+      setLoading(true)
+      await fetchBrand()
+      setLoading(false)
+    }
+    init()
   }, [])
 
   const updateBrand = async (updates: Partial<BrandSettings>) => {
@@ -66,50 +72,24 @@ export const useBrand = () => {
       }
 
       console.log('🔄 Updating brand settings:', updateData)
-      console.log('🆔 Brand ID:', brand.id)
 
-      // Perform update without .select() first
-      const { error: updateError } = await (supabase as any)
+      const { error } = await supabase
         .from('brand_settings')
         .update(updateData)
         .eq('id', brand.id)
 
-      if (updateError) {
-        console.error('❌ Error updating brand:', updateError)
-        return { success: false, error: updateError }
+      if (error) {
+        console.error('❌ Error updating brand:', error)
+        return { success: false, error }
       }
 
-      console.log('✅ Update successful, fetching fresh data...')
+      console.log('✅ Update successful, refetching fresh data...')
 
-      // Fetch the updated data separately
-      const { data, error: fetchError } = await (supabase as any)
-        .from('brand_settings')
-        .select('*')
-        .eq('id', brand.id)
-        .maybeSingle()
+      // Refetch fresh data
+      const freshData = await fetchBrand()
 
-      if (fetchError) {
-        console.error('❌ Error fetching updated brand:', fetchError)
-        // Even if fetch fails, the update was successful
-        return { success: true, data: null }
-      }
-
-      if (data) {
-        console.log('✅ Fresh brand data:', data)
-        const brandData = data as BrandSettings
-        setBrand(brandData)
-
-        if (brandData.primary_color) {
-          document.documentElement.style.setProperty('--brand-primary', brandData.primary_color)
-        }
-        if (brandData.secondary_color) {
-          document.documentElement.style.setProperty('--brand-secondary', brandData.secondary_color)
-        }
-        if (brandData.accent_color) {
-          document.documentElement.style.setProperty('--brand-accent', brandData.accent_color)
-        }
-
-        return { success: true, data: brandData }
+      if (freshData) {
+        return { success: true, data: freshData }
       }
 
       return { success: true, data: null }
