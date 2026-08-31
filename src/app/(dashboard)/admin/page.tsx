@@ -1,233 +1,182 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { BrandEditor } from '@/components/admin/BrandEditor'
 
-export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState<'brand' | 'courses' | 'users'>('brand')
-  const [brand, setBrand] = useState<any>(null)
-  const [courses, setCourses] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState<string | null>(null)
+type Status = 'loading' | 'denied' | 'allowed'
 
+export default function AdminDashboard() {
+  const [status, setStatus] = useState<Status>('loading')
+  const router = useRouter()
   const supabase = createClient()
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true)
-      // Fetch Brand Settings
-      const { data: brandData } = await supabase
-        .from('brand_settings')
-        .select('*')
-        .single()
+    let cancelled = false
 
-      if (brandData) setBrand(brandData)
+    const checkAdmin = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+          if (!cancelled) router.push('/login')
+          return
+        }
 
-      // Fetch Courses List
-      const { data: coursesData } = await supabase
-        .from('courses')
-        .select('*')
-        .order('created_at', { ascending: false })
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single()
 
-      if (coursesData) setCourses(coursesData)
+        if (error || !profile) {
+          console.error('Error fetching profile:', error?.message || 'No profile')
+          if (!cancelled) router.push('/')
+          return
+        }
 
-      setLoading(false)
+        const role = (profile as { role?: string }).role
+
+        if (role !== 'admin') {
+          if (!cancelled) setStatus('denied')
+          return
+        }
+
+        if (!cancelled) setStatus('allowed')
+      } catch (err) {
+        console.error('Unexpected error in admin check:', err)
+        if (!cancelled) router.push('/')
+      }
     }
 
-    fetchData()
-  }, [])
+    checkAdmin()
 
-  const handleChange = (field: string, value: string) => {
-    setBrand((prev: any) => ({ ...prev, [field]: value }))
-  }
-
-  const handleSaveBrand = async () => {
-    setSaving(true)
-    setMessage(null)
-
-    try {
-      const { error } = await supabase
-        .from('brand_settings')
-        .upsert({ id: 1, ...brand })
-
-      if (error) throw error
-
-      setMessage('Brand settings saved successfully!')
-      setTimeout(() => setMessage(null), 2500)
-    } catch (err: any) {
-      setMessage('Error saving: ' + (err?.message || 'Unknown error'))
-    } finally {
-      setSaving(false)
+    return () => {
+      cancelled = true
     }
-  }
+  }, [router, supabase])
 
-  if (loading) {
-    return <div className="text-slate-400 p-6">Loading admin control center...</div>
-  }
-
-  return (
-    <div className="space-y-6">
-      {/* Admin Header & Navigation Tabs */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-5">
-        <div>
-          <h1 className="text-2xl font-extrabold text-white">Admin Control Center</h1>
-          <p className="text-slate-400 text-sm mt-1">Manage global platform configurations, courses, and settings.</p>
-        </div>
-
-        <div className="flex items-center space-x-2 bg-black/40 p-1.5 rounded-2xl border border-white/10">
-          <button
-            onClick={() => setActiveTab('brand')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
-              activeTab === 'brand' ? 'bg-brand-primary text-white shadow-lg' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Brand & SEO
-          </button>
-          <button
-            onClick={() => setActiveTab('courses')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
-              activeTab === 'courses' ? 'bg-brand-primary text-white shadow-lg' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Courses ({courses.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('users')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
-              activeTab === 'users' ? 'bg-brand-primary text-white shadow-lg' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Users & Roles
-          </button>
-        </div>
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="text-slate-400">Loading...</div>
       </div>
+    )
+  }
 
-      {message && (
-        <div className="p-3 bg-brand-primary/10 border border-brand-primary/20 rounded-xl text-xs text-brand-primary font-medium">
-          {message}
+  if (status === 'denied') {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="text-slate-400">Access denied</div>
+      </div>
+    )
+  }
+
+  // status === 'allowed'
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100 py-10">
+      <div className="container mx-auto px-4">
+
+        <div className="mb-8">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
+            Admin Dashboard
+          </h1>
+          <p className="text-slate-500 mt-2">
+            Manage your Ifalode platform from here.
+          </p>
         </div>
-      )}
 
-      {/* Tab 1: Brand & SEO Settings */}
-      {activeTab === 'brand' && (
-        <div className="space-y-5 bg-white/[0.02] border border-white/10 rounded-2xl p-6">
-          <h3 className="text-lg font-bold text-white">Brand Settings</h3>
+        <div className="grid grid-cols-1 gap-8">
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1">Brand Name</label>
-              <input
-                type="text"
-                value={brand?.brand_name || ''}
-                onChange={(e) => handleChange('brand_name', e.target.value)}
-                className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-primary/40"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1">Display Name</label>
-              <input
-                type="text"
-                value={brand?.display_name || ''}
-                onChange={(e) => handleChange('display_name', e.target.value)}
-                className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-primary/40"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1">Primary Color</label>
-              <input
-                type="text"
-                value={brand?.primary_color || ''}
-                onChange={(e) => handleChange('primary_color', e.target.value)}
-                className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-primary/40"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1">Secondary Color</label>
-              <input
-                type="text"
-                value={brand?.secondary_color || ''}
-                onChange={(e) => handleChange('secondary_color', e.target.value)}
-                className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-primary/40"
-              />
-            </div>
-
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-slate-400 mb-1">Meta Title (SEO)</label>
-              <input
-                type="text"
-                value={brand?.meta_title || ''}
-                onChange={(e) => handleChange('meta_title', e.target.value)}
-                className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-primary/40"
-              />
-            </div>
-
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-slate-400 mb-1">Meta Description (SEO)</label>
-              <textarea
-                value={brand?.meta_description || ''}
-                onChange={(e) => handleChange('meta_description', e.target.value)}
-                rows={3}
-                className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-primary/40"
-              />
-            </div>
+          {/* Brand Editor */}
+          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+            <h2 className="text-xl font-bold mb-4">Brand Settings</h2>
+            <BrandEditor />
           </div>
 
-          <button
-            onClick={handleSaveBrand}
-            disabled={saving}
-            className="px-5 py-2.5 rounded-xl bg-brand-primary text-white text-sm font-semibold hover:opacity-90 transition disabled:opacity-60"
-          >
-            {saving ? 'Saving...' : 'Save Brand Settings'}
-          </button>
-        </div>
-      )}
+          {/* Management Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-      {/* Tab 2: Courses Management Section */}
-      {activeTab === 'courses' && (
-        <div className="space-y-4 bg-white/[0.02] border border-white/10 rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-lg font-bold text-white">Published Courses</h3>
-            <span className="text-xs text-slate-400">Manage curriculum & modules</span>
-          </div>
+            {/* Store */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+              <h3 className="text-lg font-bold mb-3">Store Management</h3>
+              <div className="space-y-2">
+                <a
+                  href="/admin/store"
+                  className="block text-sm text-slate-400 hover:text-brand-primary transition"
+                >
+                  Manage Products
+                </a>
+                <a
+                  href="/admin/store/new"
+                  className="block text-sm text-slate-400 hover:text-brand-primary transition"
+                >
+                  Add New Product
+                </a>
+              </div>
+            </div>
 
-          <div className="space-y-3">
-            {courses.length > 0 ? (
-              courses.map((course) => (
-                <div key={course.id} className="flex items-center justify-between p-4 bg-black/40 border border-white/5 rounded-xl">
-                  <div>
-                    <h4 className="font-bold text-white text-sm">{course.title}</h4>
-                    <p className="text-xs text-slate-400">Slug: /{course.slug}</p>
-                  </div>
-                  <a
-                    href={`/courses/${course.slug}`}
-                    target="_blank"
-                    className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs transition font-medium"
-                  >
-                    View Course →
-                  </a>
-                </div>
-              ))
-            ) : (
-              <p className="text-sm text-slate-500 py-6 text-center">No courses found in database.</p>
-            )}
+            {/* LMS */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+              <h3 className="text-lg font-bold mb-3">LMS Management</h3>
+              <div className="space-y-2">
+                <a
+                  href="/admin/lms"
+                  className="block text-sm text-slate-400 hover:text-brand-primary transition"
+                >
+                  Manage Courses
+                </a>
+                <a
+                  href="/admin/lms/new"
+                  className="block text-sm text-slate-400 hover:text-brand-primary transition"
+                >
+                  Create New Course
+                </a>
+              </div>
+            </div>
+
+            {/* CMS */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+              <h3 className="text-lg font-bold mb-3">Content Management</h3>
+              <div className="space-y-2">
+                <a
+                  href="/admin/cms"
+                  className="block text-sm text-slate-400 hover:text-brand-primary transition"
+                >
+                  Edit Content
+                </a>
+                <a
+                  href="/admin/cms/pages"
+                  className="block text-sm text-slate-400 hover:text-brand-primary transition"
+                >
+                  Manage Pages
+                </a>
+              </div>
+            </div>
+
+            {/* Users */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+              <h3 className="text-lg font-bold mb-3">Users & Enrollments</h3>
+              <div className="space-y-2">
+                <a
+                  href="/admin/users"
+                  className="block text-sm text-slate-400 hover:text-brand-primary transition"
+                >
+                  Manage Users
+                </a>
+                <a
+                  href="/admin/enrollments"
+                  className="block text-sm text-slate-400 hover:text-brand-primary transition"
+                >
+                  View Enrollments
+                </a>
+              </div>
+            </div>
+
           </div>
         </div>
-      )}
 
-      {/* Tab 3: Users Management Section */}
-      {activeTab === 'users' && (
-        <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-6">
-          <h3 className="text-lg font-bold text-white mb-2">User Access & Roles</h3>
-          <p className="text-sm text-slate-400 mb-6">User role management interface connected to Supabase Auth.</p>
-          <div className="p-8 text-center bg-black/40 border border-white/5 rounded-xl">
-            <p className="text-sm text-slate-400">User table management syncs automatically with authentication records.</p>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   )
 }
