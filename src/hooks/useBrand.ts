@@ -73,9 +73,10 @@ export const useBrand = () => {
 
       console.log('🔄 Updating brand settings:', updateData)
 
+      // ✅ Use type assertion to fix TypeScript error
       const { error } = await supabase
         .from('brand_settings')
-        .update(updateData)
+        .update(updateData as any)
         .eq('id', brand.id)
 
       if (error) {
