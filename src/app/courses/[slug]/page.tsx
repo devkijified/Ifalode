@@ -20,9 +20,19 @@ interface Course {
   updated_at: string
 }
 
+interface Module {
+  id: string
+  course_id: string
+  title: string
+  description: string | null
+  order_number: number | null
+  created_at: string
+}
+
 interface Lesson {
   id: string
   course_id: string
+  module_id: string | null
   title: string
   content: string | null
   video_url: string | null
@@ -35,15 +45,12 @@ export default function CourseDetailPage() {
   const { brand } = useBrand()
   const params = useParams()
   const router = useRouter()
-  // Created once via useState initializer instead of on every render, and
-  // deliberately left out of the effect's dependency array below — if this
-  // were recreated each render and included as a dependency, any setState
-  // call inside the effect would trigger a re-render, produce a new client
-  // reference, and re-fire the effect again in a loop.
+
   const [supabase] = useState(() => createClient())
   const courseId = params?.slug as string
 
   const [course, setCourse] = useState<Course | null>(null)
+  const [modules, setModules] = useState<Module[]>([])
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [loading, setLoading] = useState(true)
   const [enrolling, setEnrolling] = useState(false)
@@ -56,12 +63,7 @@ export default function CourseDetailPage() {
       if (!courseId) return
 
       try {
-        // Fetch course by id.
-        // maybeSingle() instead of single(): single() throws a noisy
-        // PostgREST error whenever zero rows come back (bad id, RLS
-        // blocked, etc.) — we already handle "not found" gracefully via
-        // the !course check below, so we don't need single()'s stricter
-        // exactly-one-row error behavior here.
+        // Fetch course
         const { data: courseData, error: courseError } = await supabase
           .from('courses')
           .select('*')
@@ -74,7 +76,20 @@ export default function CourseDetailPage() {
           setCourse(courseData)
         }
 
-        // Fetch lessons for this course
+        // Fetch modules
+        const { data: modulesData, error: modulesError } = await supabase
+          .from('modules')
+          .select('*')
+          .eq('course_id', courseId)
+          .order('order_number', { ascending: true })
+
+        if (modulesError) {
+          console.error('Modules fetch error:', modulesError.message)
+        } else if (modulesData) {
+          setModules(modulesData)
+        }
+
+        // Fetch lessons
         const { data: lessonsData, error: lessonsError } = await supabase
           .from('lessons')
           .select('*')
@@ -87,12 +102,11 @@ export default function CourseDetailPage() {
           setLessons(lessonsData)
         }
 
-        // Check if user is logged in
+        // Auth + enrollment check
         const { data: { user } } = await supabase.auth.getUser()
         if (user) {
           setUser(user)
 
-          // Check if enrolled
           const { data: enrollmentData, error: enrollError } = await supabase
             .from('enrollments')
             .select('*')
@@ -127,7 +141,6 @@ export default function CourseDetailPage() {
 
     if (!course || !courseId) return
 
-    // If course is paid (price > 0), redirect to payment/checkout page instead of direct enrollment
     if (course.price && course.price > 0) {
       router.push(`/checkout?courseId=${courseId}`)
       return
@@ -163,7 +176,17 @@ export default function CourseDetailPage() {
     }
   }
 
-  const progress = enrollment && lessons.length > 0 ? Math.round((enrollment.progress / lessons.length) * 100) : 0
+  const progress = enrollment && lessons.length > 0
+    ? Math.round((enrollment.progress / lessons.length) * 100)
+    : 0
+
+  // Group lessons by module
+  const lessonsByModule = modules.map((mod) => ({
+    module: mod,
+    lessons: lessons.filter((l) => l.module_id === mod.id),
+  }))
+
+  const lessonsWithoutModule = lessons.filter((l) => !l.module_id)
 
   if (loading) {
     return (
@@ -230,7 +253,13 @@ export default function CourseDetailPage() {
         {/* Course Header */}
         <div className="mb-10">
           <div className="flex items-center gap-3 mb-4">
-            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase border ${course.level === 'beginner' ? 'bg-green-500/10 text-green-400 border-green-500/20' : course.level === 'intermediate' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>
+            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase border ${
+              course.level === 'beginner'
+                ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                : course.level === 'intermediate'
+                ? 'bg-orange-500/10 text-orange-400 border-orange-500/20'
+                : 'bg-red-500/10 text-red-400 border-red-500/20'
+            }`}>
               {course.level || 'All Levels'}
             </span>
             {course.is_published ? (
@@ -263,7 +292,6 @@ export default function CourseDetailPage() {
             {course.description || 'No description available.'}
           </p>
 
-          {/* Progress bar for enrolled users */}
           {isEnrolled && (
             <div className="mb-6 p-4 bg-slate-900 rounded-xl border border-slate-800">
               <div className="flex items-center justify-between mb-2">
@@ -308,46 +336,112 @@ export default function CourseDetailPage() {
           </div>
         </div>
 
-        {/* Lessons */}
+        {/* Modules + Lessons */}
         <div>
-          <h2 className="text-2xl font-bold text-white mb-6">📚 Course Lessons</h2>
-          {lessons.length === 0 ? (
+          <h2 className="text-2xl font-bold text-white mb-6">📚 Course Content</h2>
+
+          {lessonsByModule.length === 0 && lessonsWithoutModule.length === 0 ? (
             <div className="text-center py-12 bg-slate-900 rounded-2xl border border-slate-800">
-              <p className="text-slate-400">No lessons available for this course yet.</p>
+              <p className="text-slate-400">No content available for this course yet.</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {lessons.map((lesson, index) => {
-                const isLocked = !isEnrolled
-                return (
-                  <div 
-                    key={lesson.id} 
-                    className={`flex items-center gap-4 p-4 bg-slate-900 rounded-xl border ${
-                      isLocked ? 'border-slate-800 opacity-60' : 'border-slate-800 hover:border-slate-700 cursor-pointer'
-                    } transition`}
-                    onClick={() => {
-                      if (!isLocked) {
-                        router.push(`/courses/${courseId}/learn?lesson=${lesson.id}`)
-                      }
-                    }}
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center text-sm font-bold">
-                      {index + 1}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-white">{lesson.title}</h3>
-                      {lesson.duration && (
-                        <p className="text-xs text-slate-500">⏱️ {lesson.duration} min</p>
-                      )}
-                    </div>
-                    {isLocked ? (
-                      <span className="text-sm text-slate-500">🔒 Locked</span>
-                    ) : (
-                      <span className="text-sm text-brand-primary">▶️ Watch</span>
+            <div className="space-y-6">
+
+              {/* Modules */}
+              {lessonsByModule.map(({ module, lessons: modLessons }) => (
+                <div key={module.id} className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
+                  <div className="p-5 border-b border-slate-800">
+                    <h3 className="text-xl font-bold text-white">
+                      {module.title}
+                    </h3>
+                    {module.description && (
+                      <p className="text-sm text-slate-400 mt-1">
+                        {module.description}
+                      </p>
                     )}
                   </div>
-                )
-              })}
+
+                  <div className="divide-y divide-slate-800">
+                    {modLessons.map((lesson, index) => {
+                      const isLocked = !isEnrolled
+                      return (
+                        <div 
+                          key={lesson.id} 
+                          className={`flex items-center gap-4 p-4 transition ${
+                            isLocked ? 'opacity-60' : 'hover:bg-slate-800/50 cursor-pointer'
+                          }`}
+                          onClick={() => {
+                            if (!isLocked) {
+                              router.push(`/courses/${courseId}/learn?lesson=${lesson.id}`)
+                            }
+                          }}
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center text-sm font-bold">
+                            {index + 1}
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-white">{lesson.title}</h4>
+                            {lesson.duration && (
+                              <p className="text-xs text-slate-500">⏱️ {lesson.duration} min</p>
+                            )}
+                          </div>
+                          {isLocked ? (
+                            <span className="text-sm text-slate-500">🔒 Locked</span>
+                          ) : (
+                            <span className="text-sm text-brand-primary">▶️ Watch</span>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+
+              {/* Lessons without module (if any) */}
+              {lessonsWithoutModule.length > 0 && (
+                <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
+                  <div className="p-5 border-b border-slate-800">
+                    <h3 className="text-xl font-bold text-white">
+                      Additional Lessons
+                    </h3>
+                  </div>
+
+                  <div className="divide-y divide-slate-800">
+                    {lessonsWithoutModule.map((lesson, index) => {
+                      const isLocked = !isEnrolled
+                      return (
+                        <div 
+                          key={lesson.id} 
+                          className={`flex items-center gap-4 p-4 transition ${
+                            isLocked ? 'opacity-60' : 'hover:bg-slate-800/50 cursor-pointer'
+                          }`}
+                          onClick={() => {
+                            if (!isLocked) {
+                              router.push(`/courses/${courseId}/learn?lesson=${lesson.id}`)
+                            }
+                          }}
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center text-sm font-bold">
+                            {index + 1}
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-white">{lesson.title}</h4>
+                            {lesson.duration && (
+                              <p className="text-xs text-slate-500">⏱️ {lesson.duration} min</p>
+                            )}
+                          </div>
+                          {isLocked ? (
+                            <span className="text-sm text-slate-500">🔒 Locked</span>
+                          ) : (
+                            <span className="text-sm text-brand-primary">▶️ Watch</span>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
             </div>
           )}
         </div>
