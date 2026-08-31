@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-export function BrandEditor() {
+export default function AdminPage() {
   const [brand, setBrand] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -38,7 +38,7 @@ export function BrandEditor() {
     try {
       const { error } = await supabase
         .from('brand_settings')
-        .upsert({ id: 1, ...brand }) // assuming single row with id=1
+        .upsert({ id: 1, ...brand })
 
       if (error) throw error
 
@@ -57,7 +57,6 @@ export function BrandEditor() {
 
   return (
     <div className="space-y-5">
-
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-bold">Brand Settings</h3>
         {message && (
@@ -66,7 +65,6 @@ export function BrandEditor() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
         <div>
           <label className="block text-xs font-semibold text-slate-400 mb-1">
             Brand Name
@@ -170,11 +168,9 @@ export function BrandEditor() {
             placeholder="A personal ecosystem for learning, ideas, digital products and growth."
           />
         </div>
-
       </div>
 
       <div className="flex items-center gap-3">
-
         <button
           onClick={handleSave}
           disabled={saving}
@@ -189,9 +185,7 @@ export function BrandEditor() {
         >
           Cancel
         </button>
-
       </div>
-
     </div>
   )
 }
