@@ -19,6 +19,7 @@ type Course = {
   is_published: boolean
   created_at: string
   updated_at: string
+  slug: string
 }
 
 type CourseForm = {
@@ -45,6 +46,17 @@ const emptyForm: CourseForm = {
   is_published: false,
 }
 
+const inputClassName =
+  'w-full rounded-xl border border-slate-800 bg-slate-950 px-3.5 py-3 text-sm text-slate-100 placeholder-slate-600 outline-none transition focus:border-brand-primary/50 focus:ring-2 focus:ring-brand-primary/20'
+
+function makeSlug(title: string) {
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
 export default function AdminLmsPage() {
   const router = useRouter()
   const [supabase] = useState(() => createClient())
@@ -69,19 +81,22 @@ export default function AdminLmsPage() {
       return false
     }
 
-    const { data: profile, error: profileError } = await supabase
+    const { data: profileData, error: profileError } = (await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
-      .maybeSingle()
+      .maybeSingle()) as {
+      data: { role: string | null } | null
+      error: { message: string } | null
+    }
 
     if (profileError) {
-      console.error('Admin profile error:', profileError)
+      console.error('Admin profile error:', profileError.message)
       setStatus('denied')
       return false
     }
 
-    if (profile?.role !== 'admin') {
+    if (profileData?.role !== 'admin') {
       setStatus('denied')
       return false
     }
@@ -150,7 +165,7 @@ export default function AdminLmsPage() {
   const openEditForm = (course: Course) => {
     setEditingCourse(course)
     setForm({
-      title: course.title || '',
+      title: course.title,
       description: course.description || '',
       instructor: course.instructor || '',
       price: String(course.price ?? 0),
@@ -159,6 +174,7 @@ export default function AdminLmsPage() {
       level: course.level || 'beginner',
       is_published: course.is_published,
     })
+
     setMessage(null)
     setError(null)
 
@@ -187,8 +203,17 @@ export default function AdminLmsPage() {
     setMessage(null)
     setError(null)
 
+    const baseSlug = makeSlug(form.title)
+
+    if (!baseSlug) {
+      setError('Please provide a valid course title.')
+      setSaving(false)
+      return
+    }
+
     const payload = {
       title: form.title.trim(),
+      slug: editingCourse?.slug || baseSlug,
       description: form.description.trim() || null,
       instructor: form.instructor.trim() || null,
       price: Number(form.price) || 0,
@@ -320,10 +345,10 @@ export default function AdminLmsPage() {
             You do not have permission to manage the LMS.
           </p>
           <Link
-            href="/"
+            href="/admin"
             className="inline-flex mt-6 px-5 py-3 rounded-xl bg-brand-primary text-white text-sm font-semibold hover:opacity-90 transition"
           >
-            Return home
+            Back to admin
           </Link>
         </div>
       </div>
@@ -583,9 +608,6 @@ export default function AdminLmsPage() {
   )
 }
 
-const inputClassName =
-  'w-full rounded-xl border border-slate-800 bg-slate-950 px-3.5 py-3 text-sm text-slate-100 placeholder-slate-600 outline-none transition focus:border-brand-primary/50 focus:ring-2 focus:ring-brand-primary/20'
-
 function FormField({
   label,
   required = false,
@@ -678,7 +700,7 @@ function CourseCard({
 
         <div className="mt-5 flex flex-wrap gap-2 border-t border-slate-800 pt-4">
           <Link
-            href={`/courses/${course.id}`}
+            href={`/courses/${course.slug}`}
             className="rounded-lg border border-slate-800 px-3 py-2 text-xs font-semibold text-slate-400 transition hover:bg-slate-800 hover:text-white"
           >
             View
