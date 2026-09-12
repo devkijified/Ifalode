@@ -15,6 +15,9 @@ export class LiveClassService {
     this.supabase = supabaseClient
   }
 
+  // ============================================================
+  // CREATE
+  // ============================================================
   async createLiveClass(
     instructorId: string,
     input: LiveClassCreateInput,
@@ -57,6 +60,9 @@ export class LiveClassService {
     return { success: true, data: data as LiveClass }
   }
 
+  // ============================================================
+  // LIST (role-aware)
+  // ============================================================
   async listLiveClasses(
     userId: string,
     role: 'admin' | 'instructor' | 'student',
@@ -87,6 +93,9 @@ export class LiveClassService {
     return { success: true, data: (data || []) as LiveClass[] }
   }
 
+  // ============================================================
+  // GET ONE
+  // ============================================================
   async getLiveClass(
     liveClassId: string
   ): Promise<{ success: boolean; data?: LiveClass; error?: string }> {
@@ -103,6 +112,9 @@ export class LiveClassService {
     return { success: true, data: data as LiveClass }
   }
 
+  // ============================================================
+  // UPDATE
+  // ============================================================
   async updateLiveClass(
     liveClassId: string,
     instructorId: string,
@@ -133,7 +145,10 @@ export class LiveClassService {
     }
 
     if (['LIVE', 'ENDED', 'COMPLETED'].includes(existingData.status)) {
-      return { success: false, error: 'Cannot edit a class that has started or ended' }
+      return {
+        success: false,
+        error: 'Cannot edit a class that has started or ended',
+      }
     }
 
     const { data, error } = await this.supabase
@@ -153,6 +168,9 @@ export class LiveClassService {
     return { success: true, data: data as LiveClass }
   }
 
+  // ============================================================
+  // DELETE
+  // ============================================================
   async deleteLiveClass(
     liveClassId: string,
     instructorId: string
@@ -182,7 +200,10 @@ export class LiveClassService {
     }
 
     if (!['DRAFT', 'SCHEDULED', 'CANCELLED'].includes(existingData.status)) {
-      return { success: false, error: 'Cannot delete a class that has started' }
+      return {
+        success: false,
+        error: 'Cannot delete a class that has started',
+      }
     }
 
     const { error } = await this.supabase
@@ -197,6 +218,9 @@ export class LiveClassService {
     return { success: true }
   }
 
+  // ============================================================
+  // CAN USER JOIN
+  // ============================================================
   async canUserJoin(
     liveClassId: string,
     userId: string
@@ -227,7 +251,11 @@ export class LiveClassService {
     }
 
     if (!['SCHEDULED', 'LIVE'].includes(lc.status)) {
-      return { allowed: false, reason: `Class is ${lc.status}`, liveClass: lc }
+      return {
+        allowed: false,
+        reason: `Class is ${lc.status}`,
+        liveClass: lc,
+      }
     }
 
     const { data: enrollment } = await this.supabase
@@ -238,7 +266,11 @@ export class LiveClassService {
       .maybeSingle()
 
     if (!enrollment) {
-      return { allowed: false, reason: 'Not enrolled in this course', liveClass: lc }
+      return {
+        allowed: false,
+        reason: 'Not enrolled in this course',
+        liveClass: lc,
+      }
     }
 
     if (lc.price && lc.price > 0) {
@@ -251,13 +283,20 @@ export class LiveClassService {
         .maybeSingle()
 
       if (!paidOrder) {
-        return { allowed: false, reason: 'Payment required', liveClass: lc }
+        return {
+          allowed: false,
+          reason: 'Payment required',
+          liveClass: lc,
+        }
       }
     }
 
     return { allowed: true, liveClass: lc as LiveClass }
   }
 
+  // ============================================================
+  // JOIN (generate token)
+  // ============================================================
   async joinClass(
     liveClassId: string,
     userId: string,
@@ -304,7 +343,8 @@ export class LiveClassService {
           livekitUrl: process.env.LIVEKIT_URL!,
           role: isTeacher ? 'teacher' : 'student',
           permissions: {
-            canPublish: isTeacher || !!liveClass.allow_mic || !!liveClass.allow_camera,
+            canPublish:
+              isTeacher || !!liveClass.allow_mic || !!liveClass.allow_camera,
             canSubscribe: true,
             canPublishData: !!liveClass.allow_chat,
             canPublishCamera: isTeacher || !!liveClass.allow_camera,
@@ -318,6 +358,9 @@ export class LiveClassService {
     }
   }
 
+  // ============================================================
+  // LEAVE
+  // ============================================================
   async leaveClass(liveClassId: string, userId: string): Promise<void> {
     const { data: session } = await this.supabase
       .from('live_class_sessions')
@@ -333,7 +376,9 @@ export class LiveClassService {
       const s = session as any
       const leftAt = new Date()
       const joinedAt = new Date(s.joined_at)
-      const durationSeconds = Math.round((leftAt.getTime() - joinedAt.getTime()) / 1000)
+      const durationSeconds = Math.round(
+        (leftAt.getTime() - joinedAt.getTime()) / 1000
+      )
 
       await this.supabase
         .from('live_class_sessions')
@@ -345,6 +390,9 @@ export class LiveClassService {
     }
   }
 
+  // ============================================================
+  // UPDATE STATUS
+  // ============================================================
   async updateStatus(
     liveClassId: string,
     instructorId: string,
@@ -400,8 +448,50 @@ export class LiveClassService {
 
     return { success: true }
   }
+
+  // ============================================================
+  // LIST STUDENT UPCOMING
+  // ============================================================
+  async listStudentUpcoming(
+    userId: string
+  ): Promise<{ success: boolean; data?: LiveClass[]; error?: string }> {
+    const { data: enrollments } = await this.supabase
+      .from('enrollments')
+      .select('course_id')
+      .eq('user_id', userId)
+
+    const courseIds = (enrollments || [])
+      .map((e: any) => e.course_id)
+      .filter(Boolean)
+
+    let query = this.supabase
+      .from('live_classes')
+      .select('*')
+      .in('status', ['SCHEDULED', 'LIVE'])
+      .eq('is_published', true)
+      .order('scheduled_at', { ascending: true })
+
+    if (courseIds.length > 0) {
+      query = query.or(
+        `course_id.is.null,course_id.in.(${courseIds.join(',')})`
+      )
+    } else {
+      query = query.is('course_id', null)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    return { success: true, data: (data || []) as LiveClass[] }
+  }
 }
 
+// ============================================================
+// FACTORY
+// ============================================================
 export async function getLiveClassService(): Promise<LiveClassService> {
   const supabase = await createServerClient()
   return new LiveClassService(supabase)
