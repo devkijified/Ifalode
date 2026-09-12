@@ -1051,7 +1051,7 @@ function OduMarquee() {
 
   return (
     <div className="relative py-8 border-y border-[#F3ECE0]/10 overflow-hidden">
-      <div className="marquee-track flex w-max">
+      <div className="marquee-track">
         <div className="flex items-center gap-12 shrink-0 pr-12">
           {names.map((name, i) => (
             <span
@@ -1081,6 +1081,8 @@ function OduMarquee() {
 
       <style jsx>{`
         .marquee-track {
+          display: flex;
+          width: max-content;
           animation: odu-marquee 28s linear infinite;
           will-change: transform;
         }
@@ -1095,10 +1097,8 @@ function OduMarquee() {
           }
         }
 
-        @media (prefers-reduced-motion: reduce) {
-          .marquee-track {
-            animation: none;
-          }
+        .marquee-track:hover {
+          animation-play-state: paused;
         }
       `}</style>
     </div>
