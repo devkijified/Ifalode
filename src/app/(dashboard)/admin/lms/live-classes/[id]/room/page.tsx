@@ -39,6 +39,7 @@ export default async function TeacherRoomPage({ params }: Props) {
       liveClassId={liveClass.id}
       liveClassTitle={liveClass.title}
       isTeacher={true}
+      recordingEnabled={!!liveClass.recording_enabled}
     />
   )
 }
