@@ -174,6 +174,13 @@ export default function AdminLiveClassesPage() {
                       </a>
                     )}
 
+                    <a
+                      href={`/admin/lms/live-classes/${lc.id}/attendance`}
+                      className="px-4 py-2 rounded-lg bg-slate-800 text-sm font-medium text-slate-300 hover:bg-slate-700 transition"
+                    >
+                      Attendance
+                    </a>
+
                     <Link
                       href={`/admin/lms/live-classes/${lc.id}`}
                       className="px-4 py-2 rounded-lg bg-slate-800 text-sm font-medium text-slate-300 hover:bg-slate-700 transition"
