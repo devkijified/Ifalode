@@ -420,6 +420,12 @@ export default function DashboardPage() {
             <SidebarLink href="/dashboard" icon="▦" label="Dashboard" active collapsed={!sidebarOpen} onNavigate={closeSidebarOnMobile} />
             <SidebarLink href="/store" icon="🛒" label="Store" collapsed={!sidebarOpen} onNavigate={closeSidebarOnMobile} />
             <SidebarLink href="/courses" icon="🎓" label="Courses" collapsed={!sidebarOpen} onNavigate={closeSidebarOnMobile} />
+            <SidebarLink
+  href="/live-classes"
+  icon="🎥"
+  label="Live Classes"
+  collapsed={!sidebarOpen}
+/>
             <SidebarLink href="/dashboard" icon="📚" label="My Learning" collapsed={!sidebarOpen} onNavigate={closeSidebarOnMobile} />
             <SidebarLink href="/dashboard" icon="📊" label="Progress" collapsed={!sidebarOpen} onNavigate={closeSidebarOnMobile} />
             {sidebarOpen && <p className="px-3 mt-8 mb-3 text-[10px] uppercase tracking-widest font-bold text-slate-600">Account</p>}
