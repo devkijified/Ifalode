@@ -106,6 +106,7 @@ export default function HomePage() {
     } else {
       document.body.style.overflow = ''
     }
+
     return () => {
       document.body.style.overflow = ''
     }
@@ -131,23 +132,38 @@ export default function HomePage() {
     <main className="min-h-screen bg-[#14100D] text-[#F3ECE0]">
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap');
+
         html {
           scroll-behavior: smooth;
         }
+
         .font-display {
           font-family: 'Instrument Serif', Georgia, serif;
         }
+
         @keyframes rim-draw {
-          from { stroke-dashoffset: 720; }
-          to { stroke-dashoffset: 0; }
+          from {
+            stroke-dashoffset: 720;
+          }
+          to {
+            stroke-dashoffset: 0;
+          }
         }
+
         .rim-draw {
           stroke-dasharray: 720;
           animation: rim-draw 1.6s ease-out forwards;
         }
+
         @media (prefers-reduced-motion: reduce) {
-          html { scroll-behavior: auto; }
-          .rim-draw { animation: none; stroke-dashoffset: 0; }
+          html {
+            scroll-behavior: auto;
+          }
+
+          .rim-draw {
+            animation: none;
+            stroke-dashoffset: 0;
+          }
         }
       `}</style>
 
@@ -159,7 +175,10 @@ export default function HomePage() {
         <div className="mx-auto max-w-6xl px-5 sm:px-8">
           <nav className="h-[64px] flex items-center justify-between">
             <Link href="/" className="shrink-0 flex items-center gap-2.5">
-              <OduMark pattern={[1, 0, 1]} className="w-4 h-6 text-brand-secondary" />
+              <OduMark
+                pattern={[1, 0, 1]}
+                className="w-4 h-6 text-brand-secondary"
+              />
               <span className="font-display text-xl sm:text-2xl tracking-tight text-[#F3ECE0]">
                 {siteName}
               </span>
@@ -229,16 +248,41 @@ export default function HomePage() {
                         <p className="text-sm font-semibold text-[#F3ECE0] truncate">
                           {displayName}
                         </p>
+
                         <p className="text-xs text-[#A99A87] truncate mt-1">
                           {user.email}
                         </p>
                       </div>
 
                       <div className="p-2">
-                        <AccountLink href="/dashboard" label="Dashboard" icon={<IconHome className="w-[17px] h-[17px]" />} />
-                        <AccountLink href="/readings" label="My readings" icon={<IconMark className="w-[17px] h-[17px]" />} />
-                        <AccountLink href="/profile" label="Profile" icon={<IconUser className="w-[17px] h-[17px]" />} />
-                        <AccountLink href="/settings" label="Settings" icon={<IconSettings className="w-[17px] h-[17px]" />} />
+                        <AccountLink
+                          href="/dashboard"
+                          label="Dashboard"
+                          icon={
+                            <IconHome className="w-[17px] h-[17px]" />
+                          }
+                        />
+                        <AccountLink
+                          href="/readings"
+                          label="My readings"
+                          icon={
+                            <IconMark className="w-[17px] h-[17px]" />
+                          }
+                        />
+                        <AccountLink
+                          href="/profile"
+                          label="Profile"
+                          icon={
+                            <IconUser className="w-[17px] h-[17px]" />
+                          }
+                        />
+                        <AccountLink
+                          href="/settings"
+                          label="Settings"
+                          icon={
+                            <IconSettings className="w-[17px] h-[17px]" />
+                          }
+                        />
 
                         <div className="my-2 border-t border-[#F3ECE0]/10" />
 
@@ -274,7 +318,9 @@ export default function HomePage() {
 
       <div
         className={`fixed inset-0 z-[60] lg:hidden transition-opacity duration-300 ${
-          mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          mobileMenuOpen
+            ? 'opacity-100 pointer-events-auto'
+            : 'opacity-0 pointer-events-none'
         }`}
       >
         <div
@@ -289,8 +335,13 @@ export default function HomePage() {
         >
           <div className="h-[64px] px-5 flex items-center justify-between border-b border-[#F3ECE0]/10">
             <div className="flex items-center gap-2.5">
-              <OduMark pattern={[1, 0, 1]} className="w-4 h-6 text-brand-secondary" />
-              <span className="font-display text-lg text-[#F3ECE0]">{siteName}</span>
+              <OduMark
+                pattern={[1, 0, 1]}
+                className="w-4 h-6 text-brand-secondary"
+              />
+              <span className="font-display text-lg text-[#F3ECE0]">
+                {siteName}
+              </span>
             </div>
 
             <button
@@ -314,6 +365,7 @@ export default function HomePage() {
                   {label}
                 </Link>
               ))}
+
               <Link
                 href="/resources"
                 onClick={() => setMobileMenuOpen(false)}
@@ -333,6 +385,7 @@ export default function HomePage() {
                   >
                     Get updates
                   </Link>
+
                   <Link
                     href="/login"
                     onClick={() => setMobileMenuOpen(false)}
@@ -347,22 +400,50 @@ export default function HomePage() {
                 <>
                   <div className="flex items-center gap-3 px-1 py-2">
                     {avatar ? (
-                      <img src={avatar} alt={displayName} className="w-10 h-10 rounded-full object-cover" />
+                      <img
+                        src={avatar}
+                        alt={displayName}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
                     ) : (
                       <div className="w-10 h-10 rounded-full border border-brand-secondary/40 flex items-center justify-center font-display text-brand-secondary">
                         {firstName.charAt(0).toUpperCase()}
                       </div>
                     )}
+
                     <div>
-                      <p className="text-sm font-semibold text-[#F3ECE0]">{displayName}</p>
-                      <p className="text-xs text-[#A99A87]">{user.email}</p>
+                      <p className="text-sm font-semibold text-[#F3ECE0]">
+                        {displayName}
+                      </p>
+                      <p className="text-xs text-[#A99A87]">
+                        {user.email}
+                      </p>
                     </div>
                   </div>
 
-                  <MobileAccountLink href="/dashboard" label="Dashboard" onClick={() => setMobileMenuOpen(false)} />
-                  <MobileAccountLink href="/readings" label="My readings" onClick={() => setMobileMenuOpen(false)} />
-                  <MobileAccountLink href="/profile" label="Profile" onClick={() => setMobileMenuOpen(false)} />
-                  <MobileAccountLink href="/settings" label="Settings" onClick={() => setMobileMenuOpen(false)} />
+                  <MobileAccountLink
+                    href="/dashboard"
+                    label="Dashboard"
+                    onClick={() => setMobileMenuOpen(false)}
+                  />
+
+                  <MobileAccountLink
+                    href="/readings"
+                    label="My readings"
+                    onClick={() => setMobileMenuOpen(false)}
+                  />
+
+                  <MobileAccountLink
+                    href="/profile"
+                    label="Profile"
+                    onClick={() => setMobileMenuOpen(false)}
+                  />
+
+                  <MobileAccountLink
+                    href="/settings"
+                    label="Settings"
+                    onClick={() => setMobileMenuOpen(false)}
+                  />
 
                   <button
                     onClick={() => {
@@ -398,7 +479,11 @@ export default function HomePage() {
                 <br />
                 {PRIEST_TITLE.toLowerCase()} and
                 <br />
-                keeper of the <span className="italic text-brand-secondary">{TRADITION}</span>.
+                keeper of the{' '}
+                <span className="italic text-brand-secondary">
+                  {TRADITION}
+                </span>
+                .
               </h1>
 
               <p className="mt-7 max-w-md text-base sm:text-lg leading-8 text-[#A99A87]">
@@ -434,30 +519,66 @@ export default function HomePage() {
               <div className="relative w-[300px] h-[300px] sm:w-[360px] sm:h-[360px]">
                 <svg viewBox="0 0 300 300" className="w-full h-full">
                   <defs>
-                    <path id="rimPath" d="M150,150 m-124,0 a124,124 0 1,1 248,0 a124,124 0 1,1 -248,0" />
+                    <path
+                      id="rimPath"
+                      d="M150,150 m-124,0 a124,124 0 1,1 248,0 a124,124 0 1,1 -248,0"
+                    />
                   </defs>
 
-                  <circle cx="150" cy="150" r="145" fill="none" stroke="#F3ECE0" strokeOpacity="0.06" />
                   <circle
-                    cx="150" cy="150" r="124"
+                    cx="150"
+                    cy="150"
+                    r="145"
+                    fill="none"
+                    stroke="#F3ECE0"
+                    strokeOpacity="0.06"
+                  />
+
+                  <circle
+                    cx="150"
+                    cy="150"
+                    r="124"
                     fill="none"
                     stroke="currentColor"
                     className="text-brand-secondary/60 rim-draw"
                     strokeWidth="1.2"
                   />
-                  <circle cx="150" cy="150" r="96" fill="none" stroke="#F3ECE0" strokeOpacity="0.08" />
 
-                  <text fontSize="10.5" letterSpacing="2.5" fill="#A99A87">
+                  <circle
+                    cx="150"
+                    cy="150"
+                    r="96"
+                    fill="none"
+                    stroke="#F3ECE0"
+                    strokeOpacity="0.08"
+                  />
+
+                  <text
+                    fontSize="10.5"
+                    letterSpacing="2.5"
+                    fill="#A99A87"
+                  >
                     <textPath href="#rimPath" startOffset="0%">
-                      wisdom of the odù &nbsp;&nbsp;&nbsp; wisdom of the odù &nbsp;&nbsp;&nbsp;
+                      wisdom of the odù &nbsp;&nbsp;&nbsp; wisdom of the odù
+                      &nbsp;&nbsp;&nbsp;
                     </textPath>
                   </text>
 
                   <g transform="translate(150,150)">
-                    <foreignObject x="-60" y="-46" width="120" height="92">
+                    <foreignObject
+                      x="-60"
+                      y="-46"
+                      width="120"
+                      height="92"
+                    >
                       <div className="w-full h-full flex flex-col items-center justify-center gap-3">
-                        <OduMark pattern={[1, 0, 1, 1]} className="w-9 h-12 text-[#F3ECE0]" />
-                        <span className="font-display italic text-sm text-[#A99A87]">Ògúndá Méjì</span>
+                        <OduMark
+                          pattern={[1, 0, 1, 1]}
+                          className="w-9 h-12 text-[#F3ECE0]"
+                        />
+                        <span className="font-display italic text-sm text-[#A99A87]">
+                          Ògúndá Méjì
+                        </span>
                       </div>
                     </foreignObject>
                   </g>
@@ -465,7 +586,9 @@ export default function HomePage() {
 
                 <div className="absolute -bottom-4 -left-4 rounded-xl border-t-2 border-brand-accent bg-[#1E1712] px-4 py-3 shadow-xl">
                   <p className="text-[11px] text-[#A99A87]">Serving from</p>
-                  <p className="text-sm font-semibold text-[#F3ECE0]">{LOCATION}</p>
+                  <p className="text-sm font-semibold text-[#F3ECE0]">
+                    {LOCATION}
+                  </p>
                 </div>
               </div>
             </div>
@@ -483,6 +606,7 @@ export default function HomePage() {
             <h2 className="font-display text-3xl sm:text-4xl leading-tight text-[#F3ECE0]">
               Guidance rooted in the Ifá tradition
             </h2>
+
             <p className="max-w-xl text-[#A99A87] leading-7">
               As a priest of Ifá, I offer consultations, rituals, and teachings
               grounded in the wisdom of the Odù. Everything here is intended
@@ -491,10 +615,26 @@ export default function HomePage() {
           </div>
 
           <div className="border-t border-[#F3ECE0]/10">
-            <OfferRow mark={[1, 1]} title="Consultations" text="Ifá divination and guidance to help you understand your path and choices." />
-            <OfferRow mark={[0, 1]} title="Rituals" text="Ceremonies and offerings designed to restore balance and open the way." />
-            <OfferRow mark={[1, 0]} title="Teachings" text="Lessons on the Odù, ethics, and living in harmony with your destiny." />
-            <OfferRow mark={[0, 0]} title="Resources" text="Prayers, guides, and references to support your spiritual practice." />
+            <OfferRow
+              mark={[1, 1]}
+              title="Consultations"
+              text="Ifá divination and guidance to help you understand your path and choices."
+            />
+            <OfferRow
+              mark={[0, 1]}
+              title="Rituals"
+              text="Ceremonies and offerings designed to restore balance and open the way."
+            />
+            <OfferRow
+              mark={[1, 0]}
+              title="Teachings"
+              text="Lessons on the Odù, ethics, and living in harmony with your destiny."
+            />
+            <OfferRow
+              mark={[0, 0]}
+              title="Resources"
+              text="Prayers, guides, and references to support your spiritual practice."
+            />
           </div>
         </div>
       </section>
@@ -513,9 +653,29 @@ export default function HomePage() {
           />
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 mt-10">
-            <TeachingCard category="Lesson" title="On understanding your Orí" description="Exploring the role of the inner head in destiny, choices, and spiritual alignment." date="Aug 2026" href="/teachings" />
-            <TeachingCard category="Insight" title="Living with Ire" description="What it means to walk in goodness, and how to cultivate ire in daily life." date="Jul 2026" href="/teachings" />
-            <TeachingCard category="Lesson" title="The language of the Odù" description="How the Odù speak through signs, stories, and patterns in your life." date="Jun 2026" href="/teachings" />
+            <TeachingCard
+              category="Lesson"
+              title="On understanding your Orí"
+              description="Exploring the role of the inner head in destiny, choices, and spiritual alignment."
+              date="Aug 2026"
+              href="/teachings"
+            />
+
+            <TeachingCard
+              category="Insight"
+              title="Living with Ire"
+              description="What it means to walk in goodness, and how to cultivate ire in daily life."
+              date="Jul 2026"
+              href="/teachings"
+            />
+
+            <TeachingCard
+              category="Lesson"
+              title="The language of the Odù"
+              description="How the Odù speak through signs, stories, and patterns in your life."
+              date="Jun 2026"
+              href="/teachings"
+            />
           </div>
         </div>
       </section>
@@ -556,10 +716,15 @@ export default function HomePage() {
 
             <div className="relative mx-auto max-w-[260px]">
               <div className="rounded-2xl border border-[#F3ECE0]/15 bg-[#14100D] p-6 -rotate-3">
-                <OduMark pattern={[1, 0, 0, 1]} className="w-10 h-14 text-brand-secondary mb-6" />
+                <OduMark
+                  pattern={[1, 0, 0, 1]}
+                  className="w-10 h-14 text-brand-secondary mb-6"
+                />
+
                 <p className="font-display italic text-2xl leading-tight text-[#F3ECE0]">
                   Clarity through the Odù
                 </p>
+
                 <p className="mt-6 text-xs text-[#A99A87] border-t border-[#F3ECE0]/10 pt-4">
                   Consultations &amp; rituals
                 </p>
@@ -587,7 +752,11 @@ export default function HomePage() {
                 <span className="font-display text-5xl text-brand-secondary">
                   {PRIEST_NAME.split(' ')[1]?.charAt(0) || 'I'}
                 </span>
-                <p className="mt-5 text-sm text-brand-secondary">{siteName}</p>
+
+                <p className="mt-5 text-sm text-brand-secondary">
+                  {siteName}
+                </p>
+
                 <h3 className="font-display italic text-lg mt-2 text-[#F3ECE0] leading-snug">
                   {PRIEST_TITLE} · {LOCATION}
                 </h3>
@@ -595,7 +764,9 @@ export default function HomePage() {
             </div>
 
             <div>
-              <p className="text-sm text-brand-secondary mb-4">About the priest</p>
+              <p className="text-sm text-brand-secondary mb-4">
+                About the priest
+              </p>
 
               <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl leading-tight text-[#F3ECE0]">
                 A spiritual home grounded in Ifá
@@ -616,9 +787,21 @@ export default function HomePage() {
               </div>
 
               <div className="grid grid-cols-3 gap-6 mt-10 pt-8 border-t border-[#F3ECE0]/10">
-                <StatCounter target={12} suffix="+" label="Years in practice" />
-                <StatCounter target={400} suffix="+" label="Consultations given" />
-                <StatCounter target={30} suffix="+" label="Students taught" />
+                <StatCounter
+                  target={12}
+                  suffix="+"
+                  label="Years in practice"
+                />
+                <StatCounter
+                  target={400}
+                  suffix="+"
+                  label="Consultations given"
+                />
+                <StatCounter
+                  target={30}
+                  suffix="+"
+                  label="Students taught"
+                />
               </div>
             </div>
           </div>
@@ -644,16 +827,30 @@ export default function HomePage() {
               </p>
 
               <div className="grid sm:grid-cols-3 gap-3 mt-8">
-                <MemberAction title="Latest teachings" text="Read recent lessons" href="/teachings" />
-                <MemberAction title="My readings" text="View your consultations" href="/readings" />
-                <MemberAction title="Services" text="Book a reading or ritual" href="/services" />
+                <MemberAction
+                  title="Latest teachings"
+                  text="Read recent lessons"
+                  href="/teachings"
+                />
+                <MemberAction
+                  title="My readings"
+                  text="View your consultations"
+                  href="/readings"
+                />
+                <MemberAction
+                  title="Services"
+                  text="Book a reading or ritual"
+                  href="/services"
+                />
               </div>
             </div>
           ) : (
             <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-primary to-[#3A2A1C] p-8 sm:p-14">
               <div className="relative grid lg:grid-cols-[1fr_auto] gap-8 items-center">
                 <div>
-                  <p className="text-sm text-brand-secondary">Stay connected</p>
+                  <p className="text-sm text-brand-secondary">
+                    Stay connected
+                  </p>
 
                   <h2 className="mt-3 font-display text-3xl sm:text-4xl text-[#F3ECE0]">
                     New teachings and insights, shared regularly
@@ -686,8 +883,13 @@ export default function HomePage() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
             <div className="lg:col-span-2">
               <div className="flex items-center gap-2.5">
-                <OduMark pattern={[1, 0, 1]} className="w-4 h-6 text-brand-secondary" />
-                <span className="font-display text-2xl text-[#F3ECE0]">{siteName}</span>
+                <OduMark
+                  pattern={[1, 0, 1]}
+                  className="w-4 h-6 text-brand-secondary"
+                />
+                <span className="font-display text-2xl text-[#F3ECE0]">
+                  {siteName}
+                </span>
               </div>
 
               <p className="mt-4 max-w-sm text-sm leading-6 text-[#A99A87]">
@@ -723,10 +925,17 @@ export default function HomePage() {
             </p>
 
             <div className="flex gap-5">
-              <Link href="/privacy" className="text-xs text-[#A99A87]/60 hover:text-[#A99A87] transition">
+              <Link
+                href="/privacy"
+                className="text-xs text-[#A99A87]/60 hover:text-[#A99A87] transition"
+              >
                 Privacy
               </Link>
-              <Link href="/terms" className="text-xs text-[#A99A87]/60 hover:text-[#A99A87] transition">
+
+              <Link
+                href="/terms"
+                className="text-xs text-[#A99A87]/60 hover:text-[#A99A87] transition"
+              >
                 Terms
               </Link>
             </div>
@@ -749,15 +958,43 @@ function OduMark({
   className?: string
 }) {
   return (
-    <svg viewBox="0 0 40 56" className={className} fill="none" aria-hidden="true">
+    <svg
+      viewBox="0 0 40 56"
+      className={className}
+      fill="none"
+      aria-hidden="true"
+    >
       {pattern.map((mark, col) => {
         const x = 4 + col * (32 / Math.max(pattern.length - 1, 1))
+
         return mark ? (
-          <line key={col} x1={x} y1="4" x2={x} y2="52" stroke="currentColor" strokeWidth="2.2" />
+          <line
+            key={col}
+            x1={x}
+            y1="4"
+            x2={x}
+            y2="52"
+            stroke="currentColor"
+            strokeWidth="2.2"
+          />
         ) : (
           <g key={col}>
-            <line x1={x - 1.6} y1="4" x2={x - 1.6} y2="52" stroke="currentColor" strokeWidth="2.2" />
-            <line x1={x + 1.6} y1="4" x2={x + 1.6} y2="52" stroke="currentColor" strokeWidth="2.2" />
+            <line
+              x1={x - 1.6}
+              y1="4"
+              x2={x - 1.6}
+              y2="52"
+              stroke="currentColor"
+              strokeWidth="2.2"
+            />
+            <line
+              x1={x + 1.6}
+              y1="4"
+              x2={x + 1.6}
+              y2="52"
+              stroke="currentColor"
+              strokeWidth="2.2"
+            />
           </g>
         )
       })}
@@ -766,66 +1003,75 @@ function OduMark({
 }
 
 /* =========================================================
-   ODÙ MARQUEE — driven by requestAnimationFrame, not CSS
+   ODÙ MARQUEE
 ========================================================= */
 
 function OduMarquee() {
   const names = [
-    'Èjì Ogbè', 'Ọ̀yẹ̀kú Méjì', 'Ìwòrì Méjì', 'Òdí Méjì',
-    'Ìrosùn Méjì', 'Ọ̀wọ́nrín Méjì', 'Ọ̀bàrà Méjì', 'Ọ̀kànràn Méjì',
+    'Èjì Ogbè',
+    'Ọ̀yẹ̀kú Méjì',
+    'Ìwòrì Méjì',
+    'Òdí Méjì',
+    'Ìrosùn Méjì',
+    'Ọ̀wọ́nrín Méjì',
+    'Ọ̀bàrà Méjì',
+    'Ọ̀kànràn Méjì',
   ]
-  const track = [...names, ...names]
-
-  const trackRef = useRef<HTMLDivElement>(null)
-  const positionRef = useRef(0)
-
-  useEffect(() => {
-    const el = trackRef.current
-    if (!el) return
-
-    const prefersReduced = window.matchMedia(
-      '(prefers-reduced-motion: reduce)',
-    ).matches
-
-    if (prefersReduced) return
-
-    let frameId: number
-    const speed = 0.6
-
-    const step = () => {
-      const halfWidth = el.scrollWidth / 2
-
-      if (halfWidth > 0) {
-        positionRef.current -= speed
-        if (Math.abs(positionRef.current) >= halfWidth) {
-          positionRef.current = 0
-        }
-        el.style.transform = `translateX(${positionRef.current}px)`
-      }
-
-      frameId = requestAnimationFrame(step)
-    }
-
-    frameId = requestAnimationFrame(step)
-
-    return () => cancelAnimationFrame(frameId)
-  }, [])
 
   return (
     <div className="relative py-8 border-y border-[#F3ECE0]/10 overflow-hidden">
-      <div
-        ref={trackRef}
-        className="flex items-center gap-12 whitespace-nowrap w-max"
-      >
-        {track.map((name, i) => (
-          <span key={i} className="font-display italic text-2xl text-[#A99A87]/70 shrink-0">
-            {name}
-          </span>
-        ))}
+      <div className="marquee-track flex w-max">
+        {/* First copy */}
+        <div className="flex items-center gap-12 shrink-0 pr-12">
+          {names.map((name, i) => (
+            <span
+              key={`first-${i}`}
+              className="font-display italic text-2xl text-[#A99A87]/70 shrink-0"
+            >
+              {name}
+            </span>
+          ))}
+        </div>
+
+        {/* Exact duplicate */}
+        <div className="flex items-center gap-12 shrink-0 pr-12">
+          {names.map((name, i) => (
+            <span
+              key={`second-${i}`}
+              className="font-display italic text-2xl text-[#A99A87]/70 shrink-0"
+            >
+              {name}
+            </span>
+          ))}
+        </div>
       </div>
 
       <div className="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-[#14100D] to-transparent" />
+
       <div className="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-[#14100D] to-transparent" />
+
+      <style jsx>{`
+        .marquee-track {
+          animation: odu-marquee 28s linear infinite;
+          will-change: transform;
+        }
+
+        @keyframes odu-marquee {
+          from {
+            transform: translateX(0);
+          }
+
+          to {
+            transform: translateX(-50%);
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .marquee-track {
+            animation: none;
+          }
+        }
+      `}</style>
     </div>
   )
 }
@@ -862,7 +1108,9 @@ function useCountUp(target: number, durationMs = 1400) {
           const tick = (now: number) => {
             const progress = Math.min((now - start) / durationMs, 1)
             const eased = 1 - Math.pow(1 - progress, 3)
+
             setValue(Math.round(eased * target))
+
             if (progress < 1) requestAnimationFrame(tick)
           }
 
@@ -873,6 +1121,7 @@ function useCountUp(target: number, durationMs = 1400) {
     )
 
     observer.observe(el)
+
     return () => observer.disconnect()
   }, [target, durationMs])
 
@@ -896,6 +1145,7 @@ function StatCounter({
         {value}
         {suffix}
       </p>
+
       <p className="mt-2 text-sm text-[#A99A87]">{label}</p>
     </div>
   )
@@ -930,8 +1180,17 @@ function FaqItem({
             open ? 'rotate-45' : ''
           }`}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="w-4 h-4">
-            <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            className="w-4 h-4"
+          >
+            <path
+              d="M12 5v14M5 12h14"
+              strokeLinecap="round"
+            />
           </svg>
         </span>
       </button>
@@ -973,7 +1232,9 @@ function FaqSection() {
   return (
     <section className="py-20 sm:py-28 border-t border-[#F3ECE0]/10">
       <div className="max-w-3xl mx-auto px-5 sm:px-8">
-        <p className="text-sm text-brand-secondary mb-4">Common questions</p>
+        <p className="text-sm text-brand-secondary mb-4">
+          Common questions
+        </p>
 
         <h2 className="font-display text-3xl sm:text-4xl text-[#F3ECE0] mb-8">
           Before you book a reading
@@ -981,7 +1242,11 @@ function FaqSection() {
 
         <div>
           {faqs.map((f) => (
-            <FaqItem key={f.q} question={f.q} answer={f.a} />
+            <FaqItem
+              key={f.q}
+              question={f.q}
+              answer={f.a}
+            />
           ))}
         </div>
       </div>
@@ -995,13 +1260,154 @@ function FaqSection() {
 
 function IconHome(props: React.SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" {...props}>
-      <path d="M4 11.5 12 4l8 7.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M6 10v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9" strokeLinecap="round" strokeLinejoin="round" />
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      {...props}
+    >
+      <path
+        d="M4 11.5 12 4l8 7.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M6 10v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   )
 }
 
 function IconUser(props: React.SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" {...props}>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      {...props}
+    >
+      <circle cx="12" cy="8" r="3.5" />
+      <path
+        d="M5 20c.8-3.4 3.1-5 7-5s6.2 1.6 7 5"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function IconSettings(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      {...props}
+    >
+      <circle cx="12" cy="12" r="3" />
+      <path
+        d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V20h-2.6v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H6v-2.6h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V4h2.6v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1H20v2.6h-.1a1.7 1.7 0 0 0-1.5 1.3Z"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function IconLogout(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      {...props}
+    >
+      <path
+        d="M10 5H6a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h4"
+        strokeLinecap="round"
+      />
+      <path
+        d="M14 8l4 4-4 4M9 12h9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function IconMenu(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      {...props}
+    >
+      <path
+        d="M4 7h16M4 12h16M4 17h16"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function IconClose(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      {...props}
+    >
+      <path
+        d="M6 6l12 12M18 6L6 18"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function IconScroll(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      {...props}
+    >
+      <path
+        d="M6 5h12v14H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8 9h8M8 13h6"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function IconMark(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      {...props}
+    >
+      <path
+        d="M6 4h12v16l-6-3-6 3V4Z"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
