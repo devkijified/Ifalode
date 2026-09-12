@@ -6,7 +6,6 @@ import {
   LiveKitRoom,
   VideoConference,
   RoomAudioRenderer,
-  useRoomContext,
 } from '@livekit/components-react'
 import '@livekit/components-styles'
 import type { JoinTokenResponse } from '@/types/live-class'
@@ -15,14 +14,12 @@ interface Props {
   liveClassId: string
   liveClassTitle: string
   isTeacher: boolean
-  onEnd?: () => void
 }
 
 export function LiveClassRoom({
   liveClassId,
   liveClassTitle,
   isTeacher,
-  onEnd,
 }: Props) {
   const router = useRouter()
   const [tokenData, setTokenData] = useState<JoinTokenResponse | null>(null)
@@ -58,12 +55,30 @@ export function LiveClassRoom({
     } catch (e) {
       console.error('Leave error:', e)
     }
+  }
 
-    if (isTeacher && onEnd) {
-      onEnd()
-    } else {
-      router.push('/live-classes')
+  const handleEndClass = async () => {
+    if (!confirm('End the class for everyone?')) return
+
+    try {
+      await fetch(`/api/live-classes/${liveClassId}/leave`, { method: 'POST' })
+      const res = await fetch(`/api/live-classes/${liveClassId}/end`, {
+        method: 'POST',
+      })
+      if (res.ok) {
+        router.push('/admin/lms/live-classes')
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Failed to end class')
+      }
+    } catch (e) {
+      console.error('End class error:', e)
     }
+  }
+
+  const handleStudentLeave = async () => {
+    await handleLeave()
+    router.push('/live-classes')
   }
 
   if (loading) {
@@ -85,7 +100,11 @@ export function LiveClassRoom({
           <h1 className="text-2xl font-bold text-white mb-2">Cannot Join</h1>
           <p className="text-slate-400 mb-6">{error || 'Unable to join this class'}</p>
           <button
-            onClick={() => router.push(isTeacher ? '/admin/lms/live-classes' : '/live-classes')}
+            onClick={() =>
+              router.push(
+                isTeacher ? '/admin/lms/live-classes' : '/live-classes'
+              )
+            }
             className="px-6 py-2.5 bg-brand-primary text-white rounded-xl font-semibold"
           >
             Go Back
@@ -105,7 +124,7 @@ export function LiveClassRoom({
           </p>
         </div>
         <button
-          onClick={handleLeave}
+          onClick={isTeacher ? handleEndClass : handleStudentLeave}
           className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition"
         >
           {isTeacher ? 'End Class' : 'Leave'}
@@ -119,55 +138,14 @@ export function LiveClassRoom({
           connect={true}
           audio={isTeacher}
           video={isTeacher}
-          onDisconnected={handleLeave}
+          onDisconnected={isTeacher ? handleEndClass : handleStudentLeave}
           data-lk-theme="default"
           style={{ height: '100%' }}
         >
           <VideoConference />
           <RoomAudioRenderer />
-          {isTeacher && <TeacherRecordingControl liveClassId={liveClassId} />}
         </LiveKitRoom>
       </div>
     </div>
-  )
-}
-
-function TeacherRecordingControl({ liveClassId }: { liveClassId: string }) {
-  const [recording, setRecording] = useState(false)
-  const [busy, setBusy] = useState(false)
-
-  const toggleRecording = async () => {
-    setBusy(true)
-    try {
-      const action = recording ? 'stop' : 'start'
-      const res = await fetch(
-        `/api/live-classes/${liveClassId}/recording/${action}`,
-        { method: 'POST' }
-      )
-      if (res.ok) {
-        setRecording(!recording)
-      } else {
-        const data = await res.json()
-        alert(data.error || 'Recording action failed')
-      }
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  return (
-    <button
-      onClick={toggleRecording}
-      disabled={busy}
-      className={`fixed bottom-4 right-4 z-50 px-4 py-2 rounded-xl text-sm font-semibold transition ${
-        recording
-          ? 'bg-red-600 text-white'
-          : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-      }`}
-    >
-      {busy ? '...' : recording ? '● Stop Recording' : '○ Start Recording'}
-    </button>
   )
 }
