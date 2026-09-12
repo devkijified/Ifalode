@@ -10,10 +10,15 @@ export function LiveClassesWidget() {
 
   useEffect(() => {
     const load = async () => {
-      const res = await fetch('/api/student/live-classes')
-      const data = await res.json()
-      setLiveClasses((data.liveClasses || []).slice(0, 3))
-      setLoading(false)
+      try {
+        const res = await fetch('/api/student/live-classes')
+        const data = await res.json()
+        setLiveClasses((data.liveClasses || []).slice(0, 3))
+      } catch (err) {
+        console.error('LiveClassesWidget fetch error:', err)
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [])
