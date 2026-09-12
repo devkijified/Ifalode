@@ -1,12 +1,13 @@
 import { createServerClient } from '@/lib/supabase/server'
-import { generateLiveKitToken, getRoomName, getParticipantIdentity } from '@/lib/livekit/token'
+import { generateLiveKitToken, getParticipantIdentity } from '@/lib/livekit/token'
 import { getLiveKitService } from './LiveKitService'
-import type { LiveClass, JoinTokenResponse, LiveClassStatus } from '@/types/live-class'
+import type {
+  LiveClass,
+  LiveClassCreateInput,
+  JoinTokenResponse,
+  LiveClassStatus,
+} from '@/types/live-class'
 
-/**
- * Business logic for Live Classes.
- * Abstracts the realtime provider behind LiveKitService.
- */
 export class LiveClassService {
   private supabase: any
 
@@ -14,9 +15,202 @@ export class LiveClassService {
     this.supabase = supabaseClient
   }
 
-  /**
-   * Check if a user is allowed to join a live class.
-   */
+  // ============================================================
+  // CREATE
+  // ============================================================
+  async createLiveClass(
+    instructorId: string,
+    input: LiveClassCreateInput,
+    instructorName: string
+  ): Promise<{ success: boolean; data?: LiveClass; error?: string }> {
+    const tempId = crypto.randomUUID()
+    const roomId = `ifalode_live_${tempId}`
+
+    const { data, error } = await this.supabase
+      .from('live_classes')
+      .insert({
+        course_id: input.course_id,
+        module_id: input.module_id || null,
+        instructor_id: instructorId,
+        instructor: instructorName,
+        title: input.title,
+        description: input.description || null,
+        scheduled_at: input.scheduled_at,
+        duration_minutes: input.duration_minutes,
+        duration: input.duration_minutes,
+        max_participants: input.max_participants,
+        price: input.price,
+        status: 'SCHEDULED',
+        room_id: roomId,
+        recording_enabled: input.recording_enabled,
+        allow_mic: input.allow_mic,
+        allow_camera: input.allow_camera,
+        allow_chat: input.allow_chat,
+        allow_questions: input.allow_questions,
+        is_published: input.is_published,
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('createLiveClass error:', error)
+      return { success: false, error: error.message }
+    }
+
+    return { success: true, data: data as LiveClass }
+  }
+
+  // ============================================================
+  // LIST (role-aware)
+  // ============================================================
+  async listLiveClasses(
+    userId: string,
+    role: 'admin' | 'instructor' | 'student',
+    filters?: { courseId?: string; status?: LiveClassStatus }
+  ): Promise<{ success: boolean; data?: LiveClass[]; error?: string }> {
+    let query = this.supabase.from('live_classes').select('*')
+
+    if (role === 'instructor') {
+      query = query.eq('instructor_id', userId)
+    }
+
+    if (filters?.courseId) {
+      query = query.eq('course_id', filters.courseId)
+    }
+
+    if (filters?.status) {
+      query = query.eq('status', filters.status)
+    }
+
+    query = query.order('scheduled_at', { ascending: false })
+
+    const { data, error } = await query
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    return { success: true, data: (data || []) as LiveClass[] }
+  }
+
+  // ============================================================
+  // GET ONE
+  // ============================================================
+  async getLiveClass(
+    liveClassId: string
+  ): Promise<{ success: boolean; data?: LiveClass; error?: string }> {
+    const { data, error } = await this.supabase
+      .from('live_classes')
+      .select('*')
+      .eq('id', liveClassId)
+      .single()
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    return { success: true, data: data as LiveClass }
+  }
+
+  // ============================================================
+  // UPDATE
+  // ============================================================
+  async updateLiveClass(
+    liveClassId: string,
+    instructorId: string,
+    updates: Partial<LiveClassCreateInput>
+  ): Promise<{ success: boolean; data?: LiveClass; error?: string }> {
+    const { data: existing } = await this.supabase
+      .from('live_classes')
+      .select('instructor_id, status')
+      .eq('id', liveClassId)
+      .single()
+
+    if (!existing) {
+      return { success: false, error: 'Live class not found' }
+    }
+
+    const { data: profile } = await this.supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', instructorId)
+      .single()
+
+    const isAdmin = profile?.role === 'admin'
+
+    if (!isAdmin && existing.instructor_id !== instructorId) {
+      return { success: false, error: 'Unauthorized' }
+    }
+
+    if (['LIVE', 'ENDED', 'COMPLETED'].includes(existing.status)) {
+      return { success: false, error: 'Cannot edit a class that has started or ended' }
+    }
+
+    const { data, error } = await this.supabase
+      .from('live_classes')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', liveClassId)
+      .select()
+      .single()
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    return { success: true, data: data as LiveClass }
+  }
+
+  // ============================================================
+  // DELETE
+  // ============================================================
+  async deleteLiveClass(
+    liveClassId: string,
+    instructorId: string
+  ): Promise<{ success: boolean; error?: string }> {
+    const { data: existing } = await this.supabase
+      .from('live_classes')
+      .select('instructor_id, status')
+      .eq('id', liveClassId)
+      .single()
+
+    if (!existing) {
+      return { success: false, error: 'Live class not found' }
+    }
+
+    const { data: profile } = await this.supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', instructorId)
+      .single()
+
+    const isAdmin = profile?.role === 'admin'
+
+    if (!isAdmin && existing.instructor_id !== instructorId) {
+      return { success: false, error: 'Unauthorized' }
+    }
+
+    if (!['DRAFT', 'SCHEDULED', 'CANCELLED'].includes(existing.status)) {
+      return { success: false, error: 'Cannot delete a class that has started' }
+    }
+
+    const { error } = await this.supabase
+      .from('live_classes')
+      .delete()
+      .eq('id', liveClassId)
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    return { success: true }
+  }
+
+  // ============================================================
+  // CAN USER JOIN
+  // ============================================================
   async canUserJoin(
     liveClassId: string,
     userId: string
@@ -31,12 +225,23 @@ export class LiveClassService {
       return { allowed: false, reason: 'Class not found' }
     }
 
-    // Status check
+    const { data: profile } = await this.supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single()
+
+    const isAdmin = profile?.role === 'admin'
+    const isInstructor = liveClass.instructor_id === userId
+
+    if (isAdmin || isInstructor) {
+      return { allowed: true, liveClass }
+    }
+
     if (!['SCHEDULED', 'LIVE'].includes(liveClass.status)) {
       return { allowed: false, reason: `Class is ${liveClass.status}`, liveClass }
     }
 
-    // Enrollment check
     const { data: enrollment } = await this.supabase
       .from('enrollments')
       .select('id')
@@ -48,14 +253,13 @@ export class LiveClassService {
       return { allowed: false, reason: 'Not enrolled in this course', liveClass }
     }
 
-    // Registration check (if required)
-    if (liveClass.price > 0) {
+    if (liveClass.price && liveClass.price > 0) {
       const { data: paidOrder } = await this.supabase
         .from('orders')
         .select('id')
         .eq('user_id', userId)
-        .eq('course_id', liveClass.course_id)
         .eq('status', 'completed')
+        .eq('course_id', liveClass.course_id)
         .maybeSingle()
 
       if (!paidOrder) {
@@ -63,69 +267,44 @@ export class LiveClassService {
       }
     }
 
-    // Capacity check (only for LIVE status)
-    if (liveClass.status === 'LIVE') {
-      const participantCount = await this.getActiveParticipantCount(liveClass.room_id)
-      if (participantCount >= liveClass.max_participants) {
-        return { allowed: false, reason: 'Class is full', liveClass }
-      }
-    }
-
     return { allowed: true, liveClass }
   }
 
-  /**
-   * Get active participant count from LiveKit.
-   */
-  async getActiveParticipantCount(roomName: string): Promise<number> {
-    const liveKit = getLiveKitService()
-    const result = await liveKit.listParticipants(roomName)
-    return result.success ? (result.participants?.length || 0) : 0
-  }
-
-  /**
-   * Generate a join token for a user.
-   */
+  // ============================================================
+  // JOIN (generate token)
+  // ============================================================
   async joinClass(
     liveClassId: string,
     userId: string,
     userEmail: string,
     userName: string
   ): Promise<{ success: boolean; error?: string; data?: JoinTokenResponse }> {
-    // 1. Authorize
     const check = await this.canUserJoin(liveClassId, userId)
     if (!check.allowed || !check.liveClass) {
       return { success: false, error: check.reason || 'Unauthorized' }
     }
 
     const liveClass = check.liveClass
-
-    // 2. Determine role
     const isTeacher = liveClass.instructor_id === userId
-
-    // 3. Generate token
-    const roomName = liveClass.room_id
     const identity = getParticipantIdentity(userId, liveClassId)
 
     try {
       const token = await generateLiveKitToken({
-        roomName,
+        roomName: liveClass.room_id,
         participantIdentity: identity,
         participantName: userName || userEmail,
         isTeacher,
-        allowMic: isTeacher || liveClass.allow_mic,
-        allowCamera: isTeacher || liveClass.allow_camera,
-        allowData: liveClass.allow_chat,
+        allowMic: isTeacher || !!liveClass.allow_mic,
+        allowCamera: isTeacher || !!liveClass.allow_camera,
+        allowData: !!liveClass.allow_chat,
       })
 
-      // 4. Track session (attendance)
       await this.supabase.from('live_class_sessions').insert({
         live_class_id: liveClassId,
         user_id: userId,
         joined_at: new Date().toISOString(),
       })
 
-      // 5. Update registration status if applicable
       await this.supabase
         .from('live_class_registrations')
         .update({ status: 'attended' })
@@ -136,15 +315,15 @@ export class LiveClassService {
         success: true,
         data: {
           token,
-          roomName,
+          roomName: liveClass.room_id,
           livekitUrl: process.env.LIVEKIT_URL!,
           role: isTeacher ? 'teacher' : 'student',
           permissions: {
-            canPublish: isTeacher || liveClass.allow_mic || liveClass.allow_camera,
+            canPublish: isTeacher || !!liveClass.allow_mic || !!liveClass.allow_camera,
             canSubscribe: true,
-            canPublishData: liveClass.allow_chat,
-            canPublishCamera: isTeacher || liveClass.allow_camera,
-            canPublishMicrophone: isTeacher || liveClass.allow_mic,
+            canPublishData: !!liveClass.allow_chat,
+            canPublishCamera: isTeacher || !!liveClass.allow_camera,
+            canPublishMicrophone: isTeacher || !!liveClass.allow_mic,
           },
         },
       }
@@ -154,9 +333,9 @@ export class LiveClassService {
     }
   }
 
-  /**
-   * Track a leave event (close the most recent session).
-   */
+  // ============================================================
+  // LEAVE
+  // ============================================================
   async leaveClass(liveClassId: string, userId: string): Promise<void> {
     const { data: session } = await this.supabase
       .from('live_class_sessions')
@@ -183,56 +362,9 @@ export class LiveClassService {
     }
   }
 
-  /**
-   * Register a student for a live class.
-   */
-  async registerForClass(
-    liveClassId: string,
-    userId: string
-  ): Promise<{ success: boolean; error?: string }> {
-    const { data: liveClass } = await this.supabase
-      .from('live_classes')
-      .select('*')
-      .eq('id', liveClassId)
-      .single()
-
-    if (!liveClass) {
-      return { success: false, error: 'Class not found' }
-    }
-
-    if (['ENDED', 'COMPLETED', 'CANCELLED'].includes(liveClass.status)) {
-      return { success: false, error: 'Class has ended' }
-    }
-
-    // Check capacity server-side
-    const { count } = await this.supabase
-      .from('live_class_registrations')
-      .select('*', { count: 'exact', head: true })
-      .eq('live_class_id', liveClassId)
-      .eq('status', 'registered')
-
-    if ((count || 0) >= liveClass.max_participants) {
-      return { success: false, error: 'Class is full' }
-    }
-
-    const { error } = await this.supabase
-      .from('live_class_registrations')
-      .upsert({
-        live_class_id: liveClassId,
-        user_id: userId,
-        status: 'registered',
-      }, { onConflict: 'live_class_id,user_id' })
-
-    if (error) {
-      return { success: false, error: error.message }
-    }
-
-    return { success: true }
-  }
-
-  /**
-   * Update live class status (server-controlled).
-   */
+  // ============================================================
+  // UPDATE STATUS
+  // ============================================================
   async updateStatus(
     liveClassId: string,
     instructorId: string,
@@ -248,15 +380,25 @@ export class LiveClassService {
       return { success: false, error: 'Class not found' }
     }
 
-    if (liveClass.instructor_id !== instructorId) {
+    const { data: profile } = await this.supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', instructorId)
+      .single()
+
+    const isAdmin = profile?.role === 'admin'
+
+    if (!isAdmin && liveClass.instructor_id !== instructorId) {
       return { success: false, error: 'Unauthorized' }
     }
 
-    const updates: any = { status: newStatus, updated_at: new Date().toISOString() }
+    const updates: any = {
+      status: newStatus,
+      updated_at: new Date().toISOString(),
+    }
 
     if (newStatus === 'LIVE') {
       updates.started_at = new Date().toISOString()
-      // Create LiveKit room
       const liveKit = getLiveKitService()
       await liveKit.createRoom(liveClass.room_id)
     }
@@ -278,10 +420,11 @@ export class LiveClassService {
   }
 }
 
-/**
- * Helper to instantiate the service from server-side code.
- */
 export async function getLiveClassService(): Promise<LiveClassService> {
   const supabase = await createServerClient()
+  return new LiveClassService(supabase)
+}
+
+export function createLiveClassService(supabase: any): LiveClassService {
   return new LiveClassService(supabase)
 }
