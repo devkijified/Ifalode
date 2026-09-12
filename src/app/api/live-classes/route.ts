@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { createLiveClassService } from '@/lib/services/LiveClassService'
 
-// GET /api/live-classes — list (role-aware)
+// GET /api/live-classes
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createServerClient()
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/live-classes — create
+// POST /api/live-classes
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerClient()
@@ -51,9 +51,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('full_name, role')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile || profile.role !== 'admin') {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+    }
+
     const body = await request.json()
     const service = createLiveClassService(supabase)
-    const result = await service.createLiveClass(user.id, body)
+    const result = await service.createLiveClass(
+      user.id,
+      body,
+      profile.full_name || 'Instructor'
+    )
 
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 400 })
