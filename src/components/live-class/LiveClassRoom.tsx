@@ -14,12 +14,14 @@ interface Props {
   liveClassId: string
   liveClassTitle: string
   isTeacher: boolean
+  recordingEnabled?: boolean
 }
 
 export function LiveClassRoom({
   liveClassId,
   liveClassTitle,
   isTeacher,
+  recordingEnabled = true,
 }: Props) {
   const router = useRouter()
   const [tokenData, setTokenData] = useState<JoinTokenResponse | null>(null)
@@ -98,7 +100,9 @@ export function LiveClassRoom({
         <div className="max-w-md text-center">
           <div className="text-4xl mb-4">🚫</div>
           <h1 className="text-2xl font-bold text-white mb-2">Cannot Join</h1>
-          <p className="text-slate-400 mb-6">{error || 'Unable to join this class'}</p>
+          <p className="text-slate-400 mb-6">
+            {error || 'Unable to join this class'}
+          </p>
           <button
             onClick={() =>
               router.push(
@@ -116,19 +120,25 @@ export function LiveClassRoom({
 
   return (
     <div className="h-screen bg-slate-950 flex flex-col" data-lk-theme="default">
-      <div className="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between">
+      <div className="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between flex-wrap gap-2">
         <div>
           <h1 className="text-white font-bold">{liveClassTitle}</h1>
           <p className="text-xs text-slate-500">
             {isTeacher ? 'Teacher View' : 'Student View'}
           </p>
         </div>
-        <button
-          onClick={isTeacher ? handleEndClass : handleStudentLeave}
-          className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition"
-        >
-          {isTeacher ? 'End Class' : 'Leave'}
-        </button>
+
+        <div className="flex items-center gap-2">
+          {isTeacher && recordingEnabled && (
+            <RecordingControl liveClassId={liveClassId} />
+          )}
+          <button
+            onClick={isTeacher ? handleEndClass : handleStudentLeave}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition"
+          >
+            {isTeacher ? 'End Class' : 'Leave'}
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-hidden">
@@ -147,5 +157,65 @@ export function LiveClassRoom({
         </LiveKitRoom>
       </div>
     </div>
+  )
+}
+
+// ============================================================
+// RECORDING CONTROL
+// ============================================================
+function RecordingControl({ liveClassId }: { liveClassId: string }) {
+  const [recording, setRecording] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [elapsed, setElapsed] = useState(0)
+
+  useEffect(() => {
+    if (!recording) {
+      setElapsed(0)
+      return
+    }
+    const interval = setInterval(() => setElapsed((e) => e + 1), 1000)
+    return () => clearInterval(interval)
+  }, [recording])
+
+  const toggle = async () => {
+    setBusy(true)
+    try {
+      const action = recording ? 'stop' : 'start'
+      const res = await fetch(
+        `/api/live-classes/${liveClassId}/recording/${action}`,
+        { method: 'POST' }
+      )
+      const data = await res.json()
+      if (res.ok) {
+        setRecording(!recording)
+      } else {
+        alert(data.error || 'Recording action failed')
+      }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const formatTime = (s: number) => {
+    const m = Math.floor(s / 60)
+    const sec = s % 60
+    return `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`
+  }
+
+  return (
+    <button
+      onClick={toggle}
+      disabled={busy}
+      className={`px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 ${
+        recording
+          ? 'bg-red-600 text-white hover:bg-red-700'
+          : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+      }`}
+    >
+      <span className={`w-2 h-2 rounded-full ${recording ? 'bg-white animate-pulse' : 'bg-slate-500'}`} />
+      {busy ? '...' : recording ? `● REC ${formatTime(elapsed)}` : 'Start Recording'}
+    </button>
   )
 }
