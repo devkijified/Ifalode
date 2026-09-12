@@ -12,13 +12,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Cast profile as any to bypass TS inference
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
       .single()
 
-    const role = profile?.role === 'admin' ? 'admin' : 'instructor'
+    const role = (profile as any)?.role === 'admin' ? 'admin' : 'instructor'
 
     const { searchParams } = new URL(request.url)
     const courseId = searchParams.get('courseId') || undefined
@@ -51,13 +52,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Cast profile as any
     const { data: profile } = await supabase
       .from('profiles')
       .select('full_name, role')
       .eq('id', user.id)
       .single()
 
-    if (!profile || profile.role !== 'admin') {
+    const profileData = profile as any
+
+    if (!profileData || profileData.role !== 'admin') {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
@@ -66,7 +70,7 @@ export async function POST(request: NextRequest) {
     const result = await service.createLiveClass(
       user.id,
       body,
-      profile.full_name || 'Instructor'
+      profileData.full_name || 'Instructor'
     )
 
     if (!result.success) {
