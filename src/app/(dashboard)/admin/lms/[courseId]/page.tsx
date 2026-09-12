@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
+type AdminStatus = 'checking' | 'allowed' | 'denied'
+
 type Course = {
   id: string
   title: string
@@ -48,15 +50,13 @@ type LessonForm = {
   module_id: string
 }
 
-type AdminStatus = 'checking' | 'allowed' | 'denied'
-
-const moduleInitial: ModuleForm = {
+const initialModuleForm: ModuleForm = {
   title: '',
   description: '',
   order_number: '1',
 }
 
-const lessonInitial: LessonForm = {
+const initialLessonForm: LessonForm = {
   title: '',
   content: '',
   video_url: '',
@@ -79,13 +79,20 @@ export default function AdminCourseContentPage() {
   const [course, setCourse] = useState<Course | null>(null)
   const [modules, setModules] = useState<Module[]>([])
   const [lessons, setLessons] = useState<Lesson[]>([])
+
   const [loading, setLoading] = useState(true)
   const [savingModule, setSavingModule] = useState(false)
   const [savingLesson, setSavingLesson] = useState(false)
-  const [moduleForm, setModuleForm] = useState<ModuleForm>(moduleInitial)
-  const [lessonForm, setLessonForm] = useState<LessonForm>(lessonInitial)
+
   const [editingModuleId, setEditingModuleId] = useState<string | null>(null)
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null)
+
+  const [moduleForm, setModuleForm] =
+    useState<ModuleForm>(initialModuleForm)
+
+  const [lessonForm, setLessonForm] =
+    useState<LessonForm>(initialLessonForm)
+
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -108,7 +115,13 @@ export default function AdminCourseContentPage() {
       error: { message: string } | null
     }
 
-    if (profileError || profileData?.role !== 'admin') {
+    if (profileError) {
+      console.error('Admin profile error:', profileError.message)
+      setStatus('denied')
+      return false
+    }
+
+    if (profileData?.role !== 'admin') {
       setStatus('denied')
       return false
     }
@@ -123,11 +136,14 @@ export default function AdminCourseContentPage() {
     setLoading(true)
     setError(null)
 
-    const { data: courseData, error: courseError } = await supabase
+    const { data: courseData, error: courseError } = (await supabase
       .from('courses')
       .select('id, title, slug')
       .eq('id', courseId)
-      .maybeSingle()
+      .maybeSingle()) as {
+      data: Course | null
+      error: { message: string } | null
+    }
 
     if (courseError || !courseData) {
       setError(courseError?.message || 'Course not found.')
@@ -135,28 +151,39 @@ export default function AdminCourseContentPage() {
       return
     }
 
-    const { data: modulesData, error: modulesError } = await supabase
+    const { data: modulesData, error: modulesError } = (await supabase
       .from('modules')
       .select('*')
       .eq('course_id', courseId)
-      .order('order_number', { ascending: true })
-
-    const { data: lessonsData, error: lessonsError } = await supabase
-      .from('lessons')
-      .select('*')
-      .eq('course_id', courseId)
-      .order('order_number', { ascending: true })
+      .order('order_number', { ascending: true })) as {
+      data: Module[] | null
+      error: { message: string } | null
+    }
 
     if (modulesError) {
       setError(modulesError.message)
-    } else if (lessonsError) {
-      setError(lessonsError.message)
-    } else {
-      setCourse(courseData as Course)
-      setModules((modulesData || []) as Module[])
-      setLessons((lessonsData || []) as Lesson[])
+      setLoading(false)
+      return
     }
 
+    const { data: lessonsData, error: lessonsError } = (await supabase
+      .from('lessons')
+      .select('*')
+      .eq('course_id', courseId)
+      .order('order_number', { ascending: true })) as {
+      data: Lesson[] | null
+      error: { message: string } | null
+    }
+
+    if (lessonsError) {
+      setError(lessonsError.message)
+      setLoading(false)
+      return
+    }
+
+    setCourse(courseData)
+    setModules(modulesData || [])
+    setLessons(lessonsData || [])
     setLoading(false)
   }, [courseId, supabase])
 
@@ -180,7 +207,9 @@ export default function AdminCourseContentPage() {
     }
   }, [checkAdmin, fetchContent])
 
-  const saveModule = async (event: React.FormEvent<HTMLFormElement>) => {
+  const saveModule = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ) => {
     event.preventDefault()
 
     if (!moduleForm.title.trim()) {
@@ -202,8 +231,9 @@ export default function AdminCourseContentPage() {
 
     try {
       if (editingModuleId) {
-        const { data, error: updateError } = await supabase
-          .from('modules')
+        const { data, error: updateError } = await (
+          supabase.from('modules') as any
+        )
           .update(payload)
           .eq('id', editingModuleId)
           .select('*')
@@ -221,8 +251,9 @@ export default function AdminCourseContentPage() {
 
         setMessage('Module updated successfully.')
       } else {
-        const { data, error: insertError } = await supabase
-          .from('modules')
+        const { data, error: insertError } = await (
+          supabase.from('modules') as any
+        )
           .insert(payload)
           .select('*')
           .single()
@@ -238,7 +269,7 @@ export default function AdminCourseContentPage() {
         setMessage('Module created successfully.')
       }
 
-      setModuleForm(moduleInitial)
+      setModuleForm(initialModuleForm)
       setEditingModuleId(null)
     } catch (saveError: any) {
       console.error('Module save error:', saveError)
@@ -248,7 +279,9 @@ export default function AdminCourseContentPage() {
     }
   }
 
-  const saveLesson = async (event: React.FormEvent<HTMLFormElement>) => {
+  const saveLesson = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ) => {
     event.preventDefault()
 
     if (!lessonForm.title.trim()) {
@@ -277,8 +310,9 @@ export default function AdminCourseContentPage() {
 
     try {
       if (editingLessonId) {
-        const { data, error: updateError } = await supabase
-          .from('lessons')
+        const { data, error: updateError } = await (
+          supabase.from('lessons') as any
+        )
           .update(payload)
           .eq('id', editingLessonId)
           .select('*')
@@ -291,13 +325,17 @@ export default function AdminCourseContentPage() {
             .map((item) =>
               item.id === editingLessonId ? (data as Lesson) : item,
             )
-            .sort((a, b) => (a.order_number || 0) - (b.order_number || 0)),
+            .sort(
+              (a, b) =>
+                (a.order_number || 0) - (b.order_number || 0),
+            ),
         )
 
         setMessage('Lesson updated successfully.')
       } else {
-        const { data, error: insertError } = await supabase
-          .from('lessons')
+        const { data, error: insertError } = await (
+          supabase.from('lessons') as any
+        )
           .insert(payload)
           .select('*')
           .single()
@@ -306,14 +344,15 @@ export default function AdminCourseContentPage() {
 
         setLessons((current) =>
           [...current, data as Lesson].sort(
-            (a, b) => (a.order_number || 0) - (b.order_number || 0),
+            (a, b) =>
+              (a.order_number || 0) - (b.order_number || 0),
           ),
         )
 
         setMessage('Lesson created successfully.')
       }
 
-      setLessonForm(lessonInitial)
+      setLessonForm(initialLessonForm)
       setEditingLessonId(null)
     } catch (saveError: any) {
       console.error('Lesson save error:', saveError)
@@ -355,8 +394,12 @@ export default function AdminCourseContentPage() {
 
     if (!confirmed) return
 
-    const { error: deleteError } = await supabase
-      .from('modules')
+    setMessage(null)
+    setError(null)
+
+    const { error: deleteError } = await (
+      supabase.from('modules') as any
+    )
       .delete()
       .eq('id', module.id)
 
@@ -365,10 +408,14 @@ export default function AdminCourseContentPage() {
       return
     }
 
-    setModules((current) => current.filter((item) => item.id !== module.id))
+    setModules((current) =>
+      current.filter((item) => item.id !== module.id),
+    )
+
     setLessons((current) =>
       current.filter((item) => item.module_id !== module.id),
     )
+
     setMessage('Module deleted successfully.')
   }
 
@@ -377,8 +424,12 @@ export default function AdminCourseContentPage() {
 
     if (!confirmed) return
 
-    const { error: deleteError } = await supabase
-      .from('lessons')
+    setMessage(null)
+    setError(null)
+
+    const { error: deleteError } = await (
+      supabase.from('lessons') as any
+    )
       .delete()
       .eq('id', lesson.id)
 
@@ -390,6 +441,7 @@ export default function AdminCourseContentPage() {
     setLessons((current) =>
       current.filter((item) => item.id !== lesson.id),
     )
+
     setMessage('Lesson deleted successfully.')
   }
 
@@ -402,10 +454,16 @@ export default function AdminCourseContentPage() {
       <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center px-4">
         <div className="text-center">
           <p className="text-5xl mb-5">🔒</p>
+
           <h1 className="text-2xl font-bold">Access denied</h1>
+
+          <p className="mt-2 text-slate-500">
+            You do not have permission to manage this course.
+          </p>
+
           <Link
             href="/admin"
-            className="inline-flex mt-6 px-5 py-3 rounded-xl bg-brand-primary text-white text-sm font-semibold"
+            className="inline-flex mt-6 px-5 py-3 rounded-xl bg-brand-primary text-white text-sm font-semibold hover:opacity-90 transition"
           >
             Back to admin
           </Link>
@@ -414,8 +472,29 @@ export default function AdminCourseContentPage() {
     )
   }
 
-  if (loading || !course) {
+  if (loading) {
     return <LoadingScreen text="Loading course content..." />
+  }
+
+  if (!course) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center px-4">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold">Course not found</h1>
+
+          <p className="mt-2 text-slate-500">
+            This course could not be loaded.
+          </p>
+
+          <Link
+            href="/admin/lms"
+            className="inline-flex mt-6 px-5 py-3 rounded-xl bg-brand-primary text-white text-sm font-semibold"
+          >
+            Back to LMS
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -429,6 +508,7 @@ export default function AdminCourseContentPage() {
             >
               ← LMS Management
             </Link>
+
             <h1 className="mt-1 text-xl sm:text-2xl font-black">
               {course.title}
             </h1>
@@ -511,7 +591,7 @@ export default function AdminCourseContentPage() {
                 <button
                   type="submit"
                   disabled={savingModule}
-                  className="px-5 py-3 rounded-xl bg-brand-primary text-white text-sm font-semibold disabled:opacity-60"
+                  className="px-5 py-3 rounded-xl bg-brand-primary text-white text-sm font-semibold disabled:opacity-60 transition"
                 >
                   {savingModule
                     ? 'Saving...'
@@ -525,9 +605,9 @@ export default function AdminCourseContentPage() {
                     type="button"
                     onClick={() => {
                       setEditingModuleId(null)
-                      setModuleForm(moduleInitial)
+                      setModuleForm(initialModuleForm)
                     }}
-                    className="px-5 py-3 rounded-xl border border-slate-800 text-sm text-slate-400"
+                    className="px-5 py-3 rounded-xl border border-slate-800 text-sm text-slate-400 hover:bg-slate-800 hover:text-white transition"
                   >
                     Cancel
                   </button>
@@ -536,50 +616,63 @@ export default function AdminCourseContentPage() {
             </form>
 
             <div className="mt-8 space-y-3">
-              {modules.map((module) => (
-                <div
-                  key={module.id}
-                  className="rounded-xl border border-slate-800 bg-slate-950 p-4"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-xs text-brand-primary">
-                        Module {module.order_number}
-                      </p>
-                      <h3 className="mt-1 font-bold">{module.title}</h3>
-                      {module.description && (
-                        <p className="mt-1 text-sm text-slate-500">
-                          {module.description}
-                        </p>
-                      )}
-                    </div>
+              {modules.length === 0 ? (
+                <p className="rounded-xl border border-dashed border-slate-800 p-5 text-sm text-slate-500">
+                  No modules yet.
+                </p>
+              ) : (
+                modules.map((module) => {
+                  const moduleLessonCount = lessons.filter(
+                    (lesson) => lesson.module_id === module.id,
+                  ).length
 
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => editModule(module)}
-                        className="text-xs text-slate-400 hover:text-white"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => deleteModule(module)}
-                        className="text-xs text-red-400 hover:text-red-300"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
+                  return (
+                    <div
+                      key={module.id}
+                      className="rounded-xl border border-slate-800 bg-slate-950 p-4"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-xs text-brand-primary">
+                            Module {module.order_number}
+                          </p>
 
-                  <p className="mt-3 text-xs text-slate-600">
-                    {
-                      lessons.filter(
-                        (lesson) => lesson.module_id === module.id,
-                      ).length
-                    }{' '}
-                    lesson(s)
-                  </p>
-                </div>
-              ))}
+                          <h3 className="mt-1 font-bold">
+                            {module.title}
+                          </h3>
+
+                          {module.description && (
+                            <p className="mt-1 text-sm text-slate-500">
+                              {module.description}
+                            </p>
+                          )}
+
+                          <p className="mt-3 text-xs text-slate-600">
+                            {moduleLessonCount} lesson
+                            {moduleLessonCount === 1 ? '' : 's'}
+                          </p>
+                        </div>
+
+                        <div className="flex gap-3">
+                          <button
+                            onClick={() => editModule(module)}
+                            className="text-xs text-slate-400 hover:text-white transition"
+                          >
+                            Edit
+                          </button>
+
+                          <button
+                            onClick={() => deleteModule(module)}
+                            className="text-xs text-red-400 hover:text-red-300 transition"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })
+              )}
             </div>
           </section>
 
@@ -605,6 +698,7 @@ export default function AdminCourseContentPage() {
                 required
               >
                 <option value="">Select module</option>
+
                 {modules.map((module) => (
                   <option key={module.id} value={module.id}>
                     Module {module.order_number}: {module.title}
@@ -684,7 +778,7 @@ export default function AdminCourseContentPage() {
                 <button
                   type="submit"
                   disabled={savingLesson || modules.length === 0}
-                  className="px-5 py-3 rounded-xl bg-brand-primary text-white text-sm font-semibold disabled:opacity-60"
+                  className="px-5 py-3 rounded-xl bg-brand-primary text-white text-sm font-semibold disabled:opacity-60 transition"
                 >
                   {savingLesson
                     ? 'Saving...'
@@ -698,9 +792,9 @@ export default function AdminCourseContentPage() {
                     type="button"
                     onClick={() => {
                       setEditingLessonId(null)
-                      setLessonForm(lessonInitial)
+                      setLessonForm(initialLessonForm)
                     }}
-                    className="px-5 py-3 rounded-xl border border-slate-800 text-sm text-slate-400"
+                    className="px-5 py-3 rounded-xl border border-slate-800 text-sm text-slate-400 hover:bg-slate-800 hover:text-white transition"
                   >
                     Cancel
                   </button>
@@ -708,55 +802,81 @@ export default function AdminCourseContentPage() {
               </div>
             </form>
 
-            <div className="mt-8 space-y-3">
-              {modules.map((module) => {
-                const moduleLessons = lessons
-                  .filter((lesson) => lesson.module_id === module.id)
-                  .sort(
-                    (a, b) =>
-                      (a.order_number || 0) - (b.order_number || 0),
+            <div className="mt-8 space-y-6">
+              {modules.length === 0 ? (
+                <p className="rounded-xl border border-dashed border-slate-800 p-5 text-sm text-slate-500">
+                  Create a module before adding lessons.
+                </p>
+              ) : (
+                modules.map((module) => {
+                  const moduleLessons = lessons
+                    .filter(
+                      (lesson) => lesson.module_id === module.id,
+                    )
+                    .sort(
+                      (a, b) =>
+                        (a.order_number || 0) -
+                        (b.order_number || 0),
+                    )
+
+                  return (
+                    <div key={module.id}>
+                      <h3 className="mb-2 text-sm font-bold text-brand-primary">
+                        Module {module.order_number}: {module.title}
+                      </h3>
+
+                      {moduleLessons.length === 0 ? (
+                        <p className="rounded-xl border border-dashed border-slate-800 p-4 text-xs text-slate-600">
+                          No lessons in this module.
+                        </p>
+                      ) : (
+                        <div className="space-y-2">
+                          {moduleLessons.map((lesson) => (
+                            <div
+                              key={lesson.id}
+                              className="flex items-center justify-between gap-3 rounded-xl border border-slate-800 bg-slate-950 p-4"
+                            >
+                              <div>
+                                <p className="text-xs text-slate-600">
+                                  Lesson {lesson.order_number}
+                                </p>
+
+                                <p className="font-semibold">
+                                  {lesson.title}
+                                </p>
+
+                                <p className="text-xs text-slate-500">
+                                  {lesson.duration || 0} minutes
+                                </p>
+                              </div>
+
+                              <div className="flex gap-3">
+                                <button
+                                  onClick={() =>
+                                    editLesson(lesson)
+                                  }
+                                  className="text-xs text-slate-400 hover:text-white transition"
+                                >
+                                  Edit
+                                </button>
+
+                                <button
+                                  onClick={() =>
+                                    deleteLesson(lesson)
+                                  }
+                                  className="text-xs text-red-400 hover:text-red-300 transition"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   )
-
-                return (
-                  <div key={module.id}>
-                    <h3 className="mb-2 text-sm font-bold text-brand-primary">
-                      Module {module.order_number}: {module.title}
-                    </h3>
-
-                    {moduleLessons.map((lesson) => (
-                      <div
-                        key={lesson.id}
-                        className="mb-2 flex items-center justify-between gap-3 rounded-xl border border-slate-800 bg-slate-950 p-4"
-                      >
-                        <div>
-                          <p className="text-xs text-slate-600">
-                            Lesson {lesson.order_number}
-                          </p>
-                          <p className="font-semibold">{lesson.title}</p>
-                          <p className="text-xs text-slate-500">
-                            {lesson.duration || 0} minutes
-                          </p>
-                        </div>
-
-                        <div className="flex gap-3">
-                          <button
-                            onClick={() => editLesson(lesson)}
-                            className="text-xs text-slate-400 hover:text-white"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => deleteLesson(lesson)}
-                            className="text-xs text-red-400 hover:text-red-300"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )
-              })}
+                })
+              )}
             </div>
           </section>
         </div>
