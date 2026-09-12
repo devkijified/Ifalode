@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useBrand } from '@/hooks/useBrand'
 import { User as SupabaseUser } from '@supabase/supabase-js'
+import { LiveClassesWidget } from '@/components/live-class/LiveClassesWidget'
 
 interface Course {
   id: string
