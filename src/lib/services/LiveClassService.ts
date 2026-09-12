@@ -15,9 +15,6 @@ export class LiveClassService {
     this.supabase = supabaseClient
   }
 
-  // ============================================================
-  // CREATE
-  // ============================================================
   async createLiveClass(
     instructorId: string,
     input: LiveClassCreateInput,
@@ -60,9 +57,6 @@ export class LiveClassService {
     return { success: true, data: data as LiveClass }
   }
 
-  // ============================================================
-  // LIST (role-aware)
-  // ============================================================
   async listLiveClasses(
     userId: string,
     role: 'admin' | 'instructor' | 'student',
@@ -93,9 +87,6 @@ export class LiveClassService {
     return { success: true, data: (data || []) as LiveClass[] }
   }
 
-  // ============================================================
-  // GET ONE
-  // ============================================================
   async getLiveClass(
     liveClassId: string
   ): Promise<{ success: boolean; data?: LiveClass; error?: string }> {
@@ -112,9 +103,6 @@ export class LiveClassService {
     return { success: true, data: data as LiveClass }
   }
 
-  // ============================================================
-  // UPDATE
-  // ============================================================
   async updateLiveClass(
     liveClassId: string,
     instructorId: string,
@@ -130,19 +118,21 @@ export class LiveClassService {
       return { success: false, error: 'Live class not found' }
     }
 
+    const existingData = existing as any
+
     const { data: profile } = await this.supabase
       .from('profiles')
       .select('role')
       .eq('id', instructorId)
       .single()
 
-    const isAdmin = profile?.role === 'admin'
+    const isAdmin = (profile as any)?.role === 'admin'
 
-    if (!isAdmin && existing.instructor_id !== instructorId) {
+    if (!isAdmin && existingData.instructor_id !== instructorId) {
       return { success: false, error: 'Unauthorized' }
     }
 
-    if (['LIVE', 'ENDED', 'COMPLETED'].includes(existing.status)) {
+    if (['LIVE', 'ENDED', 'COMPLETED'].includes(existingData.status)) {
       return { success: false, error: 'Cannot edit a class that has started or ended' }
     }
 
@@ -163,9 +153,6 @@ export class LiveClassService {
     return { success: true, data: data as LiveClass }
   }
 
-  // ============================================================
-  // DELETE
-  // ============================================================
   async deleteLiveClass(
     liveClassId: string,
     instructorId: string
@@ -180,19 +167,21 @@ export class LiveClassService {
       return { success: false, error: 'Live class not found' }
     }
 
+    const existingData = existing as any
+
     const { data: profile } = await this.supabase
       .from('profiles')
       .select('role')
       .eq('id', instructorId)
       .single()
 
-    const isAdmin = profile?.role === 'admin'
+    const isAdmin = (profile as any)?.role === 'admin'
 
-    if (!isAdmin && existing.instructor_id !== instructorId) {
+    if (!isAdmin && existingData.instructor_id !== instructorId) {
       return { success: false, error: 'Unauthorized' }
     }
 
-    if (!['DRAFT', 'SCHEDULED', 'CANCELLED'].includes(existing.status)) {
+    if (!['DRAFT', 'SCHEDULED', 'CANCELLED'].includes(existingData.status)) {
       return { success: false, error: 'Cannot delete a class that has started' }
     }
 
@@ -208,9 +197,6 @@ export class LiveClassService {
     return { success: true }
   }
 
-  // ============================================================
-  // CAN USER JOIN
-  // ============================================================
   async canUserJoin(
     liveClassId: string,
     userId: string
@@ -225,54 +211,53 @@ export class LiveClassService {
       return { allowed: false, reason: 'Class not found' }
     }
 
+    const lc = liveClass as any
+
     const { data: profile } = await this.supabase
       .from('profiles')
       .select('role')
       .eq('id', userId)
       .single()
 
-    const isAdmin = profile?.role === 'admin'
-    const isInstructor = liveClass.instructor_id === userId
+    const isAdmin = (profile as any)?.role === 'admin'
+    const isInstructor = lc.instructor_id === userId
 
     if (isAdmin || isInstructor) {
-      return { allowed: true, liveClass }
+      return { allowed: true, liveClass: lc as LiveClass }
     }
 
-    if (!['SCHEDULED', 'LIVE'].includes(liveClass.status)) {
-      return { allowed: false, reason: `Class is ${liveClass.status}`, liveClass }
+    if (!['SCHEDULED', 'LIVE'].includes(lc.status)) {
+      return { allowed: false, reason: `Class is ${lc.status}`, liveClass: lc }
     }
 
     const { data: enrollment } = await this.supabase
       .from('enrollments')
       .select('id')
       .eq('user_id', userId)
-      .eq('course_id', liveClass.course_id)
+      .eq('course_id', lc.course_id)
       .maybeSingle()
 
     if (!enrollment) {
-      return { allowed: false, reason: 'Not enrolled in this course', liveClass }
+      return { allowed: false, reason: 'Not enrolled in this course', liveClass: lc }
     }
 
-    if (liveClass.price && liveClass.price > 0) {
+    if (lc.price && lc.price > 0) {
       const { data: paidOrder } = await this.supabase
         .from('orders')
         .select('id')
         .eq('user_id', userId)
         .eq('status', 'completed')
-        .eq('course_id', liveClass.course_id)
+        .eq('course_id', lc.course_id)
         .maybeSingle()
 
       if (!paidOrder) {
-        return { allowed: false, reason: 'Payment required', liveClass }
+        return { allowed: false, reason: 'Payment required', liveClass: lc }
       }
     }
 
-    return { allowed: true, liveClass }
+    return { allowed: true, liveClass: lc as LiveClass }
   }
 
-  // ============================================================
-  // JOIN (generate token)
-  // ============================================================
   async joinClass(
     liveClassId: string,
     userId: string,
@@ -333,9 +318,6 @@ export class LiveClassService {
     }
   }
 
-  // ============================================================
-  // LEAVE
-  // ============================================================
   async leaveClass(liveClassId: string, userId: string): Promise<void> {
     const { data: session } = await this.supabase
       .from('live_class_sessions')
@@ -348,8 +330,9 @@ export class LiveClassService {
       .maybeSingle()
 
     if (session) {
+      const s = session as any
       const leftAt = new Date()
-      const joinedAt = new Date(session.joined_at)
+      const joinedAt = new Date(s.joined_at)
       const durationSeconds = Math.round((leftAt.getTime() - joinedAt.getTime()) / 1000)
 
       await this.supabase
@@ -358,13 +341,10 @@ export class LiveClassService {
           left_at: leftAt.toISOString(),
           duration_seconds: durationSeconds,
         })
-        .eq('id', session.id)
+        .eq('id', s.id)
     }
   }
 
-  // ============================================================
-  // UPDATE STATUS
-  // ============================================================
   async updateStatus(
     liveClassId: string,
     instructorId: string,
@@ -380,15 +360,17 @@ export class LiveClassService {
       return { success: false, error: 'Class not found' }
     }
 
+    const lc = liveClass as any
+
     const { data: profile } = await this.supabase
       .from('profiles')
       .select('role')
       .eq('id', instructorId)
       .single()
 
-    const isAdmin = profile?.role === 'admin'
+    const isAdmin = (profile as any)?.role === 'admin'
 
-    if (!isAdmin && liveClass.instructor_id !== instructorId) {
+    if (!isAdmin && lc.instructor_id !== instructorId) {
       return { success: false, error: 'Unauthorized' }
     }
 
@@ -400,7 +382,7 @@ export class LiveClassService {
     if (newStatus === 'LIVE') {
       updates.started_at = new Date().toISOString()
       const liveKit = getLiveKitService()
-      await liveKit.createRoom(liveClass.room_id)
+      await liveKit.createRoom(lc.room_id)
     }
 
     if (newStatus === 'ENDED') {
