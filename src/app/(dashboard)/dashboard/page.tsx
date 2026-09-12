@@ -470,6 +470,16 @@ export default function DashboardPage() {
               <Link href="/courses" className="w-full py-2.5 rounded-lg bg-brand-primary text-white text-sm font-semibold hover:opacity-90 transition">Explore Courses</Link>
             </div>
           </div>
+          {/* Upcoming Live Classes Widget */}
+<div className="mb-8">
+  <div className="flex items-center justify-between mb-4">
+    <h2 className="text-lg font-bold text-white">Upcoming Live Classes</h2>
+    <Link href="/live-classes" className="text-xs font-semibold text-brand-primary hover:underline">
+      View All
+    </Link>
+  </div>
+  <LiveClassesWidget />
+</div>
 
           {/* Your Courses */}
           <div className="flex items-center justify-between mb-4">
