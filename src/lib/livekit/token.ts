@@ -1,5 +1,4 @@
 import { AccessToken } from 'livekit-server-sdk'
-import type { LiveClass } from '@/types/live-class'
 
 export interface TokenOptions {
   roomName: string
@@ -12,10 +11,6 @@ export interface TokenOptions {
   ttlSeconds?: number
 }
 
-/**
- * Generate a short-lived LiveKit access token.
- * SERVER-SIDE ONLY — never expose to client.
- */
 export async function generateLiveKitToken(options: TokenOptions): Promise<string> {
   const apiKey = process.env.LIVEKIT_API_KEY
   const apiSecret = process.env.LIVEKIT_API_SECRET
@@ -32,7 +27,7 @@ export async function generateLiveKitToken(options: TokenOptions): Promise<strin
     allowMic,
     allowCamera,
     allowData,
-    ttlSeconds = 60 * 60 * 3, // 3 hours default
+    ttlSeconds = 60 * 60 * 3,
   } = options
 
   const token = new AccessToken(apiKey, apiSecret, {
@@ -52,24 +47,15 @@ export async function generateLiveKitToken(options: TokenOptions): Promise<strin
     roomCreate: false,
     roomList: false,
     roomRecord: isTeacher,
-    hidden: false,
-    recorder: false,
   })
 
   return await token.toJwt()
 }
 
-/**
- * Generate LiveKit room name from live class ID.
- * Predictable on server, opaque to client.
- */
 export function getRoomName(liveClassId: string): string {
   return `ifalode_live_${liveClassId}`
 }
 
-/**
- * Generate participant identity.
- */
 export function getParticipantIdentity(userId: string, liveClassId: string): string {
   return `user_${userId}_${liveClassId.slice(0, 8)}`
 }
