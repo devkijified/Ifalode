@@ -32,8 +32,7 @@ const NAV_LINKS: [string, string][] = [
 
 // brand_settings.display_name defaults to the literal string "IfaLode" in the
 // database — that's a placeholder, not a real choice, so it should never
-// outrank the priest's actual name. Only trust it once it's been changed to
-// something else.
+// outrank the priest's actual name. Only trust it once it's been changed.
 function resolveSiteName(displayName: string | null | undefined) {
   const trimmed = displayName?.trim()
   if (!trimmed || trimmed.toLowerCase() === 'ifalode') return PRIEST_NAME
@@ -49,6 +48,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
   const [accountOpen, setAccountOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
   const accountRef = useRef<HTMLDivElement>(null)
 
   const siteName = resolveSiteName(brand?.display_name)
@@ -145,6 +145,7 @@ export default function HomePage() {
           from {
             stroke-dashoffset: 720;
           }
+
           to {
             stroke-dashoffset: 0;
           }
@@ -179,6 +180,7 @@ export default function HomePage() {
                 pattern={[1, 0, 1]}
                 className="w-4 h-6 text-brand-secondary"
               />
+
               <span className="font-display text-xl sm:text-2xl tracking-tight text-[#F3ECE0]">
                 {siteName}
               </span>
@@ -220,7 +222,10 @@ export default function HomePage() {
               )}
 
               {!loading && user && (
-                <div ref={accountRef} className="relative hidden sm:block">
+                <div
+                  ref={accountRef}
+                  className="relative hidden sm:block"
+                >
                   <button
                     onClick={() => setAccountOpen(!accountOpen)}
                     className="flex items-center gap-2.5 rounded-full pl-2 pr-3 py-1.5 hover:bg-[#F3ECE0]/5 transition"
@@ -258,30 +263,25 @@ export default function HomePage() {
                         <AccountLink
                           href="/dashboard"
                           label="Dashboard"
-                          icon={
-                            <IconHome className="w-[17px] h-[17px]" />
-                          }
+                          icon={<IconHome className="w-[17px] h-[17px]" />}
                         />
+
                         <AccountLink
                           href="/readings"
                           label="My readings"
-                          icon={
-                            <IconMark className="w-[17px] h-[17px]" />
-                          }
+                          icon={<IconMark className="w-[17px] h-[17px]" />}
                         />
+
                         <AccountLink
                           href="/profile"
                           label="Profile"
-                          icon={
-                            <IconUser className="w-[17px] h-[17px]" />
-                          }
+                          icon={<IconUser className="w-[17px] h-[17px]" />}
                         />
+
                         <AccountLink
                           href="/settings"
                           label="Settings"
-                          icon={
-                            <IconSettings className="w-[17px] h-[17px]" />
-                          }
+                          icon={<IconSettings className="w-[17px] h-[17px]" />}
                         />
 
                         <div className="my-2 border-t border-[#F3ECE0]/10" />
@@ -339,6 +339,7 @@ export default function HomePage() {
                 pattern={[1, 0, 1]}
                 className="w-4 h-6 text-brand-secondary"
               />
+
               <span className="font-display text-lg text-[#F3ECE0]">
                 {siteName}
               </span>
@@ -415,6 +416,7 @@ export default function HomePage() {
                       <p className="text-sm font-semibold text-[#F3ECE0]">
                         {displayName}
                       </p>
+
                       <p className="text-xs text-[#A99A87]">
                         {user.email}
                       </p>
@@ -509,9 +511,20 @@ export default function HomePage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-8 mt-12 pt-7 border-t border-[#F3ECE0]/10">
-                <MiniStat value="Teachings" label="Wisdom & insights" />
-                <MiniStat value="Services" label="Readings & rituals" />
-                <MiniStat value="Resources" label="Prayers & guides" />
+                <MiniStat
+                  value="Teachings"
+                  label="Wisdom & insights"
+                />
+
+                <MiniStat
+                  value="Services"
+                  label="Readings & rituals"
+                />
+
+                <MiniStat
+                  value="Resources"
+                  label="Prayers & guides"
+                />
               </div>
             </div>
 
@@ -576,6 +589,7 @@ export default function HomePage() {
                           pattern={[1, 0, 1, 1]}
                           className="w-9 h-12 text-[#F3ECE0]"
                         />
+
                         <span className="font-display italic text-sm text-[#A99A87]">
                           Ògúndá Méjì
                         </span>
@@ -585,7 +599,10 @@ export default function HomePage() {
                 </svg>
 
                 <div className="absolute -bottom-4 -left-4 rounded-xl border-t-2 border-brand-accent bg-[#1E1712] px-4 py-3 shadow-xl">
-                  <p className="text-[11px] text-[#A99A87]">Serving from</p>
+                  <p className="text-[11px] text-[#A99A87]">
+                    Serving from
+                  </p>
+
                   <p className="text-sm font-semibold text-[#F3ECE0]">
                     {LOCATION}
                   </p>
@@ -620,16 +637,19 @@ export default function HomePage() {
               title="Consultations"
               text="Ifá divination and guidance to help you understand your path and choices."
             />
+
             <OfferRow
               mark={[0, 1]}
               title="Rituals"
               text="Ceremonies and offerings designed to restore balance and open the way."
             />
+
             <OfferRow
               mark={[1, 0]}
               title="Teachings"
               text="Lessons on the Odù, ethics, and living in harmony with your destiny."
             />
+
             <OfferRow
               mark={[0, 0]}
               title="Resources"
@@ -680,33 +700,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      function NavLink({
-  href,
-  active = false,
-  children,
-}: {
-  href: string
-  active?: boolean
-  children: React.ReactNode
-}) {
-  return (
-    <Link
-      href={href}
-      className={`relative text-sm transition ${
-        active
-          ? 'text-[#F3ECE0]'
-          : 'text-[#A99A87] hover:text-[#F3ECE0]'
-      }`}
-    >
-      {children}
-
-      {active && (
-        <span className="absolute -bottom-2 left-0 right-0 mx-auto h-px bg-brand-secondary" />
-      )}
-    </Link>
-  )
-}
-
       {/* =====================================================
           ODÙ MARQUEE
       ===================================================== */}
@@ -721,7 +714,9 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto px-5 sm:px-8">
           <div className="grid lg:grid-cols-[1fr_.75fr] gap-12 items-center rounded-3xl border border-[#F3ECE0]/10 bg-[#1E1712] p-8 sm:p-12 lg:p-16">
             <div>
-              <p className="text-sm text-brand-secondary mb-4">Services</p>
+              <p className="text-sm text-brand-secondary mb-4">
+                Services
+              </p>
 
               <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl leading-tight text-[#F3ECE0]">
                 Readings and rituals for clarity and alignment
@@ -819,11 +814,13 @@ export default function HomePage() {
                   suffix="+"
                   label="Years in practice"
                 />
+
                 <StatCounter
                   target={400}
                   suffix="+"
                   label="Consultations given"
                 />
+
                 <StatCounter
                   target={30}
                   suffix="+"
@@ -843,7 +840,9 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto px-5 sm:px-8">
           {user ? (
             <div className="rounded-3xl border border-[#F3ECE0]/10 bg-[#1E1712] p-8 sm:p-12">
-              <p className="text-sm text-brand-secondary">Welcome back</p>
+              <p className="text-sm text-brand-secondary">
+                Welcome back
+              </p>
 
               <h2 className="mt-3 font-display text-3xl sm:text-4xl text-[#F3ECE0]">
                 Good to see you, {firstName}.
@@ -859,11 +858,13 @@ export default function HomePage() {
                   text="Read recent lessons"
                   href="/teachings"
                 />
+
                 <MemberAction
                   title="My readings"
                   text="View your consultations"
                   href="/readings"
                 />
+
                 <MemberAction
                   title="Services"
                   text="Book a reading or ritual"
@@ -914,6 +915,7 @@ export default function HomePage() {
                   pattern={[1, 0, 1]}
                   className="w-4 h-6 text-brand-secondary"
                 />
+
                 <span className="font-display text-2xl text-[#F3ECE0]">
                   {siteName}
                 </span>
@@ -992,7 +994,8 @@ function OduMark({
       aria-hidden="true"
     >
       {pattern.map((mark, col) => {
-        const x = 4 + col * (32 / Math.max(pattern.length - 1, 1))
+        const x =
+          4 + col * (32 / Math.max(pattern.length - 1, 1))
 
         return mark ? (
           <line
@@ -1014,6 +1017,7 @@ function OduMark({
               stroke="currentColor"
               strokeWidth="2.2"
             />
+
             <line
               x1={x + 1.6}
               y1="4"
@@ -1048,7 +1052,6 @@ function OduMarquee() {
   return (
     <div className="relative py-8 border-y border-[#F3ECE0]/10 overflow-hidden">
       <div className="marquee-track flex w-max">
-        {/* First copy */}
         <div className="flex items-center gap-12 shrink-0 pr-12">
           {names.map((name, i) => (
             <span
@@ -1060,7 +1063,6 @@ function OduMarquee() {
           ))}
         </div>
 
-        {/* Exact duplicate */}
         <div className="flex items-center gap-12 shrink-0 pr-12">
           {names.map((name, i) => (
             <span
@@ -1114,6 +1116,7 @@ function useCountUp(target: number, durationMs = 1400) {
 
   useEffect(() => {
     const el = ref.current
+
     if (!el) return
 
     const observer = new IntersectionObserver(
@@ -1133,12 +1136,18 @@ function useCountUp(target: number, durationMs = 1400) {
           const start = performance.now()
 
           const tick = (now: number) => {
-            const progress = Math.min((now - start) / durationMs, 1)
+            const progress = Math.min(
+              (now - start) / durationMs,
+              1,
+            )
+
             const eased = 1 - Math.pow(1 - progress, 3)
 
             setValue(Math.round(eased * target))
 
-            if (progress < 1) requestAnimationFrame(tick)
+            if (progress < 1) {
+              requestAnimationFrame(tick)
+            }
           }
 
           requestAnimationFrame(tick)
@@ -1173,7 +1182,9 @@ function StatCounter({
         {suffix}
       </p>
 
-      <p className="mt-2 text-sm text-[#A99A87]">{label}</p>
+      <p className="mt-2 text-sm text-[#A99A87]">
+        {label}
+      </p>
     </div>
   )
 }
@@ -1224,7 +1235,9 @@ function FaqItem({
 
       <div
         className="grid transition-all duration-300 ease-out"
-        style={{ gridTemplateRows: open ? '1fr' : '0fr' }}
+        style={{
+          gridTemplateRows: open ? '1fr' : '0fr',
+        }}
       >
         <div className="overflow-hidden">
           <p className="pt-4 text-sm leading-6 text-[#A99A87] max-w-xl">
@@ -1282,10 +1295,293 @@ function FaqSection() {
 }
 
 /* =========================================================
+   SHARED UI HELPERS
+========================================================= */
+
+function NavLink({
+  href,
+  active = false,
+  children,
+}: {
+  href: string
+  active?: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <Link
+      href={href}
+      className={`relative text-sm transition ${
+        active
+          ? 'text-[#F3ECE0]'
+          : 'text-[#A99A87] hover:text-[#F3ECE0]'
+      }`}
+    >
+      {children}
+
+      {active && (
+        <span className="absolute -bottom-2 left-0 right-0 mx-auto h-px bg-brand-secondary" />
+      )}
+    </Link>
+  )
+}
+
+function SectionHeading({
+  title,
+  description,
+  action,
+  href,
+}: {
+  title: string
+  description: string
+  action?: string
+  href?: string
+}) {
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
+      <div>
+        <p className="text-sm text-brand-secondary mb-4">
+          Teachings
+        </p>
+
+        <h2 className="font-display text-3xl sm:text-4xl text-[#F3ECE0]">
+          {title}
+        </h2>
+
+        <p className="mt-3 max-w-xl text-[#A99A87] leading-7">
+          {description}
+        </p>
+      </div>
+
+      {action && href && (
+        <Link
+          href={href}
+          className="shrink-0 text-sm font-semibold text-brand-secondary hover:text-[#F3ECE0] transition"
+        >
+          {action} →
+        </Link>
+      )}
+    </div>
+  )
+}
+
+function TeachingCard({
+  category,
+  title,
+  description,
+  date,
+  href,
+}: {
+  category: string
+  title: string
+  description: string
+  date: string
+  href: string
+}) {
+  return (
+    <Link
+      href={href}
+      className="group rounded-2xl border border-[#F3ECE0]/10 bg-[#14100D] p-6 hover:border-brand-secondary/30 hover:-translate-y-0.5 transition"
+    >
+      <div className="flex items-center justify-between gap-4">
+        <span className="text-xs uppercase tracking-[0.18em] text-brand-secondary">
+          {category}
+        </span>
+
+        <span className="text-xs text-[#A99A87]/60">
+          {date}
+        </span>
+      </div>
+
+      <h3 className="mt-8 font-display text-2xl text-[#F3ECE0] group-hover:text-brand-secondary transition">
+        {title}
+      </h3>
+
+      <p className="mt-3 text-sm leading-6 text-[#A99A87]">
+        {description}
+      </p>
+
+      <span className="inline-block mt-6 text-sm text-[#F3ECE0]/70 group-hover:text-[#F3ECE0] transition">
+        Read lesson →
+      </span>
+    </Link>
+  )
+}
+
+function OfferRow({
+  mark,
+  title,
+  text,
+}: {
+  mark: (0 | 1)[]
+  title: string
+  text: string
+}) {
+  const href =
+    title === 'Teachings'
+      ? '/teachings'
+      : title === 'Resources'
+        ? '/resources'
+        : '/services'
+
+  return (
+    <Link
+      href={href}
+      className="group grid sm:grid-cols-[80px_180px_1fr] gap-5 items-center py-6 border-b border-[#F3ECE0]/10"
+    >
+      <OduMark
+        pattern={mark}
+        className="w-7 h-10 text-brand-secondary"
+      />
+
+      <h3 className="font-display text-2xl text-[#F3ECE0] group-hover:text-brand-secondary transition">
+        {title}
+      </h3>
+
+      <p className="text-sm leading-6 text-[#A99A87]">
+        {text}
+      </p>
+    </Link>
+  )
+}
+
+function SimpleLink({
+  title,
+  href,
+}: {
+  title: string
+  href: string
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center justify-between rounded-xl border border-[#F3ECE0]/10 px-4 py-3 text-sm text-[#F3ECE0] hover:border-brand-secondary/30 hover:bg-[#F3ECE0]/5 transition"
+    >
+      <span>{title}</span>
+      <span className="text-brand-secondary">→</span>
+    </Link>
+  )
+}
+
+function MemberAction({
+  title,
+  text,
+  href,
+}: {
+  title: string
+  text: string
+  href: string
+}) {
+  return (
+    <Link
+      href={href}
+      className="rounded-2xl border border-[#F3ECE0]/10 p-5 hover:border-brand-secondary/30 hover:bg-[#F3ECE0]/5 transition"
+    >
+      <p className="font-semibold text-[#F3ECE0]">
+        {title}
+      </p>
+
+      <p className="mt-1 text-sm text-[#A99A87]">
+        {text}
+      </p>
+    </Link>
+  )
+}
+
+function MiniStat({
+  value,
+  label,
+}: {
+  value: string
+  label: string
+}) {
+  return (
+    <div>
+      <p className="font-display text-xl text-[#F3ECE0]">
+        {value}
+      </p>
+
+      <p className="mt-1 text-xs text-[#A99A87]">
+        {label}
+      </p>
+    </div>
+  )
+}
+
+function AccountLink({
+  href,
+  label,
+  icon,
+}: {
+  href: string
+  label: string
+  icon: React.ReactNode
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[#A99A87] hover:text-[#F3ECE0] hover:bg-[#F3ECE0]/5 transition"
+    >
+      {icon}
+      {label}
+    </Link>
+  )
+}
+
+function MobileAccountLink({
+  href,
+  label,
+  onClick,
+}: {
+  href: string
+  label: string
+  onClick: () => void
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className="px-1 py-3 text-sm text-[#A99A87] border-b border-[#F3ECE0]/10"
+    >
+      {label}
+    </Link>
+  )
+}
+
+function FooterColumn({
+  title,
+  links,
+}: {
+  title: string
+  links: [string, string][]
+}) {
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-[#F3ECE0]">
+        {title}
+      </h3>
+
+      <div className="mt-4 flex flex-col gap-3">
+        {links.map(([label, href]) => (
+          <Link
+            key={href}
+            href={href}
+            className="text-sm text-[#A99A87] hover:text-[#F3ECE0] transition"
+          >
+            {label}
+          </Link>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/* =========================================================
    ICONS
 ========================================================= */
 
-function IconHome(props: React.SVGProps<SVGSVGElement>) {
+function IconHome(
+  props: React.SVGProps<SVGSVGElement>,
+) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -1299,6 +1595,7 @@ function IconHome(props: React.SVGProps<SVGSVGElement>) {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+
       <path
         d="M6 10v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9"
         strokeLinecap="round"
@@ -1308,7 +1605,9 @@ function IconHome(props: React.SVGProps<SVGSVGElement>) {
   )
 }
 
-function IconUser(props: React.SVGProps<SVGSVGElement>) {
+function IconUser(
+  props: React.SVGProps<SVGSVGElement>,
+) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -1318,15 +1617,18 @@ function IconUser(props: React.SVGProps<SVGSVGElement>) {
       {...props}
     >
       <circle cx="12" cy="8" r="3.5" />
+
       <path
-        d="M5 20c.8-3.4 3.1-5 7-5s6.2 1.6 7 5"
+        d="M5 20c.8-3.5 3.1-5.2 7-5.2s6.2 1.7 7 5.2"
         strokeLinecap="round"
       />
     </svg>
   )
 }
 
-function IconSettings(props: React.SVGProps<SVGSVGElement>) {
+function IconSettings(
+  props: React.SVGProps<SVGSVGElement>,
+) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -1336,16 +1638,18 @@ function IconSettings(props: React.SVGProps<SVGSVGElement>) {
       {...props}
     >
       <circle cx="12" cy="12" r="3" />
+
       <path
-        d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V20h-2.6v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H6v-2.6h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V4h2.6v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1H20v2.6h-.1a1.7 1.7 0 0 0-1.5 1.3Z"
+        d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"
         strokeLinecap="round"
-        strokeLinejoin="round"
       />
     </svg>
   )
 }
 
-function IconLogout(props: React.SVGProps<SVGSVGElement>) {
+function IconLogout(
+  props: React.SVGProps<SVGSVGElement>,
+) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -1355,11 +1659,7 @@ function IconLogout(props: React.SVGProps<SVGSVGElement>) {
       {...props}
     >
       <path
-        d="M10 5H6a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h4"
-        strokeLinecap="round"
-      />
-      <path
-        d="M14 8l4 4-4 4M9 12h9"
+        d="M14 5h5v14h-5M10 12h9M14 8l-3 4 3 4M5 5h4"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -1367,7 +1667,9 @@ function IconLogout(props: React.SVGProps<SVGSVGElement>) {
   )
 }
 
-function IconMenu(props: React.SVGProps<SVGSVGElement>) {
+function IconMenu(
+  props: React.SVGProps<SVGSVGElement>,
+) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -1384,7 +1686,9 @@ function IconMenu(props: React.SVGProps<SVGSVGElement>) {
   )
 }
 
-function IconClose(props: React.SVGProps<SVGSVGElement>) {
+function IconClose(
+  props: React.SVGProps<SVGSVGElement>,
+) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -1394,14 +1698,16 @@ function IconClose(props: React.SVGProps<SVGSVGElement>) {
       {...props}
     >
       <path
-        d="M6 6l12 12M18 6L6 18"
+        d="m6 6 12 12M18 6 6 18"
         strokeLinecap="round"
       />
     </svg>
   )
 }
 
-function IconScroll(props: React.SVGProps<SVGSVGElement>) {
+function IconScroll(
+  props: React.SVGProps<SVGSVGElement>,
+) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -1411,18 +1717,17 @@ function IconScroll(props: React.SVGProps<SVGSVGElement>) {
       {...props}
     >
       <path
-        d="M6 5h12v14H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M8 9h8M8 13h6"
+        d="M6 4h12v16H6zM9 8h6M9 12h6M9 16h4"
         strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   )
 }
 
-function IconMark(props: React.SVGProps<SVGSVGElement>) {
+function IconMark(
+  props: React.SVGProps<SVGSVGElement>,
+) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -1432,8 +1737,13 @@ function IconMark(props: React.SVGProps<SVGSVGElement>) {
       {...props}
     >
       <path
-        d="M6 4h12v16l-6-3-6 3V4Z"
-        strokeLinejoin="round"
+        d="M7 4v16M12 4v16M17 4v16"
+        strokeLinecap="round"
+      />
+
+      <path
+        d="M5 4h4M10 20h4M15 4h4"
+        strokeLinecap="round"
       />
     </svg>
   )
