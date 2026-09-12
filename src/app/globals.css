@@ -12,15 +12,16 @@
 
 body {
   font-family: var(--brand-font);
-  background-color: #0f172a; /* slate-950 */
+  background-color: #0f172a;
 }
 
 /* Smooth transitions for color changes */
 * {
-  transition: background-color 0.3s ease, 
-              color 0.3s ease, 
-              border-color 0.3s ease,
-              box-shadow 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 /* Custom scrollbar */
@@ -46,4 +47,33 @@ body {
 ::selection {
   background-color: var(--brand-primary);
   color: white;
+}
+
+/* =====================================================
+   MARQUEE
+===================================================== */
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 28s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+  }
 }
