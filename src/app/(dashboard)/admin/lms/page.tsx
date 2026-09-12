@@ -35,7 +35,7 @@ type CourseForm = {
 
 type AdminStatus = 'checking' | 'allowed' | 'denied'
 
-const emptyForm: CourseForm = {
+const initialForm: CourseForm = {
   title: '',
   description: '',
   instructor: 'Akinsoji Elebuibon',
@@ -49,7 +49,7 @@ const emptyForm: CourseForm = {
 const inputClassName =
   'w-full rounded-xl border border-slate-800 bg-slate-950 px-3.5 py-3 text-sm text-slate-100 placeholder-slate-600 outline-none transition focus:border-brand-primary/50 focus:ring-2 focus:ring-brand-primary/20'
 
-function makeSlug(title: string) {
+function createSlug(title: string) {
   return title
     .toLowerCase()
     .trim()
@@ -67,7 +67,7 @@ export default function AdminLmsPage() {
   const [saving, setSaving] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [editingCourse, setEditingCourse] = useState<Course | null>(null)
-  const [form, setForm] = useState<CourseForm>(emptyForm)
+  const [form, setForm] = useState<CourseForm>(initialForm)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -109,17 +109,20 @@ export default function AdminLmsPage() {
     setLoading(true)
     setError(null)
 
-    const { data, error: coursesError } = await supabase
+    const { data, error: fetchError } = (await supabase
       .from('courses')
       .select('*')
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: false })) as {
+      data: Course[] | null
+      error: { message: string } | null
+    }
 
-    if (coursesError) {
-      console.error('Courses fetch error:', coursesError)
-      setError(coursesError.message)
+    if (fetchError) {
+      console.error('Courses fetch error:', fetchError.message)
+      setError(fetchError.message)
       setCourses([])
     } else {
-      setCourses((data || []) as Course[])
+      setCourses(data || [])
     }
 
     setLoading(false)
@@ -157,13 +160,14 @@ export default function AdminLmsPage() {
 
   const openCreateForm = () => {
     setEditingCourse(null)
-    setForm(emptyForm)
+    setForm(initialForm)
     setMessage(null)
     setError(null)
   }
 
   const openEditForm = (course: Course) => {
     setEditingCourse(course)
+
     setForm({
       title: course.title,
       description: course.description || '',
@@ -186,12 +190,14 @@ export default function AdminLmsPage() {
 
   const cancelEdit = () => {
     setEditingCourse(null)
-    setForm(emptyForm)
+    setForm(initialForm)
     setMessage(null)
     setError(null)
   }
 
-  const saveCourse = async (event: React.FormEvent<HTMLFormElement>) => {
+  const saveCourse = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ) => {
     event.preventDefault()
 
     if (!form.title.trim()) {
@@ -203,9 +209,9 @@ export default function AdminLmsPage() {
     setMessage(null)
     setError(null)
 
-    const baseSlug = makeSlug(form.title)
+    const generatedSlug = createSlug(form.title)
 
-    if (!baseSlug) {
+    if (!generatedSlug) {
       setError('Please provide a valid course title.')
       setSaving(false)
       return
@@ -213,7 +219,7 @@ export default function AdminLmsPage() {
 
     const payload = {
       title: form.title.trim(),
-      slug: editingCourse?.slug || baseSlug,
+      slug: editingCourse?.slug || generatedSlug,
       description: form.description.trim() || null,
       instructor: form.instructor.trim() || null,
       price: Number(form.price) || 0,
@@ -226,8 +232,9 @@ export default function AdminLmsPage() {
 
     try {
       if (editingCourse) {
-        const { data, error: updateError } = await supabase
-          .from('courses')
+        const { data, error: updateError } = await (
+          supabase.from('courses') as any
+        )
           .update(payload)
           .eq('id', editingCourse.id)
           .select('*')
@@ -243,8 +250,9 @@ export default function AdminLmsPage() {
 
         setMessage('Course updated successfully.')
       } else {
-        const { data, error: insertError } = await supabase
-          .from('courses')
+        const { data, error: insertError } = await (
+          supabase.from('courses') as any
+        )
           .insert(payload)
           .select('*')
           .single()
@@ -256,7 +264,7 @@ export default function AdminLmsPage() {
       }
 
       setEditingCourse(null)
-      setForm(emptyForm)
+      setForm(initialForm)
     } catch (saveError: any) {
       console.error('Course save error:', saveError)
       setError(saveError?.message || 'Unable to save course.')
@@ -269,8 +277,9 @@ export default function AdminLmsPage() {
     setMessage(null)
     setError(null)
 
-    const { data, error: updateError } = await supabase
-      .from('courses')
+    const { data, error: updateError } = await (
+      supabase.from('courses') as any
+    )
       .update({
         is_published: !course.is_published,
         updated_at: new Date().toISOString(),
@@ -309,8 +318,9 @@ export default function AdminLmsPage() {
     setMessage(null)
     setError(null)
 
-    const { error: deleteError } = await supabase
-      .from('courses')
+    const { error: deleteError } = await (
+      supabase.from('courses') as any
+    )
       .delete()
       .eq('id', course.id)
 
@@ -321,6 +331,7 @@ export default function AdminLmsPage() {
       setCourses((current) =>
         current.filter((item) => item.id !== course.id),
       )
+
       setMessage('Course deleted successfully.')
 
       if (editingCourse?.id === course.id) {
@@ -340,10 +351,13 @@ export default function AdminLmsPage() {
       <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center px-4">
         <div className="text-center">
           <p className="text-5xl mb-5">🔒</p>
+
           <h1 className="text-2xl font-bold">Access denied</h1>
+
           <p className="mt-2 text-slate-500">
             You do not have permission to manage the LMS.
           </p>
+
           <Link
             href="/admin"
             className="inline-flex mt-6 px-5 py-3 rounded-xl bg-brand-primary text-white text-sm font-semibold hover:opacity-90 transition"
@@ -410,9 +424,11 @@ export default function AdminLmsPage() {
               <p className="text-xs uppercase tracking-[.2em] text-brand-primary font-bold">
                 Course editor
               </p>
+
               <h2 className="mt-2 text-2xl font-bold">
                 {editingCourse ? 'Edit course' : 'Create a course'}
               </h2>
+
               <p className="mt-2 text-sm text-slate-500">
                 Add the course information learners will see before enrolling.
               </p>
@@ -430,7 +446,11 @@ export default function AdminLmsPage() {
           </div>
 
           <form onSubmit={saveCourse} className="grid md:grid-cols-2 gap-5">
-            <FormField label="Course title" required className="md:col-span-2">
+            <FormField
+              label="Course title"
+              required
+              className="md:col-span-2"
+            >
               <input
                 value={form.title}
                 onChange={(event) =>
@@ -495,7 +515,10 @@ export default function AdminLmsPage() {
               </select>
             </FormField>
 
-            <FormField label="Cover image URL" className="md:col-span-2">
+            <FormField
+              label="Cover image URL"
+              className="md:col-span-2"
+            >
               <input
                 value={form.cover_image}
                 onChange={(event) =>
@@ -526,10 +549,12 @@ export default function AdminLmsPage() {
                 }
                 className="h-4 w-4 rounded border-slate-700 bg-slate-950 text-brand-primary focus:ring-brand-primary"
               />
+
               <span>
                 <span className="block text-sm font-semibold text-slate-200">
                   Publish this course
                 </span>
+
                 <span className="block text-xs text-slate-500 mt-1">
                   Published courses are visible to learners.
                 </span>
@@ -568,11 +593,13 @@ export default function AdminLmsPage() {
               <p className="text-xs uppercase tracking-[.2em] text-brand-primary font-bold">
                 Your LMS
               </p>
+
               <h2 className="mt-2 text-2xl font-bold">Courses</h2>
             </div>
 
             <span className="text-sm text-slate-500">
-              {courses.length} course{courses.length === 1 ? '' : 's'}
+              {courses.length} course
+              {courses.length === 1 ? '' : 's'}
             </span>
           </div>
 
@@ -583,7 +610,9 @@ export default function AdminLmsPage() {
           ) : courses.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/50 p-10 text-center">
               <p className="text-4xl mb-4">📚</p>
+
               <h3 className="text-lg font-bold">No courses yet</h3>
+
               <p className="mt-2 text-sm text-slate-500">
                 Create your first Ifá course above.
               </p>
@@ -597,7 +626,9 @@ export default function AdminLmsPage() {
                   deleting={deletingId === course.id}
                   onEdit={() => openEditForm(course)}
                   onDelete={() => deleteCourse(course)}
-                  onTogglePublished={() => togglePublished(course)}
+                  onTogglePublished={() =>
+                    togglePublished(course)
+                  }
                 />
               ))}
             </div>
@@ -623,8 +654,12 @@ function FormField({
     <label className={`block ${className}`}>
       <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-400">
         {label}
-        {required && <span className="ml-1 text-brand-primary">*</span>}
+
+        {required && (
+          <span className="ml-1 text-brand-primary">*</span>
+        )}
       </span>
+
       {children}
     </label>
   )
@@ -680,7 +715,10 @@ function CourseCard({
       <div className="p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-lg font-bold text-white">{course.title}</h3>
+            <h3 className="text-lg font-bold text-white">
+              {course.title}
+            </h3>
+
             <p className="mt-1 text-xs text-slate-500">
               {course.level || 'beginner'} ·{' '}
               {course.price && course.price > 0
