@@ -13,29 +13,34 @@ export type RegistrationStatus =
   | 'attended'
   | 'no_show'
 
-export interface LiveClass {
+export type LiveClass = {
   id: string
-  course_id: string
+  course_id: string | null
   module_id: string | null
   lesson_id: string | null
-  instructor_id: string
+  instructor_id: string | null
   title: string
   description: string | null
   scheduled_at: string
-  duration_minutes: number
-  max_participants: number
-  price: number
+  duration_minutes: number | null
+  max_participants: number | null
+  price: number | null
   status: LiveClassStatus
   room_id: string
-  recording_enabled: boolean
-  allow_mic: boolean
-  allow_camera: boolean
-  allow_chat: boolean
-  allow_questions: boolean
+  recording_enabled: boolean | null
+  allow_mic: boolean | null
+  allow_camera: boolean | null
+  allow_chat: boolean | null
+  allow_questions: boolean | null
   started_at: string | null
   ended_at: string | null
   created_at: string
   updated_at: string
+  instructor: string | null
+  duration: number
+  meeting_url: string | null
+  recording_url: string | null
+  is_published: boolean
 }
 
 export interface LiveClassRegistration {
@@ -78,7 +83,23 @@ export interface LiveClassMessage {
   created_at: string
 }
 
-// Token response from join endpoint
+export interface LiveClassCreateInput {
+  course_id: string | null
+  module_id?: string | null
+  title: string
+  description?: string
+  scheduled_at: string
+  duration_minutes: number
+  max_participants: number
+  price: number
+  recording_enabled: boolean
+  allow_mic: boolean
+  allow_camera: boolean
+  allow_chat: boolean
+  allow_questions: boolean
+  is_published: boolean
+}
+
 export interface JoinTokenResponse {
   token: string
   roomName: string
