@@ -1,51 +1,77 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { BrandEditor } from '@/components/admin/BrandEditor'
 
 type Status = 'loading' | 'denied' | 'allowed'
 
+type Profile = {
+  role: string | null
+}
+
 export default function AdminDashboard() {
   const [status, setStatus] = useState<Status>('loading')
+  const [supabase] = useState(() => createClient())
   const router = useRouter()
-  const supabase = createClient()
 
   useEffect(() => {
     let cancelled = false
 
     const checkAdmin = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser()
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+
         if (!user) {
-          if (!cancelled) router.push('/login')
+          if (!cancelled) {
+            router.replace('/login')
+          }
           return
         }
 
-        const { data: profile, error } = await supabase
+        const { data: profileData, error: profileError } = (await supabase
           .from('profiles')
           .select('role')
           .eq('id', user.id)
-          .single()
+          .maybeSingle()) as {
+          data: Profile | null
+          error: { message: string } | null
+        }
 
-        if (error || !profile) {
-          console.error('Error fetching profile:', error?.message || 'No profile')
-          if (!cancelled) router.push('/')
+        if (profileError || !profileData) {
+          console.error(
+            'Error fetching profile:',
+            profileError?.message || 'No profile found',
+          )
+
+          if (!cancelled) {
+            setStatus('denied')
+          }
+
           return
         }
 
-        const role = (profile as { role?: string }).role
+        if (profileData.role !== 'admin') {
+          if (!cancelled) {
+            setStatus('denied')
+          }
 
-        if (role !== 'admin') {
-          if (!cancelled) setStatus('denied')
           return
         }
 
-        if (!cancelled) setStatus('allowed')
-      } catch (err) {
-        console.error('Unexpected error in admin check:', err)
-        if (!cancelled) router.push('/')
+        if (!cancelled) {
+          setStatus('allowed')
+        }
+      } catch (error) {
+        console.error('Unexpected error in admin check:', error)
+
+        if (!cancelled) {
+          setStatus('denied')
+        }
       }
     }
 
@@ -58,123 +84,185 @@ export default function AdminDashboard() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-slate-400">Loading...</div>
+      <div className="flex min-h-screen items-center justify-center bg-slate-950">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-brand-primary border-t-transparent" />
+          <p className="text-slate-400">Checking admin access...</p>
+        </div>
       </div>
     )
   }
 
   if (status === 'denied') {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-slate-400">Access denied</div>
+      <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4 text-slate-100">
+        <div className="text-center">
+          <p className="mb-5 text-5xl">🔒</p>
+
+          <h1 className="text-2xl font-bold">Access denied</h1>
+
+          <p className="mt-2 text-slate-500">
+            You do not have administrator permission.
+          </p>
+
+          <Link
+            href="/"
+            className="mt-6 inline-flex rounded-xl bg-brand-primary px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90"
+          >
+            Return home
+          </Link>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 py-10">
+    <main className="min-h-screen bg-slate-950 py-10 text-slate-100">
       <div className="container mx-auto px-4">
+        <div className="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[.2em] text-brand-primary">
+              Ifalode administration
+            </p>
 
-        <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
-            Admin Dashboard
-          </h1>
-          <p className="text-slate-500 mt-2">
-            Manage your Ifalode platform from here.
-          </p>
+            <h1 className="mt-2 bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-3xl font-black tracking-tight text-transparent sm:text-4xl">
+              Admin Dashboard
+            </h1>
+
+            <p className="mt-2 text-slate-500">
+              Manage your Ifalode platform from here.
+            </p>
+          </div>
+
+          <Link
+            href="/"
+            className="inline-flex w-fit rounded-xl border border-slate-800 px-4 py-2.5 text-sm text-slate-400 transition hover:bg-slate-900 hover:text-white"
+          >
+            View website
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 gap-8">
-
-          {/* Brand Editor */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+          {/* Brand Settings */}
+          <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
             <BrandEditor />
-          </div>
+          </section>
 
           {/* Management Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {/* Store */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-              <h3 className="text-lg font-bold mb-3">Store Management</h3>
-              <div className="space-y-2">
-                <a
-                  href="/admin/store"
-                  className="block text-sm text-slate-400 hover:text-brand-primary transition"
-                >
-                  Manage Products
-                </a>
-                <a
-                  href="/admin/store/new"
-                  className="block text-sm text-slate-400 hover:text-brand-primary transition"
-                >
-                  Add New Product
-                </a>
-              </div>
-            </div>
+            <AdminCard
+              title="Store Management"
+              links={[
+                {
+                  href: '/admin/store',
+                  label: 'Manage Products',
+                },
+                {
+                  href: '/admin/store/new',
+                  label: 'Add New Product',
+                },
+              ]}
+            />
 
             {/* LMS */}
             <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-              <h3 className="text-lg font-bold mb-3">LMS Management</h3>
+              <h3 className="mb-3 text-lg font-bold">
+                LMS Management
+              </h3>
+
               <div className="space-y-2">
-                <a
+                <Link
                   href="/admin/lms"
-                  className="block text-sm text-slate-400 hover:text-brand-primary transition"
+                  className="block text-sm text-slate-400 transition hover:text-brand-primary"
                 >
                   Manage Courses
-                </a>
-                <a
+                </Link>
+
+                <Link
                   href="/admin/lms/new"
-                  className="block text-sm text-slate-400 hover:text-brand-primary transition"
+                  className="block text-sm text-slate-400 transition hover:text-brand-primary"
                 >
                   Create New Course
-                </a>
+                </Link>
+
+                <Link
+                  href="/admin/lms/live-classes"
+                  className="block text-sm font-semibold text-brand-primary transition hover:text-brand-secondary"
+                >
+                  🎥 Live Classes
+                </Link>
+
+                <Link
+                  href="/admin/lms/live-classes/new"
+                  className="block text-sm text-slate-400 transition hover:text-brand-primary"
+                >
+                  + Schedule Live Class
+                </Link>
               </div>
             </div>
 
             {/* CMS */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-              <h3 className="text-lg font-bold mb-3">Content Management</h3>
-              <div className="space-y-2">
-                <a
-                  href="/admin/cms"
-                  className="block text-sm text-slate-400 hover:text-brand-primary transition"
-                >
-                  Edit Content
-                </a>
-                <a
-                  href="/admin/cms/pages"
-                  className="block text-sm text-slate-400 hover:text-brand-primary transition"
-                >
-                  Manage Pages
-                </a>
-              </div>
-            </div>
+            <AdminCard
+              title="Content Management"
+              links={[
+                {
+                  href: '/admin/cms',
+                  label: 'Edit Content',
+                },
+                {
+                  href: '/admin/cms/pages',
+                  label: 'Manage Pages',
+                },
+              ]}
+            />
 
             {/* Users */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-              <h3 className="text-lg font-bold mb-3">Users & Enrollments</h3>
-              <div className="space-y-2">
-                <a
-                  href="/admin/users"
-                  className="block text-sm text-slate-400 hover:text-brand-primary transition"
-                >
-                  Manage Users
-                </a>
-                <a
-                  href="/admin/enrollments"
-                  className="block text-sm text-slate-400 hover:text-brand-primary transition"
-                >
-                  View Enrollments
-                </a>
-              </div>
-            </div>
-
+            <AdminCard
+              title="Users & Enrollments"
+              links={[
+                {
+                  href: '/admin/users',
+                  label: 'Manage Users',
+                },
+                {
+                  href: '/admin/enrollments',
+                  label: 'View Enrollments',
+                },
+              ]}
+            />
           </div>
         </div>
-
       </div>
-    </div>
+    </main>
+  )
+}
+
+function AdminCard({
+  title,
+  links,
+}: {
+  title: string
+  links: {
+    href: string
+    label: string
+  }[]
+}) {
+  return (
+    <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+      <h3 className="mb-3 text-lg font-bold">{title}</h3>
+
+      <div className="space-y-2">
+        {links.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className="block text-sm text-slate-400 transition hover:text-brand-primary"
+          >
+            {link.label}
+          </Link>
+        ))}
+      </div>
+    </section>
   )
 }
