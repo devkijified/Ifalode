@@ -680,6 +680,33 @@ export default function HomePage() {
         </div>
       </section>
 
+      function NavLink({
+  href,
+  active = false,
+  children,
+}: {
+  href: string
+  active?: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <Link
+      href={href}
+      className={`relative text-sm transition ${
+        active
+          ? 'text-[#F3ECE0]'
+          : 'text-[#A99A87] hover:text-[#F3ECE0]'
+      }`}
+    >
+      {children}
+
+      {active && (
+        <span className="absolute -bottom-2 left-0 right-0 mx-auto h-px bg-brand-secondary" />
+      )}
+    </Link>
+  )
+}
+
       {/* =====================================================
           ODÙ MARQUEE
       ===================================================== */}
