@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { createLiveClassService } from '@/lib/services/LiveClassService'
 
 export async function POST(
   request: NextRequest,
@@ -14,16 +13,17 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const service = createLiveClassService(supabase)
-
-    // Reuse registration logic — insert into live_class_registrations
-    const { error } = await supabase
+    // Cast supabase as any to bypass TS never inference
+    const { error } = await (supabase as any)
       .from('live_class_registrations')
-      .upsert({
-        live_class_id: params.id,
-        user_id: user.id,
-        status: 'registered',
-      }, { onConflict: 'live_class_id,user_id' })
+      .upsert(
+        {
+          live_class_id: params.id,
+          user_id: user.id,
+          status: 'registered',
+        },
+        { onConflict: 'live_class_id,user_id' }
+      )
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 })
