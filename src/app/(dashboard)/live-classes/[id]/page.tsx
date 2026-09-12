@@ -78,7 +78,7 @@ export default function StudentLiveClassPage() {
       <LiveClassRoom
         liveClassId={liveClass.id}
         liveClassTitle={liveClass.title}
-        isTeacher={false}
+        isTeacher
       />
     )
   }
