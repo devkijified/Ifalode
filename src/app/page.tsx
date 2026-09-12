@@ -100,7 +100,6 @@ export default function HomePage() {
     }
   }, [])
 
-  // Close the mobile menu on route-ish navigation clicks and lock scroll while open
   useEffect(() => {
     if (mobileMenuOpen) {
       document.body.style.overflow = 'hidden'
@@ -145,10 +144,6 @@ export default function HomePage() {
         .rim-draw {
           stroke-dasharray: 720;
           animation: rim-draw 1.6s ease-out forwards;
-        }
-        @keyframes marquee {
-          from { transform: translateX(0); }
-          to { transform: translateX(-50%); }
         }
         @media (prefers-reduced-motion: reduce) {
           html { scroll-behavior: auto; }
@@ -260,7 +255,6 @@ export default function HomePage() {
                 </div>
               )}
 
-              {/* Mobile menu toggle */}
               <button
                 onClick={() => setMobileMenuOpen(true)}
                 className="lg:hidden flex items-center justify-center w-9 h-9 rounded-full text-[#F3ECE0] hover:bg-[#F3ECE0]/5 transition"
@@ -275,7 +269,7 @@ export default function HomePage() {
       </header>
 
       {/* =====================================================
-          MOBILE MENU (full-screen overlay)
+          MOBILE MENU
       ===================================================== */}
 
       <div
@@ -772,7 +766,7 @@ function OduMark({
 }
 
 /* =========================================================
-   ODÙ MARQUEE
+   ODÙ MARQUEE — driven by requestAnimationFrame, not CSS
 ========================================================= */
 
 function OduMarquee() {
@@ -782,11 +776,49 @@ function OduMarquee() {
   ]
   const track = [...names, ...names]
 
+  const trackRef = useRef<HTMLDivElement>(null)
+  const positionRef = useRef(0)
+
+  useEffect(() => {
+    const el = trackRef.current
+    if (!el) return
+
+    const prefersReduced = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches
+
+    if (prefersReduced) return
+
+    let frameId: number
+    const speed = 0.6
+
+    const step = () => {
+      const halfWidth = el.scrollWidth / 2
+
+      if (halfWidth > 0) {
+        positionRef.current -= speed
+        if (Math.abs(positionRef.current) >= halfWidth) {
+          positionRef.current = 0
+        }
+        el.style.transform = `translateX(${positionRef.current}px)`
+      }
+
+      frameId = requestAnimationFrame(step)
+    }
+
+    frameId = requestAnimationFrame(step)
+
+    return () => cancelAnimationFrame(frameId)
+  }, [])
+
   return (
     <div className="relative py-8 border-y border-[#F3ECE0]/10 overflow-hidden">
-      <div className="flex gap-12 whitespace-nowrap animate-[marquee_32s_linear_infinite] motion-reduce:animate-none">
+      <div
+        ref={trackRef}
+        className="flex items-center gap-12 whitespace-nowrap w-max"
+      >
         {track.map((name, i) => (
-          <span key={i} className="font-display italic text-2xl text-[#A99A87]/70">
+          <span key={i} className="font-display italic text-2xl text-[#A99A87]/70 shrink-0">
             {name}
           </span>
         ))}
@@ -973,273 +1005,3 @@ function IconHome(props: React.SVGProps<SVGSVGElement>) {
 function IconUser(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" {...props}>
-      <circle cx="12" cy="8" r="3.4" />
-      <path d="M5 20c1.2-3.6 4-5.4 7-5.4s5.8 1.8 7 5.4" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-function IconSettings(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" {...props}>
-      <circle cx="12" cy="12" r="3" />
-      <path d="M12 4v2M12 18v2M4 12h2M18 12h2M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M6.3 17.7l1.4-1.4M16.3 7.7l1.4-1.4" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-function IconLogout(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" {...props}>
-      <path d="M9 4H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h3" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M13 16l4-4-4-4M8 12h9" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-function IconScroll(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" {...props}>
-      <path d="M6 4h9a3 3 0 0 1 3 3v10a3 3 0 0 0 3 3H8a3 3 0 0 1-3-3V6a2 2 0 0 1 1-2Z" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M9 9h6M9 13h6" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-function IconMark(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" {...props}>
-      <path d="M8 4v16M12 4v16M16 6v12" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-function IconMenu(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" {...props}>
-      <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-function IconClose(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" {...props}>
-      <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-/* =========================================================
-   COMPONENTS
-========================================================= */
-
-function NavLink({
-  href,
-  children,
-  active = false,
-}: {
-  href: string
-  children: React.ReactNode
-  active?: boolean
-}) {
-  return (
-    <Link
-      href={href}
-      className={`relative text-sm transition pb-1 ${
-        active
-          ? 'text-[#F3ECE0] after:absolute after:left-0 after:right-0 after:-bottom-[17px] after:h-[2px] after:bg-brand-secondary'
-          : 'text-[#A99A87] hover:text-[#F3ECE0]'
-      }`}
-    >
-      {children}
-    </Link>
-  )
-}
-
-function AccountLink({
-  href,
-  icon,
-  label,
-}: {
-  href: string
-  icon: React.ReactNode
-  label: string
-}) {
-  return (
-    <Link
-      href={href}
-      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[#A99A87] hover:text-[#F3ECE0] hover:bg-[#F3ECE0]/5 transition"
-    >
-      <span className="w-5 flex items-center justify-center">{icon}</span>
-      {label}
-    </Link>
-  )
-}
-
-function MobileAccountLink({
-  href,
-  label,
-  onClick,
-}: {
-  href: string
-  label: string
-  onClick: () => void
-}) {
-  return (
-    <Link
-      href={href}
-      onClick={onClick}
-      className="block px-1 py-3 border-b border-[#F3ECE0]/10 text-sm text-[#F3ECE0]"
-    >
-      {label}
-    </Link>
-  )
-}
-
-function MiniStat({ value, label }: { value: string; label: string }) {
-  return (
-    <div>
-      <p className="text-sm font-semibold text-[#F3ECE0]">{value}</p>
-      <p className="text-[11px] text-[#A99A87]/70 mt-1">{label}</p>
-    </div>
-  )
-}
-
-function OfferRow({
-  mark,
-  title,
-  text,
-}: {
-  mark: (0 | 1)[]
-  title: string
-  text: string
-}) {
-  return (
-    <div className="group grid sm:grid-cols-[auto_1fr_1.4fr] items-center gap-5 sm:gap-8 py-7 border-b border-[#F3ECE0]/10">
-      <OduMark pattern={mark} className="w-6 h-8 text-brand-secondary shrink-0" />
-      <h3 className="font-display text-2xl text-[#F3ECE0] group-hover:text-brand-secondary transition-colors">
-        {title}
-      </h3>
-      <p className="text-sm leading-6 text-[#A99A87] max-w-md">{text}</p>
-    </div>
-  )
-}
-
-function SectionHeading({
-  title,
-  description,
-  action,
-  href,
-}: {
-  title: string
-  description: string
-  action: string
-  href: string
-}) {
-  return (
-    <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-      <div>
-        <h2 className="font-display text-3xl sm:text-4xl text-[#F3ECE0]">{title}</h2>
-        <p className="mt-3 max-w-xl text-sm leading-6 text-[#A99A87]">{description}</p>
-      </div>
-
-      <Link
-        href={href}
-        className="shrink-0 text-sm font-semibold text-brand-secondary hover:underline underline-offset-4"
-      >
-        {action}
-      </Link>
-    </div>
-  )
-}
-
-function TeachingCard({
-  category,
-  title,
-  description,
-  date,
-  href,
-}: {
-  category: string
-  title: string
-  description: string
-  date: string
-  href: string
-}) {
-  return (
-    <Link
-      href={href}
-      className="group rounded-2xl border border-[#F3ECE0]/10 bg-[#14100D] p-6 hover:border-brand-secondary/30 transition"
-    >
-      <span className="text-xs text-brand-secondary">{category}</span>
-
-      <h3 className="mt-3 font-display text-xl text-[#F3ECE0] group-hover:text-brand-secondary transition-colors">
-        {title}
-      </h3>
-
-      <p className="mt-2 text-sm leading-6 text-[#A99A87]">{description}</p>
-
-      <div className="flex items-center justify-between mt-6 pt-4 border-t border-[#F3ECE0]/10">
-        <span className="text-[11px] text-[#A99A87]/70">{date}</span>
-      </div>
-    </Link>
-  )
-}
-
-function SimpleLink({ title, href }: { title: string; href: string }) {
-  return (
-    <Link
-      href={href}
-      className="flex items-center gap-3 rounded-xl border border-[#F3ECE0]/10 bg-[#14100D] p-4 hover:border-brand-secondary/30 transition"
-    >
-      <OduMark pattern={[1, 0]} className="w-3.5 h-5 text-brand-secondary" />
-      <span className="text-sm font-semibold text-[#F3ECE0]">{title}</span>
-    </Link>
-  )
-}
-
-function MemberAction({
-  title,
-  text,
-  href,
-}: {
-  title: string
-  text: string
-  href: string
-}) {
-  return (
-    <Link
-      href={href}
-      className="rounded-xl border border-[#F3ECE0]/10 bg-[#14100D] p-4 hover:border-brand-secondary/30 transition"
-    >
-      <p className="text-sm font-semibold text-[#F3ECE0]">{title}</p>
-      <p className="mt-1 text-xs text-[#A99A87]">{text}</p>
-    </Link>
-  )
-}
-
-function FooterColumn({
-  title,
-  links,
-}: {
-  title: string
-  links: [string, string][]
-}) {
-  return (
-    <div>
-      <h4 className="text-xs text-[#A99A87]/70">{title}</h4>
-      <div className="mt-4 space-y-3">
-        {links.map(([label, href]) => (
-          <Link
-            key={href}
-            href={href}
-            className="block text-sm text-[#A99A87] hover:text-[#F3ECE0] transition"
-          >
-            {label}
-          </Link>
-        ))}
-      </div>
-    </div>
-  )
-}
