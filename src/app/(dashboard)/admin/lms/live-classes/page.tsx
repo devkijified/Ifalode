@@ -53,30 +53,30 @@ export default function AdminLiveClassesPage() {
       case 'COMPLETED':
         return 'bg-green-500/10 text-green-400 border-green-500/30'
       case 'CANCELLED':
-        return 'bg-slate-500/10 text-slate-400 border-slate-500/30'
+        return 'bg-slate-500/10 text-cream-dim border-slate-500/30'
       case 'ENDED':
         return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30'
       default:
-        return 'bg-slate-800 text-slate-400 border-slate-700'
+        return 'bg-ink-700 text-cream-dim border-cream/15'
     }
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 py-10">
+    <div className="min-h-screen bg-ink-950 text-cream py-10">
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
           <div>
-            <h1 className="text-3xl font-black bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
+            <h1 className="text-3xl font-black text-cream font-display">
               Live Classes
             </h1>
-            <p className="text-slate-500 mt-1">
+            <p className="text-cream-faint mt-1">
               Schedule and manage virtual classrooms
             </p>
           </div>
           <div className="flex gap-2">
             <Link
               href="/admin"
-              className="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-sm font-semibold hover:bg-slate-700 transition"
+              className="px-5 py-2.5 bg-ink-700 text-cream-dim rounded-xl text-sm font-semibold hover:bg-ink-600 transition"
             >
               ← Admin
             </Link>
@@ -90,12 +90,12 @@ export default function AdminLiveClassesPage() {
         </div>
 
         {loading ? (
-          <div className="text-slate-400">Loading...</div>
+          <div className="text-cream-dim">Loading...</div>
         ) : liveClasses.length === 0 ? (
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-12 text-center">
+          <div className="rounded-2xl border border-cream/10 bg-ink-850 p-12 text-center">
             <div className="text-4xl mb-4">🎥</div>
             <h3 className="text-lg font-bold mb-2">No live classes yet</h3>
-            <p className="text-slate-500 mb-6">
+            <p className="text-cream-faint mb-6">
               Create your first live class to get started.
             </p>
             <Link
@@ -110,7 +110,7 @@ export default function AdminLiveClassesPage() {
             {liveClasses.map((lc) => (
               <div
                 key={lc.id}
-                className="rounded-2xl border border-slate-800 bg-slate-900 p-5 hover:border-slate-700 transition"
+                className="rounded-2xl border border-cream/10 bg-ink-850 p-5 hover:border-cream/15 transition"
               >
                 <div className="flex items-start justify-between gap-4 flex-wrap">
                   <div className="flex-1 min-w-0">
@@ -142,11 +142,11 @@ export default function AdminLiveClassesPage() {
                       {lc.title}
                     </h3>
                     {lc.description && (
-                      <p className="text-sm text-slate-400 mt-1 line-clamp-2">
+                      <p className="text-sm text-cream-dim mt-1 line-clamp-2">
                         {lc.description}
                       </p>
                     )}
-                    <div className="flex items-center gap-4 mt-3 text-xs text-slate-500 flex-wrap">
+                    <div className="flex items-center gap-4 mt-3 text-xs text-cream-faint flex-wrap">
                       <span>
                         📅 {new Date(lc.scheduled_at).toLocaleString()}
                       </span>
@@ -176,14 +176,14 @@ export default function AdminLiveClassesPage() {
 
                     <a
                       href={`/admin/lms/live-classes/${lc.id}/attendance`}
-                      className="px-4 py-2 rounded-lg bg-slate-800 text-sm font-medium text-slate-300 hover:bg-slate-700 transition"
+                      className="px-4 py-2 rounded-lg bg-ink-700 text-sm font-medium text-cream-dim hover:bg-ink-600 transition"
                     >
                       Attendance
                     </a>
 
                     <Link
                       href={`/admin/lms/live-classes/${lc.id}`}
-                      className="px-4 py-2 rounded-lg bg-slate-800 text-sm font-medium text-slate-300 hover:bg-slate-700 transition"
+                      className="px-4 py-2 rounded-lg bg-ink-700 text-sm font-medium text-cream-dim hover:bg-ink-600 transition"
                     >
                       Edit
                     </Link>

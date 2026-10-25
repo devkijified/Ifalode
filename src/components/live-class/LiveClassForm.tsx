@@ -109,11 +109,11 @@ export function LiveClassForm({ initialData }: Props) {
       )}
 
       {/* Basic Info */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 space-y-4">
+      <div className="rounded-2xl border border-cream/10 bg-ink-850 p-6 space-y-4">
         <h3 className="font-bold text-lg">Basic Information</h3>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-400 mb-1">Title *</label>
+          <label className="block text-xs font-semibold text-cream-dim mb-1">Title *</label>
           <input
             type="text"
             name="title"
@@ -121,29 +121,29 @@ export function LiveClassForm({ initialData }: Props) {
             value={form.title}
             onChange={handleChange}
             placeholder="IWORI GOSUN — Advanced Study"
-            className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-brand-primary"
+            className="w-full px-4 py-2.5 bg-ink-700 border border-cream/15 rounded-xl text-white focus:outline-none focus:border-brand-primary"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-400 mb-1">Description</label>
+          <label className="block text-xs font-semibold text-cream-dim mb-1">Description</label>
           <textarea
             name="description"
             rows={3}
             value={form.description}
             onChange={handleChange}
             placeholder="Briefly describe what this class covers..."
-            className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-brand-primary"
+            className="w-full px-4 py-2.5 bg-ink-700 border border-cream/15 rounded-xl text-white focus:outline-none focus:border-brand-primary"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-400 mb-1">Course (optional)</label>
+          <label className="block text-xs font-semibold text-cream-dim mb-1">Course (optional)</label>
           <select
             name="course_id"
             value={form.course_id}
             onChange={handleChange}
-            className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-brand-primary"
+            className="w-full px-4 py-2.5 bg-ink-700 border border-cream/15 rounded-xl text-white focus:outline-none focus:border-brand-primary"
           >
             <option value="">— None (standalone class) —</option>
             {courses.map(c => (
@@ -154,24 +154,24 @@ export function LiveClassForm({ initialData }: Props) {
       </div>
 
       {/* Schedule */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 space-y-4">
+      <div className="rounded-2xl border border-cream/10 bg-ink-850 p-6 space-y-4">
         <h3 className="font-bold text-lg">Schedule & Capacity</h3>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-400 mb-1">Scheduled At *</label>
+          <label className="block text-xs font-semibold text-cream-dim mb-1">Scheduled At *</label>
           <input
             type="datetime-local"
             name="scheduled_at"
             required
             value={form.scheduled_at}
             onChange={handleChange}
-            className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-brand-primary"
+            className="w-full px-4 py-2.5 bg-ink-700 border border-cream/15 rounded-xl text-white focus:outline-none focus:border-brand-primary"
           />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-400 mb-1">Duration (min)</label>
+            <label className="block text-xs font-semibold text-cream-dim mb-1">Duration (min)</label>
             <input
               type="number"
               name="duration_minutes"
@@ -179,12 +179,12 @@ export function LiveClassForm({ initialData }: Props) {
               onChange={handleChange}
               min={15}
               max={360}
-              className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-brand-primary"
+              className="w-full px-4 py-2.5 bg-ink-700 border border-cream/15 rounded-xl text-white focus:outline-none focus:border-brand-primary"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-400 mb-1">Max Participants</label>
+            <label className="block text-xs font-semibold text-cream-dim mb-1">Max Participants</label>
             <input
               type="number"
               name="max_participants"
@@ -192,12 +192,12 @@ export function LiveClassForm({ initialData }: Props) {
               onChange={handleChange}
               min={2}
               max={500}
-              className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-brand-primary"
+              className="w-full px-4 py-2.5 bg-ink-700 border border-cream/15 rounded-xl text-white focus:outline-none focus:border-brand-primary"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-400 mb-1">Price (₦)</label>
+            <label className="block text-xs font-semibold text-cream-dim mb-1">Price (₦)</label>
             <input
               type="number"
               name="price"
@@ -205,14 +205,14 @@ export function LiveClassForm({ initialData }: Props) {
               onChange={handleChange}
               min={0}
               step="0.01"
-              className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-brand-primary"
+              className="w-full px-4 py-2.5 bg-ink-700 border border-cream/15 rounded-xl text-white focus:outline-none focus:border-brand-primary"
             />
           </div>
         </div>
       </div>
 
       {/* Permissions */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 space-y-4">
+      <div className="rounded-2xl border border-cream/10 bg-ink-850 p-6 space-y-4">
         <h3 className="font-bold text-lg">Classroom Permissions</h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -273,7 +273,7 @@ export function LiveClassForm({ initialData }: Props) {
         <button
           type="button"
           onClick={() => router.push('/admin/lms/live-classes')}
-          className="px-6 py-3 bg-slate-800 text-slate-300 rounded-xl font-semibold hover:bg-slate-700 transition"
+          className="px-6 py-3 bg-ink-700 text-cream-dim rounded-xl font-semibold hover:bg-ink-600 transition"
         >
           Cancel
         </button>
@@ -296,17 +296,17 @@ function Toggle({
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
 }) {
   return (
-    <label className="flex items-start gap-3 p-3 rounded-xl border border-slate-800 bg-slate-950/50 cursor-pointer hover:border-slate-700 transition">
+    <label className="flex items-start gap-3 p-3 rounded-xl border border-cream/10 bg-ink-950/50 cursor-pointer hover:border-cream/15 transition">
       <input
         type="checkbox"
         name={name}
         checked={checked}
         onChange={onChange}
-        className="mt-0.5 w-4 h-4 rounded border-slate-700 text-brand-primary focus:ring-brand-primary"
+        className="mt-0.5 w-4 h-4 rounded border-cream/15 text-brand-primary focus:ring-brand-primary"
       />
       <div>
         <p className="text-sm font-semibold text-white">{label}</p>
-        <p className="text-xs text-slate-500 mt-0.5">{description}</p>
+        <p className="text-xs text-cream-faint mt-0.5">{description}</p>
       </div>
     </label>
   )

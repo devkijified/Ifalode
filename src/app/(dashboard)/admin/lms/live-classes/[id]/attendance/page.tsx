@@ -36,28 +36,28 @@ export default function AttendancePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400">
+      <div className="min-h-screen bg-ink-950 flex items-center justify-center text-cream-dim">
         Loading...
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 py-10">
+    <div className="min-h-screen bg-ink-950 text-cream py-10">
       <div className="container mx-auto px-4 max-w-6xl">
         <Link
           href="/admin/lms/live-classes"
-          className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-white transition mb-6"
+          className="inline-flex items-center gap-2 text-sm text-cream-faint hover:text-white transition mb-6"
         >
           ← Back to Live Classes
         </Link>
 
         <div className="mb-8">
-          <h1 className="text-3xl font-black bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
+          <h1 className="text-3xl font-black text-cream font-display">
             Attendance
           </h1>
           {liveClass && (
-            <p className="text-slate-500 mt-2">
+            <p className="text-cream-faint mt-2">
               {liveClass.title} — {new Date(liveClass.scheduled_at).toLocaleString()}
             </p>
           )}

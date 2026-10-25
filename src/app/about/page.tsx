@@ -154,7 +154,7 @@ export default function AboutPage() {
                     </Link>
 
                     <Link
-                      href="/register"
+                      href="/signup"
                       className="inline-flex items-center justify-center px-4 sm:px-5 py-2.5 rounded-xl bg-brand-primary text-white text-sm font-semibold hover:opacity-90 transition shadow-lg shadow-brand-primary/10"
                     >
                       Get Updates
@@ -356,7 +356,7 @@ export default function AboutPage() {
 
                   Through years of study, initiation, and practice under the
                   guidance of elder priests, he was called to serve as a
-                  Babalawo — a priest of Ifá. This calling is not only a role,
+                  Babalawo, a priest of Ifá. This calling is not only a role,
                   but a lifelong commitment to learning, humility, and service.
 
                 </p>
@@ -480,7 +480,7 @@ export default function AboutPage() {
               <ApproachCard
                 emoji="🌱"
                 title="Practical spirituality"
-                text="Recommendations are designed to be lived, not just heard — simple, steady steps forward."
+                text="Recommendations are designed to be lived, not just heard, simple, steady steps forward."
               />
 
             </div>

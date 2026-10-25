@@ -31,7 +31,7 @@ const NAV_LINKS: [string, string][] = [
 ]
 
 // brand_settings.display_name defaults to the literal string "IfaLode" in the
-// database — that's a placeholder, not a real choice, so it should never
+// database, that's a placeholder, not a real choice, so it should never
 // outrank the priest's actual name. Only trust it once it's been changed.
 function resolveSiteName(displayName: string | null | undefined) {
   const trimmed = displayName?.trim()
@@ -131,14 +131,13 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-[#14100D] text-[#F3ECE0]">
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap');
-
+        
         html {
           scroll-behavior: smooth;
         }
 
         .font-display {
-          font-family: 'Instrument Serif', Georgia, serif;
+          font-family: 'Aeonik Pro Bold', Figtree, sans-serif;
         }
 
         @keyframes rim-draw {
@@ -213,7 +212,7 @@ export default function HomePage() {
                   </Link>
 
                   <Link
-                    href="/register"
+                    href="/signup"
                     className="hidden sm:inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-brand-secondary text-[#14100D] text-sm font-semibold hover:opacity-90 transition"
                   >
                     Get updates
@@ -380,7 +379,7 @@ export default function HomePage() {
               {!loading && !user && (
                 <>
                   <Link
-                    href="/register"
+                    href="/signup"
                     onClick={() => setMobileMenuOpen(false)}
                     className="inline-flex items-center justify-center px-5 py-3.5 rounded-full bg-brand-secondary text-[#14100D] font-semibold text-sm"
                   >
@@ -490,7 +489,7 @@ export default function HomePage() {
 
               <p className="mt-7 max-w-md text-base sm:text-lg leading-8 text-[#A99A87]">
                 This is my space for sharing teachings, offerings, and guidance
-                from the Ifá tradition — wisdom, rituals, and ways to walk a
+                from the Ifá tradition, wisdom, rituals, and ways to walk a
                 more aligned path.
               </p>
 
@@ -891,7 +890,7 @@ export default function HomePage() {
                 </div>
 
                 <Link
-                  href="/register"
+                  href="/signup"
                   className="inline-flex items-center justify-center px-6 py-3.5 rounded-full bg-[#F3ECE0] text-[#14100D] text-sm font-bold hover:bg-white transition whitespace-nowrap"
                 >
                   Create your account
@@ -1261,7 +1260,7 @@ function FaqSection() {
     },
     {
       q: 'Do you offer remote consultations?',
-      a: 'Yes — readings and guidance are available both in person and remotely, depending on your location and the nature of the work.',
+      a: 'Yes, readings and guidance are available both in person and remotely, depending on your location and the nature of the work.',
     },
     {
       q: 'What if I need a ritual or ceremony?',

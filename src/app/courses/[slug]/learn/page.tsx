@@ -18,10 +18,21 @@ export default async function LearnPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#07090e] text-white flex flex-col items-center justify-center p-6 text-center">
-        <h1 className="text-2xl font-bold mb-2">Authentication Required</h1>
-        <p className="text-slate-400 mb-6">Please log in to access this course.</p>
-        <a href={`/auth/login?redirect=/courses/${courseIdOrSlug}/learn`} className="px-6 py-3 bg-brand-primary rounded-xl font-bold text-sm text-white">Log In</a>
+      <div className="flex min-h-screen flex-col items-center justify-center bg-ink-950 p-6 text-center text-cream">
+        <span className="rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-meta font-bold uppercase tracking-wider text-gold">
+          Members only
+        </span>
+        <h1 className="mt-4 font-display text-headline tracking-tight">Sign in to continue</h1>
+        <p className="mt-2 max-w-sm text-body text-cream-dim">Please sign in to access this course and pick up your lessons.</p>
+        <a
+          href={`/login?redirect=/courses/${courseIdOrSlug}/learn`}
+          className="mt-6 inline-flex min-h-[48px] items-center rounded-full bg-gold px-6 font-display text-body text-ink-950 transition hover:bg-gold-light"
+        >
+          Sign in
+        </a>
+        <a href="/courses" className="mt-3 text-body font-medium text-cream-dim transition hover:text-cream">
+          Browse courses instead
+        </a>
       </div>
     )
   }
@@ -35,10 +46,21 @@ export default async function LearnPage({
 
   if (courseError || !courseData) {
     return (
-      <div className="min-h-screen bg-[#07090e] text-white flex flex-col items-center justify-center p-6 text-center">
-        <h1 className="text-2xl font-bold mb-2">Course Not Found</h1>
-        <p className="text-slate-400 mb-6">This course does not exist or has been removed.</p>
-        <a href="/dashboard" className="px-6 py-3 bg-brand-primary rounded-xl font-bold text-sm text-white">Return to Dashboard</a>
+      <div className="flex min-h-screen flex-col items-center justify-center bg-ink-950 p-6 text-center text-cream">
+        <span className="rounded-full border border-cream/15 px-3 py-1 text-meta font-bold uppercase tracking-wider text-cream-dim">
+          Not found
+        </span>
+        <h1 className="mt-4 font-display text-headline tracking-tight">Course not found</h1>
+        <p className="mt-2 max-w-sm text-body text-cream-dim">This course does not exist or has been removed.</p>
+        <a
+          href="/dashboard"
+          className="mt-6 inline-flex min-h-[48px] items-center rounded-full bg-gold px-6 font-display text-body text-ink-950 transition hover:bg-gold-light"
+        >
+          Return to My learning
+        </a>
+        <a href="/courses" className="mt-3 text-body font-medium text-cream-dim transition hover:text-cream">
+          Browse courses instead
+        </a>
       </div>
     )
   }
@@ -63,11 +85,20 @@ export default async function LearnPage({
   // 5. Handle Empty Lessons scenario safely
   if (lessonsError || !lessons || lessons.length === 0) {
     return (
-      <div className="min-h-screen bg-[#07090e] text-white flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-16 h-16 bg-amber-500/10 text-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl font-bold">⚠️</div>
-        <h1 className="text-2xl font-bold mb-2">No Lessons Available</h1>
-        <p className="text-slate-400 mb-6">This course does not have any published lessons loaded yet.</p>
-        <a href="/dashboard" className="px-6 py-3 bg-slate-800 hover:bg-slate-700 transition rounded-xl font-bold text-sm text-white">Return to Dashboard</a>
+      <div className="flex min-h-screen flex-col items-center justify-center bg-ink-950 p-6 text-center text-cream">
+        <span className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-gold/40 font-display text-title text-gold" aria-hidden="true">
+          !
+        </span>
+        <h1 className="mt-5 font-display text-headline tracking-tight">No lessons yet</h1>
+        <p className="mt-2 max-w-sm text-body text-cream-dim">
+          This course does not have any published lessons yet. Please check back soon.
+        </p>
+        <a
+          href="/dashboard"
+          className="mt-6 inline-flex min-h-[48px] items-center rounded-full border border-cream/15 px-6 font-display text-body text-cream transition hover:border-cream/30 hover:bg-cream/5"
+        >
+          Return to My learning
+        </a>
       </div>
     )
   }

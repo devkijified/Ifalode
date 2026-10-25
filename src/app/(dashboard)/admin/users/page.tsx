@@ -188,13 +188,13 @@ export default function AdminUsersPage() {
 
   if (status === 'denied') {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-ink-950 text-cream flex items-center justify-center px-4">
         <div className="text-center">
           <p className="text-5xl mb-5">🔒</p>
 
           <h1 className="text-2xl font-bold">Access denied</h1>
 
-          <p className="mt-2 text-slate-500">
+          <p className="mt-2 text-cream-faint">
             You do not have permission to manage users.
           </p>
 
@@ -210,13 +210,13 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
-      <header className="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-xl">
+    <main className="min-h-screen bg-ink-950 text-cream">
+      <header className="sticky top-0 z-40 border-b border-cream/10/80 bg-ink-950/90 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div>
             <Link
               href="/admin"
-              className="text-sm text-slate-500 hover:text-white transition"
+              className="text-sm text-cream-faint hover:text-white transition"
             >
               ← Admin Dashboard
             </Link>
@@ -226,7 +226,7 @@ export default function AdminUsersPage() {
             </h1>
           </div>
 
-          <span className="hidden sm:inline-flex text-sm text-slate-500">
+          <span className="hidden sm:inline-flex text-sm text-cream-faint">
             {users.length} user{users.length === 1 ? '' : 's'} · {adminCount} admin
             {adminCount === 1 ? '' : 's'}
           </span>
@@ -246,13 +246,13 @@ export default function AdminUsersPage() {
           </div>
         )}
 
-        <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5 sm:p-7">
+        <section className="rounded-2xl border border-cream/10 bg-ink-850 p-5 sm:p-7">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search by name or email..."
-              className="w-full sm:max-w-sm rounded-xl border border-slate-800 bg-slate-950 px-3.5 py-3 text-sm text-slate-100 placeholder-slate-600 outline-none transition focus:border-brand-primary/50 focus:ring-2 focus:ring-brand-primary/20"
+              className="w-full sm:max-w-sm rounded-xl border border-cream/10 bg-ink-950 px-3.5 py-3 text-sm text-cream placeholder-cream-faint outline-none transition focus:border-brand-primary/50 focus:ring-2 focus:ring-brand-primary/20"
             />
 
             <div className="flex items-center gap-2">
@@ -263,7 +263,7 @@ export default function AdminUsersPage() {
                   className={`px-3.5 py-2 rounded-lg text-xs font-semibold uppercase tracking-wide transition ${
                     roleFilter === option
                       ? 'bg-brand-primary text-white'
-                      : 'border border-slate-800 text-slate-400 hover:bg-slate-800 hover:text-white'
+                      : 'border border-cream/10 text-cream-dim hover:bg-ink-700 hover:text-white'
                   }`}
                 >
                   {option}
@@ -273,22 +273,22 @@ export default function AdminUsersPage() {
           </div>
 
           {loading ? (
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/50 p-10 text-center text-slate-500">
+            <div className="rounded-2xl border border-cream/10 bg-ink-950/50 p-10 text-center text-cream-faint">
               Loading users...
             </div>
           ) : filteredUsers.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-950/50 p-10 text-center">
+            <div className="rounded-2xl border border-dashed border-cream/10 bg-ink-950/50 p-10 text-center">
               <p className="text-4xl mb-4">👤</p>
               <h3 className="text-lg font-bold">No users found</h3>
-              <p className="mt-2 text-sm text-slate-500">
+              <p className="mt-2 text-sm text-cream-faint">
                 Try a different search or filter.
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-slate-800">
+            <div className="overflow-x-auto rounded-xl border border-cream/10">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-800 bg-slate-950/60 text-left text-xs uppercase tracking-wide text-slate-500">
+                  <tr className="border-b border-cream/10 bg-ink-950/60 text-left text-xs uppercase tracking-wide text-cream-faint">
                     <th className="px-4 py-3 font-semibold">Name</th>
                     <th className="px-4 py-3 font-semibold">Email</th>
                     <th className="px-4 py-3 font-semibold">Role</th>
@@ -301,32 +301,32 @@ export default function AdminUsersPage() {
                   {filteredUsers.map((user) => (
                     <tr
                       key={user.id}
-                      className="border-b border-slate-800/60 last:border-0 hover:bg-slate-800/30 transition"
+                      className="border-b border-cream/10/60 last:border-0 hover:bg-ink-700/30 transition"
                     >
-                      <td className="px-4 py-3 font-semibold text-slate-200">
+                      <td className="px-4 py-3 font-semibold text-cream">
                         {user.full_name || '—'}
                         {user.id === currentUserId && (
-                          <span className="ml-2 rounded-full border border-slate-700 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-500">
+                          <span className="ml-2 rounded-full border border-cream/15 px-2 py-0.5 text-[10px] font-bold uppercase text-cream-faint">
                             You
                           </span>
                         )}
                       </td>
 
-                      <td className="px-4 py-3 text-slate-400">{user.email}</td>
+                      <td className="px-4 py-3 text-cream-dim">{user.email}</td>
 
                       <td className="px-4 py-3">
                         <span
                           className={`rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-wide ${
                             user.role === 'admin'
                               ? 'border-brand-primary/30 bg-brand-primary/10 text-brand-primary'
-                              : 'border-slate-700 bg-slate-950 text-slate-400'
+                              : 'border-cream/15 bg-ink-950 text-cream-dim'
                           }`}
                         >
                           {user.role}
                         </span>
                       </td>
 
-                      <td className="px-4 py-3 text-slate-500">
+                      <td className="px-4 py-3 text-cream-faint">
                         {new Date(user.created_at).toLocaleDateString()}
                       </td>
 
@@ -363,10 +363,10 @@ export default function AdminUsersPage() {
 
 function LoadingScreen({ text }: { text: string }) {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center">
+    <div className="min-h-screen bg-ink-950 text-cream flex items-center justify-center">
       <div className="text-center">
         <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-brand-primary border-t-transparent" />
-        <p className="text-slate-400">{text}</p>
+        <p className="text-cream-dim">{text}</p>
       </div>
     </div>
   )

@@ -2,82 +2,105 @@
 
 import { Course } from '@/types'
 import Link from 'next/link'
+import { Icon } from '@/components/ui/Icon'
+import {
+  LevelBadge,
+  PosterFallback,
+  Price,
+  ProgressBar,
+} from '@/components/ui/primitives'
 
 interface CourseCardProps {
   course: Course
+  enrolled?: boolean
+  progress?: number
 }
 
-export const CourseCard = ({ course }: CourseCardProps) => {
-  // Get icon based on course title
-  const getIcon = (title: string) => {
-    const icons = ['📘', '🧠', '💼', '💻', '🎯', '📚', '✨', '🌟', '🪷', '🔮', '📿', '🕯️']
-    const index = title.length % icons.length
-    return icons[index]
-  }
-
-  // Get color based on level
-  const getLevelColor = (level: string | null) => {
-    switch (level) {
-      case 'beginner': return 'from-green-500/20 to-transparent'
-      case 'intermediate': return 'from-orange-500/20 to-transparent'
-      case 'advanced': return 'from-red-500/20 to-transparent'
-      default: return 'from-brand-primary/20 to-transparent'
-    }
-  }
-
-  const getLevelBadgeColor = (level: string | null) => {
-    switch (level) {
-      case 'beginner': return 'bg-green-500/10 text-green-400 border-green-500/20'
-      case 'intermediate': return 'bg-orange-500/10 text-orange-400 border-orange-500/20'
-      case 'advanced': return 'bg-red-500/10 text-red-400 border-red-500/20'
-      default: return 'bg-brand-primary/10 text-brand-primary border-brand-primary/20'
-    }
-  }
+export const CourseCard = ({ course, enrolled, progress }: CourseCardProps) => {
+  const hasProgress = enrolled && typeof progress === 'number'
+  const pct = hasProgress ? Math.max(0, Math.min(100, Math.round(progress))) : 0
 
   return (
-    <Link href={`/courses/${course.id}`}>
-      <div className="group relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 transition-all hover:border-slate-700 hover:translate-y-[-4px] hover:shadow-xl hover:shadow-brand-primary/5">
-        
-        {/* Gradient background */}
-        <div className={`absolute inset-0 bg-gradient-to-br ${getLevelColor(course.level)} opacity-50`} />
-        
-        <div className="relative p-5">
-          {/* Header with icon and level badge */}
-          <div className="flex items-start justify-between mb-4">
-            <div className="text-3xl">{getIcon(course.title)}</div>
-            <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase border ${getLevelBadgeColor(course.level)}`}>
-              {course.level || 'All Levels'}
+    <Link href={`/courses/${course.id}`} className="group block">
+      <article className="overflow-hidden rounded-2xl border border-cream/10 bg-ink-850 shadow-card transition duration-300 lg:group-hover:-translate-y-1 lg:group-hover:border-cream/20">
+        {/* 16:9 poster */}
+        <div className="relative aspect-video overflow-hidden bg-ink-800">
+          {course.cover_image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={course.cover_image}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover transition duration-500 lg:group-hover:scale-[1.03]"
+              loading="lazy"
+            />
+          ) : (
+            <PosterFallback title={course.title} className="absolute inset-0" />
+          )}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-ink-950/70 to-transparent" />
+          {enrolled && (
+            <span className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-md bg-ink-950/85 px-2 py-1 text-meta font-bold uppercase tracking-wider text-gold backdrop-blur-sm">
+              <Icon name="check" size={12} variant="Bold" />
+              Enrolled
             </span>
-          </div>
+          )}
+          {hasProgress && pct > 0 && pct < 100 && (
+            <span className="absolute bottom-3 left-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-cream text-ink-950 shadow-card transition lg:group-hover:bg-gold-light">
+              <Icon name="play" size={16} variant="Bold" />
+            </span>
+          )}
+        </div>
 
+        <div className="p-4">
           {/* Title */}
-          <h3 className="font-bold text-white text-lg mb-1 line-clamp-1 group-hover:text-brand-primary transition">
+          <h3 className="line-clamp-2 min-h-[44px] font-sans text-lead font-semibold leading-snug text-cream transition lg:group-hover:text-gold-light">
             {course.title}
           </h3>
 
-          {/* Description */}
-          <p className="text-slate-400 text-sm line-clamp-2 mb-4">
-            {course.description || 'No description available'}
-          </p>
-
           {/* Instructor */}
           {course.instructor && (
-            <p className="text-xs text-slate-500 mb-4">
-              👤 {course.instructor}
+            <p className="mt-1.5 flex items-center gap-1.5 text-caption text-cream-dim">
+              <span className="shrink-0 text-cream-faint">
+                <Icon name="teacher" size={14} />
+              </span>
+              <span className="line-clamp-1">{course.instructor}</span>
             </p>
           )}
 
-          {/* Footer */}
-          <div className="flex items-center justify-between pt-4 border-t border-slate-800">
-            <span className="text-xl font-bold text-brand-primary">
-              {course.price ? `$${course.price}` : 'Free'}
-            </span>
-            <span className="text-sm text-slate-500 group-hover:text-brand-primary transition">
-              Enroll →
-            </span>
+          {/* Meta row */}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <LevelBadge level={course.level} />
+            {course.category && (
+              <span className="text-caption font-medium text-cream-faint">
+                {course.category}
+              </span>
+            )}
           </div>
+
+          {/* Footer: progress for learners, exact price for everyone else */}
+          {hasProgress ? (
+            <div className="mt-4">
+              <ProgressBar value={pct} />
+              <div className="mt-2.5 flex items-center justify-between">
+                <span className="text-caption font-semibold text-cream-dim">
+                  {pct}% complete
+                </span>
+                <span className="inline-flex items-center gap-1 text-caption font-bold text-gold">
+                  <Icon name="play" size={13} variant="Bold" />
+                  {pct > 0 ? 'Resume' : 'Start'}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-4 flex items-center justify-between border-t border-cream/10 pt-3.5">
+              <Price amount={course.price} className="text-lead text-cream" />
+              <span className="inline-flex items-center gap-1 text-caption font-bold text-gold transition lg:group-hover:text-gold-light">
+                {enrolled ? 'Continue' : 'View course'}
+                <Icon name="next" size={14} variant="Bold" />
+              </span>
+            </div>
+          )}
         </div>
-      </div>
+      </article>
     </Link>
   )
 }

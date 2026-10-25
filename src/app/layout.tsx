@@ -1,10 +1,17 @@
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { Providers } from './providers'
 import { createServerClient } from '@/lib/supabase/server'
+import { AppShell } from '@/components/shell/AppShell'
+import { RefCapture } from '@/components/RefCapture'
+import { SWRegister } from '@/components/SWRegister'
 
-const inter = Inter({ subsets: ['latin'] })
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#0B0908',
+}
 
 export async function generateMetadata(): Promise<Metadata> {
   const supabase = createServerClient()
@@ -14,12 +21,22 @@ export async function generateMetadata(): Promise<Metadata> {
     .limit(1)
     .single()
 
-  // Use type assertion to handle the unknown type
   const brandData = brand as any
 
   return {
     title: brandData?.meta_title || brandData?.brand_name || 'IfaLode',
-    description: brandData?.meta_description || 'Ifá Wisdom, Courses & Sacred Store',
+    description:
+      brandData?.meta_description || 'Ifá Wisdom, Courses & Sacred Store',
+    manifest: '/manifest.webmanifest',
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: 'black-translucent',
+      title: 'IfaLode',
+    },
+    icons: {
+      icon: '/icons/icon-192.png',
+      apple: '/icons/icon-192.png',
+    },
   }
 }
 
@@ -30,9 +47,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body>
         <Providers>
-          {children}
+          <RefCapture />
+          <SWRegister />
+          <AppShell>{children}</AppShell>
         </Providers>
       </body>
     </html>

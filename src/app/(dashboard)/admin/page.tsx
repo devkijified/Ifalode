@@ -84,10 +84,10 @@ export default function AdminDashboard() {
 
   if (status === 'loading') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950">
+      <div className="flex min-h-screen items-center justify-center bg-ink-950">
         <div className="text-center">
           <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-brand-primary border-t-transparent" />
-          <p className="text-slate-400">Checking admin access...</p>
+          <p className="text-cream-dim">Checking admin access...</p>
         </div>
       </div>
     )
@@ -95,13 +95,13 @@ export default function AdminDashboard() {
 
   if (status === 'denied') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4 text-slate-100">
+      <div className="flex min-h-screen items-center justify-center bg-ink-950 px-4 text-cream">
         <div className="text-center">
           <p className="mb-5 text-5xl">🔒</p>
 
           <h1 className="text-2xl font-bold">Access denied</h1>
 
-          <p className="mt-2 text-slate-500">
+          <p className="mt-2 text-cream-faint">
             You do not have administrator permission.
           </p>
 
@@ -117,7 +117,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 py-10 text-slate-100">
+    <main className="min-h-screen bg-ink-950 py-10 text-cream">
       <div className="container mx-auto px-4">
         <div className="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
           <div>
@@ -129,14 +129,14 @@ export default function AdminDashboard() {
               Admin Dashboard
             </h1>
 
-            <p className="mt-2 text-slate-500">
+            <p className="mt-2 text-cream-faint">
               Manage your Ifalode platform from here.
             </p>
           </div>
 
           <Link
             href="/"
-            className="inline-flex w-fit rounded-xl border border-slate-800 px-4 py-2.5 text-sm text-slate-400 transition hover:bg-slate-900 hover:text-white"
+            className="inline-flex w-fit rounded-xl border border-cream/10 px-4 py-2.5 text-sm text-cream-dim transition hover:bg-ink-850 hover:text-white"
           >
             View website
           </Link>
@@ -144,7 +144,7 @@ export default function AdminDashboard() {
 
         <div className="grid grid-cols-1 gap-8">
           {/* Brand Settings */}
-          <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+          <section className="rounded-2xl border border-cream/10 bg-ink-850 p-6">
             <BrandEditor />
           </section>
 
@@ -166,7 +166,7 @@ export default function AdminDashboard() {
             />
 
             {/* LMS */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+            <div className="rounded-2xl border border-cream/10 bg-ink-850 p-6">
               <h3 className="mb-3 text-lg font-bold">
                 LMS Management
               </h3>
@@ -174,14 +174,14 @@ export default function AdminDashboard() {
               <div className="space-y-2">
                 <Link
                   href="/admin/lms"
-                  className="block text-sm text-slate-400 transition hover:text-brand-primary"
+                  className="block text-sm text-cream-dim transition hover:text-brand-primary"
                 >
                   Manage Courses
                 </Link>
 
                 <Link
                   href="/admin/lms/new"
-                  className="block text-sm text-slate-400 transition hover:text-brand-primary"
+                  className="block text-sm text-cream-dim transition hover:text-brand-primary"
                 >
                   Create New Course
                 </Link>
@@ -195,7 +195,7 @@ export default function AdminDashboard() {
 
                 <Link
                   href="/admin/lms/live-classes/new"
-                  className="block text-sm text-slate-400 transition hover:text-brand-primary"
+                  className="block text-sm text-cream-dim transition hover:text-brand-primary"
                 >
                   + Schedule Live Class
                 </Link>
@@ -249,7 +249,7 @@ function AdminCard({
   }[]
 }) {
   return (
-    <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+    <section className="rounded-2xl border border-cream/10 bg-ink-850 p-6">
       <h3 className="mb-3 text-lg font-bold">{title}</h3>
 
       <div className="space-y-2">
@@ -257,7 +257,7 @@ function AdminCard({
           <Link
             key={link.href}
             href={link.href}
-            className="block text-sm text-slate-400 transition hover:text-brand-primary"
+            className="block text-sm text-cream-dim transition hover:text-brand-primary"
           >
             {link.label}
           </Link>

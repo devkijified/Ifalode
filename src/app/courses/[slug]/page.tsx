@@ -4,7 +4,19 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { useBrand } from '@/hooks/useBrand'
+import { PublicBar } from '@/components/shell/PublicBar'
+import { Icon } from '@/components/ui/Icon'
+import {
+  EmptyState,
+  HelpTip,
+  LevelBadge,
+  PosterFallback,
+  Price,
+  ProgressBar,
+  SectionHeader,
+  Skeleton,
+} from '@/components/ui/primitives'
+import { formatCompactCount, formatDuration } from '@/lib/format'
 
 interface Course {
   id: string
@@ -41,8 +53,10 @@ interface Lesson {
   created_at: string
 }
 
+const ENROLL_HELP =
+  'Enrolling gives you every lesson in this course, in order, on this device and any other you sign in on. Paid courses go to secure checkout first. Free courses open right away.'
+
 export default function CourseDetailPage() {
-  const { brand } = useBrand()
   const params = useParams()
   const router = useRouter()
 
@@ -188,12 +202,101 @@ export default function CourseDetailPage() {
 
   const lessonsWithoutModule = lessons.filter((l) => !l.module_id)
 
+  const totalDuration = lessons.reduce((sum, lesson) => sum + (lesson.duration || 0), 0)
+
+  // The progress value counts finished lessons on this page, so the next
+  // lesson is the one right after that count. Fall back to the plain
+  // continue label when it cannot be worked out.
+  const completedCount =
+    enrollment && typeof enrollment.progress === 'number' ? enrollment.progress : 0
+  const nextLesson =
+    isEnrolled && lessons.length > 0 && completedCount < lessons.length
+      ? lessons[completedCount]
+      : null
+  const continueHref = nextLesson
+    ? `/courses/${courseId}/learn?lesson=${nextLesson.id}`
+    : `/courses/${courseId}/learn`
+
+  const updatedLabel = course?.updated_at
+    ? new Date(course.updated_at).toLocaleDateString('en-NG', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      })
+    : null
+
+  const renderLessonRow = (lesson: Lesson, index: number) => {
+    const isLocked = !isEnrolled
+    return (
+      <div
+        key={lesson.id}
+        role={isLocked ? undefined : 'button'}
+        className={`flex items-center gap-3 px-4 py-3.5 transition sm:gap-4 sm:px-5 ${
+          isLocked ? '' : 'cursor-pointer hover:bg-cream/5'
+        }`}
+        onClick={() => {
+          if (!isLocked) {
+            router.push(`/courses/${courseId}/learn?lesson=${lesson.id}`)
+          }
+        }}
+      >
+        <span className="w-6 shrink-0 text-center font-display text-lead text-cream-faint">
+          {index + 1}
+        </span>
+        <span
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition ${
+            isLocked
+              ? 'border-cream/10 text-cream-faint'
+              : 'border-cream/30 text-cream'
+          }`}
+        >
+          {isLocked ? (
+            <Icon name="lock" size={16} />
+          ) : (
+            <Icon name="play" size={16} variant="Bold" />
+          )}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span
+            className={`block truncate text-body font-semibold ${
+              isLocked ? 'text-cream-dim' : 'text-cream'
+            }`}
+          >
+            {lesson.title}
+          </span>
+          {lesson.duration ? (
+            <span className="mt-0.5 flex items-center gap-1 text-caption text-cream-faint">
+              <Icon name="clock" size={12} />
+              {formatDuration(lesson.duration)}
+            </span>
+          ) : null}
+        </span>
+        {isEnrolled && (
+          <span className="shrink-0 text-cream-faint" aria-hidden="true">
+            <Icon name="download" size={18} />
+          </span>
+        )}
+      </div>
+    )
+  }
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-10 h-10 border-2 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-slate-400">Loading course...</p>
+      <div className="min-h-screen bg-ink-950 font-sans text-cream">
+        <PublicBar />
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6" aria-busy="true">
+          <Skeleton className="mt-6 aspect-[16/9] w-full lg:aspect-[16/5]" />
+          <div className="mt-8 max-w-2xl space-y-3">
+            <Skeleton className="h-5 w-2/5" />
+            <Skeleton className="h-9 w-4/5" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/5" />
+          </div>
+          <div className="mt-10 space-y-3">
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+          </div>
         </div>
       </div>
     )
@@ -201,271 +304,387 @@ export default function CourseDetailPage() {
 
   if (!course) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-white mb-4">Course Not Found</h1>
-          <p className="text-slate-400 mb-6">The course you're looking for doesn't exist.</p>
-          <Link href="/courses" className="text-brand-primary hover:underline">← Back to Courses</Link>
-        </div>
+      <div className="min-h-screen bg-ink-950 font-sans text-cream">
+        <PublicBar />
+        <main className="mx-auto w-full max-w-2xl px-4 py-16 sm:px-6">
+          <EmptyState
+            title="Course not found"
+            body="The course you are looking for does not exist, or it may have been removed."
+            action={
+              <Link
+                href="/courses"
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-cream px-5 text-body font-bold text-ink-950 transition hover:bg-gold-light"
+              >
+                <Icon name="back" size={16} variant="Bold" />
+                Back to courses
+              </Link>
+            }
+          />
+        </main>
       </div>
     )
   }
 
+  const enrollLabel = enrolling
+    ? 'Processing...'
+    : !course.price || course.price === 0
+      ? 'Enroll free'
+      : 'Enroll now'
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 backdrop-blur-md bg-slate-950/80 border-b border-slate-800/60">
-        <div className="container mx-auto px-4 h-20 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <span className="text-2xl">🪵</span>
-            <span className="text-2xl font-black tracking-wider bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
-              {brand?.display_name || 'IFALODE'}
-            </span>
-          </Link>
-          <div className="flex items-center gap-6 text-sm text-slate-400">
-            <Link href="/store" className="hover:text-white transition">Store</Link>
-            <Link href="/courses" className="text-brand-primary font-semibold transition">Courses</Link>
-            {user ? (
-              <Link 
-                href="/dashboard"
-                className="px-5 py-2.5 text-sm font-semibold bg-brand-primary text-white rounded-xl shadow-lg shadow-brand-primary/20 hover:opacity-90 transition"
-              >
-                Dashboard
-              </Link>
-            ) : (
-              <Link 
-                href="/login"
-                className="px-5 py-2.5 text-sm font-semibold bg-brand-primary text-white rounded-xl shadow-lg shadow-brand-primary/20 hover:opacity-90 transition"
-              >
-                Sign In
-              </Link>
-            )}
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-ink-950 font-sans text-cream">
+      <PublicBar />
 
-      {/* Course Content */}
-      <main className="container mx-auto px-4 py-12 max-w-4xl">
-        <Link href="/courses" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-white transition mb-8">
-          ← Back to Courses
-        </Link>
-
-        {/* Course Header */}
-        <div className="mb-10">
-          <div className="flex items-center gap-3 mb-4">
-            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase border ${
-              course.level === 'beginner'
-                ? 'bg-green-500/10 text-green-400 border-green-500/20'
-                : course.level === 'intermediate'
-                ? 'bg-orange-500/10 text-orange-400 border-orange-500/20'
-                : 'bg-red-500/10 text-red-400 border-red-500/20'
-            }`}>
-              {course.level || 'All Levels'}
-            </span>
-            {course.is_published ? (
-              <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-green-500/10 text-green-400 border border-green-500/20">
-                Published
-              </span>
-            ) : (
-              <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
-                Draft
-              </span>
-            )}
-            {isEnrolled && (
-              <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                ✅ Enrolled
-              </span>
-            )}
-          </div>
-
-          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">
-            {course.title}
-          </h1>
-
-          {course.instructor && (
-            <p className="text-lg text-slate-400 mb-4">
-              👤 Taught by {course.instructor}
-            </p>
-          )}
-
-          <p className="text-lg text-slate-300 leading-relaxed mb-6">
-            {course.description || 'No description available.'}
-          </p>
-
-          {isEnrolled && (
-            <div className="mb-6 p-4 bg-slate-900 rounded-xl border border-slate-800">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-slate-400">Your Progress</span>
-                <span className="text-sm font-semibold text-brand-primary">{progress}%</span>
-              </div>
-              <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-brand-primary rounded-full transition-all duration-500"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-              <Link 
-                href={`/courses/${courseId}/learn`}
-                className="mt-4 inline-block px-6 py-2 bg-brand-primary text-white rounded-xl text-sm font-semibold hover:opacity-90 transition"
-              >
-                Continue Learning →
-              </Link>
-            </div>
-          )}
-
-          <div className="flex items-center gap-4">
-            <span className="text-3xl font-bold text-brand-primary">
-              {!course.price || course.price === 0 ? 'FREE' : `$${course.price}`}
-            </span>
-            {!isEnrolled ? (
-              <button
-                onClick={handleEnroll}
-                disabled={enrolling}
-                className="px-8 py-3 rounded-xl font-semibold bg-brand-primary hover:opacity-90 text-white shadow-lg shadow-brand-primary/20 disabled:opacity-50 transition"
-              >
-                {enrolling ? 'Processing...' : (!course.price || course.price === 0 ? 'Enroll Free' : 'Enroll Now')}
-              </button>
-            ) : (
-              <Link
-                href={`/courses/${courseId}/learn`}
-                className="px-8 py-3 rounded-xl font-semibold bg-green-600 hover:bg-green-700 transition text-white shadow-lg shadow-green-600/20"
-              >
-                Continue Learning →
-              </Link>
-            )}
-          </div>
-        </div>
-
-        {/* Modules + Lessons */}
-        <div>
-          <h2 className="text-2xl font-bold text-white mb-6">📚 Course Content</h2>
-
-          {lessonsByModule.length === 0 && lessonsWithoutModule.length === 0 ? (
-            <div className="text-center py-12 bg-slate-900 rounded-2xl border border-slate-800">
-              <p className="text-slate-400">No content available for this course yet.</p>
-            </div>
+      {/* Prime style cinematic hero */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0" aria-hidden="true">
+          {course.cover_image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={course.cover_image}
+              alt=""
+              className="h-full w-full object-cover"
+            />
           ) : (
-            <div className="space-y-6">
+            <PosterFallback title={course.title} className="h-full w-full" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/72 to-ink-950/25" />
+          <div className="absolute inset-0 bg-gradient-to-r from-ink-950/85 via-ink-950/35 to-transparent" />
+        </div>
 
-              {/* Modules */}
-              {lessonsByModule.map(({ module, lessons: modLessons }) => (
-                <div key={module.id} className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
-                  <div className="p-5 border-b border-slate-800">
-                    <h3 className="text-xl font-bold text-white">
-                      {module.title}
-                    </h3>
-                    {module.description && (
-                      <p className="text-sm text-slate-400 mt-1">
-                        {module.description}
-                      </p>
-                    )}
-                  </div>
+        <div className="relative mx-auto w-full max-w-7xl px-4 pb-10 pt-6 sm:px-6 lg:pb-14 lg:pt-10">
+          <Link
+            href="/courses"
+            className="inline-flex min-h-[38px] items-center gap-2 rounded-full border border-cream/20 bg-ink-950/55 px-3.5 text-caption font-semibold text-cream backdrop-blur-md transition hover:border-cream/40"
+          >
+            <Icon name="back" size={15} variant="Bold" />
+            Back to courses
+          </Link>
 
-                  <div className="divide-y divide-slate-800">
-                    {modLessons.map((lesson, index) => {
-                      const isLocked = !isEnrolled
-                      return (
-                        <div 
-                          key={lesson.id} 
-                          className={`flex items-center gap-4 p-4 transition ${
-                            isLocked ? 'opacity-60' : 'hover:bg-slate-800/50 cursor-pointer'
-                          }`}
-                          onClick={() => {
-                            if (!isLocked) {
-                              router.push(`/courses/${courseId}/learn?lesson=${lesson.id}`)
-                            }
-                          }}
-                        >
-                          <div className="w-8 h-8 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center text-sm font-bold">
-                            {index + 1}
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-white">{lesson.title}</h4>
-                            {lesson.duration && (
-                              <p className="text-xs text-slate-500">⏱️ {lesson.duration} min</p>
-                            )}
-                          </div>
-                          {isLocked ? (
-                            <span className="text-sm text-slate-500">🔒 Locked</span>
-                          ) : (
-                            <span className="text-sm text-brand-primary">▶️ Watch</span>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
+          <div className="mt-16 max-w-3xl sm:mt-24 lg:mt-32">
+            <div className="flex flex-wrap items-center gap-2">
+              <LevelBadge level={course.level} />
+              {course.category && (
+                <span className="inline-flex items-center rounded-md border border-cream/20 bg-ink-950/50 px-2 py-1 text-meta font-bold uppercase tracking-wider text-cream backdrop-blur-sm">
+                  {course.category}
+                </span>
+              )}
+              {course.is_published ? (
+                <span className="inline-flex items-center gap-1 rounded-md border border-success/30 bg-success/10 px-2 py-1 text-meta font-bold uppercase tracking-wider text-success">
+                  <Icon name="check" size={11} variant="Bold" />
+                  Published
+                </span>
+              ) : (
+                <span className="inline-flex items-center rounded-md border border-gold/30 bg-gold/10 px-2 py-1 text-meta font-bold uppercase tracking-wider text-gold">
+                  Draft
+                </span>
+              )}
+              {isEnrolled && (
+                <span className="inline-flex items-center gap-1 rounded-md bg-gold px-2 py-1 text-meta font-bold uppercase tracking-wider text-ink-950">
+                  <Icon name="check" size={11} variant="Bold" />
+                  Enrolled
+                </span>
+              )}
+            </div>
+
+            <h1 className="mt-4 font-display text-display tracking-tight text-cream">
+              {course.title}
+            </h1>
+
+            {course.instructor && (
+              <p className="mt-3 flex items-center gap-2 text-lead text-cream-dim">
+                <span className="text-gold">
+                  <Icon name="teacher" size={19} />
+                </span>
+                Taught by {course.instructor}
+              </p>
+            )}
+
+            {course.description && (
+              <p className="mt-3 max-w-2xl text-body leading-relaxed text-cream-dim lg:text-lead lg:leading-relaxed">
+                {course.description}
+              </p>
+            )}
+
+            <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-caption font-medium text-cream-dim">
+              <span className="inline-flex items-center gap-1.5">
+                <Icon name="book" size={15} />
+                {formatCompactCount(lessons.length)}{' '}
+                {lessons.length === 1 ? 'lesson' : 'lessons'}
+              </span>
+              {totalDuration > 0 && (
+                <span className="inline-flex items-center gap-1.5">
+                  <Icon name="clock" size={15} />
+                  {formatDuration(totalDuration)} total
+                </span>
+              )}
+              {updatedLabel && (
+                <span className="inline-flex items-center gap-1.5">
+                  <Icon name="calendar" size={15} />
+                  Updated {updatedLabel}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Body: curriculum plus a sticky purchase card on desktop */}
+      <main className="mx-auto w-full max-w-7xl px-4 pb-16 sm:px-6">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="min-w-0 lg:order-1">
+            {/* Mobile price row: the pinned bar below carries the action,
+                this row carries the price and its explainer. */}
+            {!isEnrolled && (
+              <div className="mb-8 flex items-center gap-2 lg:hidden">
+                <Price
+                  amount={course.price}
+                 
+                  className="text-headline text-cream"
+                />
+                <HelpTip text={ENROLL_HELP} label="What enrollment gives you" />
+              </div>
+            )}
+
+            {isEnrolled && (
+              <section
+                className="mb-10 rounded-2xl border border-cream/10 bg-ink-850 p-5 shadow-card"
+                aria-label="Your progress"
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <h2 className="font-display text-title text-cream">Your progress</h2>
+                  <span className="font-display text-title text-gold">{progress}%</span>
                 </div>
-              ))}
+                <ProgressBar value={progress} className="mt-3" />
+                {nextLesson && (
+                  <p className="mt-3 truncate text-body text-cream-dim">
+                    Next up: <span className="font-semibold text-cream">{nextLesson.title}</span>
+                  </p>
+                )}
+                <Link
+                  href={continueHref}
+                  className="mt-5 inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-cream px-6 text-body font-bold text-ink-950 transition hover:bg-gold-light sm:w-auto"
+                >
+                  <Icon name="play" size={17} variant="Bold" />
+                  <span className="truncate">
+                    {nextLesson ? `Resume: ${nextLesson.title}` : 'Continue learning'}
+                  </span>
+                </Link>
+              </section>
+            )}
 
-              {/* Lessons without module (if any) */}
-              {lessonsWithoutModule.length > 0 && (
-                <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
-                  <div className="p-5 border-b border-slate-800">
-                    <h3 className="text-xl font-bold text-white">
-                      Additional Lessons
-                    </h3>
-                  </div>
+            {/* Course content, Prime episodes style */}
+            <section aria-label="Course content">
+              <SectionHeader title="Course content" className="mb-1" />
+              <p className="mb-5 text-caption text-cream-faint">
+                {formatCompactCount(lessons.length)}{' '}
+                {lessons.length === 1 ? 'lesson' : 'lessons'}
+                {totalDuration > 0 ? `, ${formatDuration(totalDuration)} in total` : ''}
+                {!isEnrolled && lessons.length > 0
+                  ? '. Enroll to unlock every lesson.'
+                  : ''}
+              </p>
 
-                  <div className="divide-y divide-slate-800">
-                    {lessonsWithoutModule.map((lesson, index) => {
-                      const isLocked = !isEnrolled
-                      return (
-                        <div 
-                          key={lesson.id} 
-                          className={`flex items-center gap-4 p-4 transition ${
-                            isLocked ? 'opacity-60' : 'hover:bg-slate-800/50 cursor-pointer'
-                          }`}
-                          onClick={() => {
-                            if (!isLocked) {
-                              router.push(`/courses/${courseId}/learn?lesson=${lesson.id}`)
-                            }
-                          }}
-                        >
-                          <div className="w-8 h-8 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center text-sm font-bold">
-                            {index + 1}
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-white">{lesson.title}</h4>
-                            {lesson.duration && (
-                              <p className="text-xs text-slate-500">⏱️ {lesson.duration} min</p>
-                            )}
-                          </div>
-                          {isLocked ? (
-                            <span className="text-sm text-slate-500">🔒 Locked</span>
-                          ) : (
-                            <span className="text-sm text-brand-primary">▶️ Watch</span>
-                          )}
+              {lessonsByModule.length === 0 && lessonsWithoutModule.length === 0 ? (
+                <EmptyState
+                  title="No content yet"
+                  body="Lessons for this course are still being prepared. Check back soon."
+                />
+              ) : (
+                <div className="space-y-6">
+                  {lessonsByModule.map(({ module, lessons: modLessons }) => (
+                    <div
+                      key={module.id}
+                      className="overflow-hidden rounded-2xl border border-cream/10 bg-ink-850"
+                    >
+                      <div className="border-b border-cream/10 px-4 py-4 sm:px-5">
+                        <div className="flex flex-wrap items-baseline justify-between gap-2">
+                          <h3 className="font-display text-lead text-cream">
+                            {module.title}
+                          </h3>
+                          <span className="text-caption font-semibold text-cream-faint">
+                            {formatCompactCount(modLessons.length)}{' '}
+                            {modLessons.length === 1 ? 'lesson' : 'lessons'}
+                          </span>
                         </div>
-                      )
-                    })}
-                  </div>
+                        {module.description && (
+                          <p className="mt-1 text-body text-cream-dim">
+                            {module.description}
+                          </p>
+                        )}
+                      </div>
+                      <div className="divide-y divide-cream/5">
+                        {modLessons.map((lesson, index) => renderLessonRow(lesson, index))}
+                      </div>
+                    </div>
+                  ))}
+
+                  {lessonsWithoutModule.length > 0 && (
+                    <div className="overflow-hidden rounded-2xl border border-cream/10 bg-ink-850">
+                      <div className="border-b border-cream/10 px-4 py-4 sm:px-5">
+                        <div className="flex flex-wrap items-baseline justify-between gap-2">
+                          <h3 className="font-display text-lead text-cream">
+                            Additional Lessons
+                          </h3>
+                          <span className="text-caption font-semibold text-cream-faint">
+                            {formatCompactCount(lessonsWithoutModule.length)}{' '}
+                            {lessonsWithoutModule.length === 1 ? 'lesson' : 'lessons'}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="divide-y divide-cream/5">
+                        {lessonsWithoutModule.map((lesson, index) =>
+                          renderLessonRow(lesson, index)
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
+            </section>
+          </div>
 
+          {/* Sticky purchase card, Udemy pattern (desktop) */}
+          <aside className="hidden lg:order-2 lg:block">
+            <div className="sticky top-24 overflow-hidden rounded-2xl border border-cream/10 bg-ink-850 shadow-card">
+              <div className="relative aspect-video bg-ink-800">
+                {course.cover_image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={course.cover_image} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                ) : (
+                  <PosterFallback title={course.title} className="absolute inset-0" />
+                )}
+              </div>
+              <div className="p-5">
+                {isEnrolled ? (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span className="text-body font-semibold text-cream-dim">Your progress</span>
+                      <span className="font-display text-lead text-gold">{progress}%</span>
+                    </div>
+                    <ProgressBar value={progress} className="mt-3" />
+                    <Link
+                      href={continueHref}
+                      className="mt-5 inline-flex min-h-[50px] w-full items-center justify-center gap-2 rounded-full bg-cream px-6 text-body font-bold text-ink-950 transition hover:bg-gold-light"
+                    >
+                      <Icon name="play" size={17} variant="Bold" />
+                      {nextLesson ? 'Resume course' : 'Continue learning'}
+                    </Link>
+                    {nextLesson && (
+                      <p className="mt-3 truncate text-center text-caption text-cream-faint">
+                        Next up: {nextLesson.title}
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-1.5">
+                      <Price
+                        amount={course.price}
+                       
+                        className="text-headline text-cream"
+                      />
+                      <HelpTip text={ENROLL_HELP} label="What enrollment gives you" />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleEnroll}
+                      disabled={enrolling}
+                      className="mt-4 inline-flex min-h-[50px] w-full items-center justify-center rounded-full bg-cream px-6 text-body font-bold text-ink-950 shadow-glow transition hover:bg-gold-light disabled:opacity-50"
+                    >
+                      {enrollLabel}
+                    </button>
+                    <p className="mt-3 text-center text-caption text-cream-faint">
+                      {!course.price || course.price === 0
+                        ? 'Free course. It opens as soon as you enroll.'
+                        : 'Secure checkout opens on the next step.'}
+                    </p>
+                  </>
+                )}
+
+                <dl className="mt-6 space-y-3 border-t border-cream/10 pt-5 text-body">
+                  <div className="flex items-center justify-between gap-4">
+                    <dt className="inline-flex items-center gap-2 text-cream-dim">
+                      <Icon name="book" size={16} />
+                      Lessons
+                    </dt>
+                    <dd className="font-semibold text-cream">
+                      {formatCompactCount(lessons.length)}
+                    </dd>
+                  </div>
+                  {totalDuration > 0 && (
+                    <div className="flex items-center justify-between gap-4">
+                      <dt className="inline-flex items-center gap-2 text-cream-dim">
+                        <Icon name="clock" size={16} />
+                        Total length
+                      </dt>
+                      <dd className="font-semibold text-cream">{formatDuration(totalDuration)}</dd>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between gap-4">
+                    <dt className="inline-flex items-center gap-2 text-cream-dim">
+                      <Icon name="award" size={16} />
+                      Level
+                    </dt>
+                    <dd className="font-semibold capitalize text-cream">
+                      {course.level ?? 'All levels'}
+                    </dd>
+                  </div>
+                  {updatedLabel && (
+                    <div className="flex items-center justify-between gap-4">
+                      <dt className="inline-flex items-center gap-2 text-cream-dim">
+                        <Icon name="calendar" size={16} />
+                        Last updated
+                      </dt>
+                      <dd className="font-semibold text-cream">{updatedLabel}</dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
             </div>
-          )}
+          </aside>
         </div>
+
+        {/* Spacer so the pinned mobile bar never covers the last lessons */}
+        <div className="h-[76px] lg:hidden" aria-hidden="true" />
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-800 bg-slate-950 py-12">
-        <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">🪵</span>
-            <p className="text-lg font-bold bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
-              {brand?.display_name || 'IFALODE'}
-            </p>
-          </div>
-          <p className="text-xs text-slate-500">
-            © {new Date().getFullYear()} {brand?.display_name || 'IFALODE'}. Preserving Ifá wisdom for future generations.
-          </p>
-          <div className="flex gap-6 text-sm text-slate-500">
-            <Link href="/store" className="hover:text-white transition">Store</Link>
-            <Link href="/courses" className="hover:text-white transition">Courses</Link>
-            <Link href="/login" className="hover:text-white transition">Sign In</Link>
-          </div>
+      {/* Pinned mobile action bar, above the app tab bar */}
+      <div className="fixed inset-x-0 bottom-[76px] z-40 border-t border-cream/10 bg-ink-900/95 backdrop-blur-xl lg:hidden">
+        <div className="flex items-center justify-between gap-4 px-4 py-3">
+          {isEnrolled ? (
+            <>
+              <div className="min-w-0">
+                <p className="text-caption text-cream-dim">Your progress</p>
+                <p className="font-display text-lead text-cream">{progress}% complete</p>
+              </div>
+              <Link
+                href={continueHref}
+                className="inline-flex min-h-[48px] shrink-0 items-center gap-2 rounded-full bg-cream px-5 text-body font-bold text-ink-950 transition hover:bg-gold-light"
+              >
+                <Icon name="play" size={16} variant="Bold" />
+                Continue
+              </Link>
+            </>
+          ) : (
+            <>
+              <Price
+                amount={course.price}
+               
+                className="shrink-0 text-title text-cream"
+              />
+              <button
+                type="button"
+                onClick={handleEnroll}
+                disabled={enrolling}
+                className="inline-flex min-h-[48px] shrink-0 items-center rounded-full bg-cream px-6 text-body font-bold text-ink-950 transition hover:bg-gold-light disabled:opacity-50"
+              >
+                {enrollLabel}
+              </button>
+            </>
+          )}
         </div>
-      </footer>
+      </div>
     </div>
   )
 }

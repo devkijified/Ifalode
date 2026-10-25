@@ -30,7 +30,7 @@ const initialForm: ProductForm = {
 }
 
 const inputClassName =
-  'w-full rounded-xl border border-slate-800 bg-slate-950 px-3.5 py-3 text-sm text-slate-100 placeholder-slate-600 outline-none transition focus:border-brand-primary/50 focus:ring-2 focus:ring-brand-primary/20'
+  'w-full rounded-xl border border-cream/10 bg-ink-950 px-3.5 py-3 text-sm text-cream placeholder-cream-faint outline-none transition focus:border-brand-primary/50 focus:ring-2 focus:ring-brand-primary/20'
 
 export default function NewProductPage() {
   const router = useRouter()
@@ -128,13 +128,13 @@ export default function NewProductPage() {
 
   if (status === 'denied') {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-ink-950 text-cream flex items-center justify-center px-4">
         <div className="text-center">
           <p className="text-5xl mb-5">🔒</p>
 
           <h1 className="text-2xl font-bold">Access denied</h1>
 
-          <p className="mt-2 text-slate-500">
+          <p className="mt-2 text-cream-faint">
             You do not have permission to manage the store.
           </p>
 
@@ -150,13 +150,13 @@ export default function NewProductPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
-      <header className="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-xl">
+    <main className="min-h-screen bg-ink-950 text-cream">
+      <header className="sticky top-0 z-40 border-b border-cream/10/80 bg-ink-950/90 backdrop-blur-xl">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div>
             <Link
               href="/admin/store"
-              className="text-sm text-slate-500 hover:text-white transition"
+              className="text-sm text-cream-faint hover:text-white transition"
             >
               ← Store Management
             </Link>
@@ -175,7 +175,7 @@ export default function NewProductPage() {
           </div>
         )}
 
-        <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5 sm:p-7">
+        <section className="rounded-2xl border border-cream/10 bg-ink-850 p-5 sm:p-7">
           <div className="mb-6">
             <p className="text-xs uppercase tracking-[.2em] text-brand-primary font-bold">
               Product editor
@@ -185,7 +185,7 @@ export default function NewProductPage() {
               Create a product
             </h2>
 
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-cream-faint">
               Add an ebook, digital resource, or other product to the store.
             </p>
           </div>
@@ -258,15 +258,15 @@ export default function NewProductPage() {
                   type="checkbox"
                   checked={form.is_ebook}
                   onChange={(event) => updateForm('is_ebook', event.target.checked)}
-                  className="h-4 w-4 rounded border-slate-700 bg-slate-950 text-brand-primary focus:ring-brand-primary"
+                  className="h-4 w-4 rounded border-cream/15 bg-ink-950 text-brand-primary focus:ring-brand-primary"
                 />
 
                 <span>
-                  <span className="block text-sm font-semibold text-slate-200">
+                  <span className="block text-sm font-semibold text-cream">
                     Digital product
                   </span>
 
-                  <span className="block text-xs text-slate-500 mt-1">
+                  <span className="block text-xs text-cream-faint mt-1">
                     Mark this product as an ebook or digital resource.
                   </span>
                 </span>
@@ -293,7 +293,7 @@ export default function NewProductPage() {
 
               <Link
                 href="/admin/store"
-                className="px-6 py-3 rounded-xl border border-slate-800 text-sm text-slate-400 hover:bg-slate-800 hover:text-white transition"
+                className="px-6 py-3 rounded-xl border border-cream/10 text-sm text-cream-dim hover:bg-ink-700 hover:text-white transition"
               >
                 Cancel
               </Link>
@@ -318,7 +318,7 @@ function FormField({
 }) {
   return (
     <label className={`block ${className}`}>
-      <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-400">
+      <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-cream-dim">
         {label}
         {required && <span className="ml-1 text-brand-primary">*</span>}
       </span>
@@ -329,10 +329,10 @@ function FormField({
 
 function LoadingScreen({ text }: { text: string }) {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center">
+    <div className="min-h-screen bg-ink-950 text-cream flex items-center justify-center">
       <div className="text-center">
         <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-brand-primary border-t-transparent" />
-        <p className="text-slate-400">{text}</p>
+        <p className="text-cream-dim">{text}</p>
       </div>
     </div>
   )

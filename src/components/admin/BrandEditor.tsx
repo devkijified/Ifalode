@@ -28,11 +28,11 @@ export const BrandEditor = () => {
   }, [brand])
 
   if (loading) {
-    return <div className="text-slate-400 p-6 bg-slate-900 rounded-xl">Loading brand settings...</div>
+    return <div className="text-cream-dim p-6 bg-ink-850 rounded-xl">Loading brand settings...</div>
   }
 
   if (!brand) {
-    return <div className="text-slate-400 p-6 bg-slate-900 rounded-xl">No brand settings found.</div>
+    return <div className="text-cream-dim p-6 bg-ink-850 rounded-xl">No brand settings found.</div>
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,7 +87,7 @@ export const BrandEditor = () => {
   }
 
   return (
-    <div className="bg-slate-900 rounded-xl shadow-sm p-6 text-white border border-slate-800">
+    <div className="bg-ink-850 rounded-xl shadow-sm p-6 text-white border border-cream/10">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-white">Brand Settings</h2>
         {!isEditing ? (
@@ -100,7 +100,7 @@ export const BrandEditor = () => {
         ) : (
           <button
             onClick={cancelEditing}
-            className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition"
+            className="px-4 py-2 bg-ink-600 text-white rounded-lg hover:bg-slate-600 transition"
           >
             Cancel
           </button>
@@ -122,57 +122,57 @@ export const BrandEditor = () => {
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-slate-400">Brand Name</p>
+              <p className="text-sm text-cream-dim">Brand Name</p>
               <p className="font-semibold text-white">{brand.brand_name}</p>
             </div>
             <div>
-              <p className="text-sm text-slate-400">Display Name</p>
+              <p className="text-sm text-cream-dim">Display Name</p>
               <p className="font-semibold text-white">{brand.display_name}</p>
             </div>
             <div>
-              <p className="text-sm text-slate-400">Primary Color</p>
+              <p className="text-sm text-cream-dim">Primary Color</p>
               <div className="flex items-center gap-2">
                 <div 
-                  className="w-6 h-6 rounded-full border border-slate-700" 
+                  className="w-6 h-6 rounded-full border border-cream/15" 
                   style={{ backgroundColor: brand.primary_color }}
                 />
                 <span className="text-white">{brand.primary_color}</span>
               </div>
             </div>
             <div>
-              <p className="text-sm text-slate-400">Secondary Color</p>
+              <p className="text-sm text-cream-dim">Secondary Color</p>
               <div className="flex items-center gap-2">
                 <div 
-                  className="w-6 h-6 rounded-full border border-slate-700" 
+                  className="w-6 h-6 rounded-full border border-cream/15" 
                   style={{ backgroundColor: brand.secondary_color }}
                 />
                 <span className="text-white">{brand.secondary_color}</span>
               </div>
             </div>
             <div>
-              <p className="text-sm text-slate-400">Accent Color</p>
+              <p className="text-sm text-cream-dim">Accent Color</p>
               <div className="flex items-center gap-2">
                 <div 
-                  className="w-6 h-6 rounded-full border border-slate-700" 
+                  className="w-6 h-6 rounded-full border border-cream/15" 
                   style={{ backgroundColor: brand.accent_color }}
                 />
                 <span className="text-white">{brand.accent_color}</span>
               </div>
             </div>
             <div>
-              <p className="text-sm text-slate-400">Font Family</p>
+              <p className="text-sm text-cream-dim">Font Family</p>
               <p className="font-semibold text-white">{brand.font_family}</p>
             </div>
           </div>
           {brand.meta_title && (
             <div>
-              <p className="text-sm text-slate-400">Meta Title</p>
+              <p className="text-sm text-cream-dim">Meta Title</p>
               <p className="font-semibold text-white">{brand.meta_title}</p>
             </div>
           )}
           {brand.meta_description && (
             <div>
-              <p className="text-sm text-slate-400">Meta Description</p>
+              <p className="text-sm text-cream-dim">Meta Description</p>
               <p className="font-semibold text-white">{brand.meta_description}</p>
             </div>
           )}
@@ -183,90 +183,90 @@ export const BrandEditor = () => {
       {isEditing && (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1 text-slate-300">Brand Name</label>
+            <label className="block text-sm font-medium mb-1 text-cream-dim">Brand Name</label>
             <input
               type="text"
               name="brand_name"
               value={formData.brand_name || ''}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg focus:ring-2 focus:ring-brand-primary text-white placeholder-slate-500"
+              className="w-full px-4 py-2 bg-ink-700 border border-cream/15 rounded-lg focus:ring-2 focus:ring-brand-primary text-white placeholder-cream-faint"
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium mb-1 text-slate-300">Display Name</label>
+            <label className="block text-sm font-medium mb-1 text-cream-dim">Display Name</label>
             <input
               type="text"
               name="display_name"
               value={formData.display_name || ''}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg focus:ring-2 focus:ring-brand-primary text-white placeholder-slate-500"
+              className="w-full px-4 py-2 bg-ink-700 border border-cream/15 rounded-lg focus:ring-2 focus:ring-brand-primary text-white placeholder-cream-faint"
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1 text-slate-300">Primary Color</label>
+              <label className="block text-sm font-medium mb-1 text-cream-dim">Primary Color</label>
               <input
                 type="color"
                 name="primary_color"
                 value={formData.primary_color || '#8B5E3C'}
                 onChange={handleChange}
-                className="w-full h-12 rounded-lg cursor-pointer bg-slate-800 border border-slate-700 p-1"
+                className="w-full h-12 rounded-lg cursor-pointer bg-ink-700 border border-cream/15 p-1"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1 text-slate-300">Secondary Color</label>
+              <label className="block text-sm font-medium mb-1 text-cream-dim">Secondary Color</label>
               <input
                 type="color"
                 name="secondary_color"
                 value={formData.secondary_color || '#D4A574'}
                 onChange={handleChange}
-                className="w-full h-12 rounded-lg cursor-pointer bg-slate-800 border border-slate-700 p-1"
+                className="w-full h-12 rounded-lg cursor-pointer bg-ink-700 border border-cream/15 p-1"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1 text-slate-300">Accent Color</label>
+              <label className="block text-sm font-medium mb-1 text-cream-dim">Accent Color</label>
               <input
                 type="color"
                 name="accent_color"
                 value={formData.accent_color || '#C41E3A'}
                 onChange={handleChange}
-                className="w-full h-12 rounded-lg cursor-pointer bg-slate-800 border border-slate-700 p-1"
+                className="w-full h-12 rounded-lg cursor-pointer bg-ink-700 border border-cream/15 p-1"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1 text-slate-300">Font Family</label>
+            <label className="block text-sm font-medium mb-1 text-cream-dim">Font Family</label>
             <input
               type="text"
               name="font_family"
               value={formData.font_family || 'Inter'}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg focus:ring-2 focus:ring-brand-primary text-white placeholder-slate-500"
+              className="w-full px-4 py-2 bg-ink-700 border border-cream/15 rounded-lg focus:ring-2 focus:ring-brand-primary text-white placeholder-cream-faint"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1 text-slate-300">Meta Title (SEO)</label>
+            <label className="block text-sm font-medium mb-1 text-cream-dim">Meta Title (SEO)</label>
             <input
               type="text"
               name="meta_title"
               value={formData.meta_title || ''}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg focus:ring-2 focus:ring-brand-primary text-white placeholder-slate-500"
+              className="w-full px-4 py-2 bg-ink-700 border border-cream/15 rounded-lg focus:ring-2 focus:ring-brand-primary text-white placeholder-cream-faint"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1 text-slate-300">Meta Description (SEO)</label>
+            <label className="block text-sm font-medium mb-1 text-cream-dim">Meta Description (SEO)</label>
             <input
               type="text"
               name="meta_description"
               value={formData.meta_description || ''}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg focus:ring-2 focus:ring-brand-primary text-white placeholder-slate-500"
+              className="w-full px-4 py-2 bg-ink-700 border border-cream/15 rounded-lg focus:ring-2 focus:ring-brand-primary text-white placeholder-cream-faint"
             />
           </div>
 
@@ -281,7 +281,7 @@ export const BrandEditor = () => {
             <button
               type="button"
               onClick={cancelEditing}
-              className="px-6 py-2.5 bg-slate-700 text-slate-300 rounded-lg font-semibold hover:bg-slate-600 transition"
+              className="px-6 py-2.5 bg-ink-600 text-cream-dim rounded-lg font-semibold hover:bg-slate-600 transition"
             >
               Cancel
             </button>

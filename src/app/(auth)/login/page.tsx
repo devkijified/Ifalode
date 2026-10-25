@@ -1,13 +1,29 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useBrand } from '@/hooks/useBrand'
 
 export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
+  )
+}
+
+function LoginForm() {
   const { brand } = useBrand()
+  const searchParams = useSearchParams()
+  // Only same-site paths are honoured, so a crafted link cannot bounce a
+  // signed-in user off the app.
+  const rawRedirect = searchParams.get('redirect')
+  const redirect =
+    rawRedirect && rawRedirect.startsWith('/') && !rawRedirect.startsWith('//')
+      ? rawRedirect
+      : null
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -41,9 +57,12 @@ export default function LoginPage() {
         .eq('id', user.id)
         .single()
 
-      // Redirect based on role
+      // Redirect based on role, honouring a same-site redirect target
+      // (for example the lesson player sending a student back to class)
       if (profile?.role === 'admin') {
         router.push('/admin')
+      } else if (redirect) {
+        router.push(redirect)
       } else {
         router.push('/dashboard')
       }
@@ -56,14 +75,14 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-slate-950 text-slate-100 selection:bg-brand-primary selection:text-white">
+    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-ink-950 text-cream selection:bg-brand-primary selection:text-white">
       {/* Left Visual Side */}
-      <div className="hidden lg:flex flex-col justify-between p-12 relative overflow-hidden bg-slate-900 border-r border-slate-800/80">
+      <div className="hidden lg:flex flex-col justify-between p-12 relative overflow-hidden bg-ink-850 border-r border-cream/10/80">
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-brand-primary/15 blur-[120px] pointer-events-none rounded-full" />
         <div className="absolute bottom-10 right-10 w-[300px] h-[300px] bg-brand-secondary/10 blur-[100px] pointer-events-none rounded-full" />
 
         <div className="relative z-10">
-          <Link href="/" className="text-2xl font-black tracking-wider bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
+          <Link href="/" className="text-2xl font-display tracking-tight text-cream font-display">
             {brand?.display_name || 'Ifalode'}
           </Link>
         </div>
@@ -74,14 +93,14 @@ export default function LoginPage() {
             Welcome Back
           </div>
           <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight mb-6 leading-tight">
-            Continue your exploration of <span className="bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">sacred wisdom</span>.
+            Continue your exploration of <span className="text-cream font-display">sacred wisdom</span>.
           </h1>
-          <p className="text-slate-400 text-base leading-relaxed">
+          <p className="text-cream-dim text-base leading-relaxed">
             Access your purchased ebooks, active masterclasses, and continue your spiritual learning journey right where you left off.
           </p>
         </div>
 
-        <div className="relative z-10 text-xs text-slate-500">
+        <div className="relative z-10 text-xs text-cream-faint">
           © {new Date().getFullYear()} {brand?.display_name || 'Ifalode'}. All rights reserved.
         </div>
       </div>
@@ -90,14 +109,14 @@ export default function LoginPage() {
       <div className="flex items-center justify-center p-8 sm:p-12 lg:p-16">
         <div className="w-full max-w-md space-y-8">
           <div className="lg:hidden text-center mb-4">
-            <Link href="/" className="text-2xl font-black tracking-wider bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
+            <Link href="/" className="text-2xl font-display tracking-tight text-cream font-display">
               {brand?.display_name || 'Ifalode'}
             </Link>
           </div>
 
           <div className="text-center lg:text-left">
             <h2 className="text-3xl font-bold tracking-tight text-white">Sign in to your account</h2>
-            <p className="mt-2 text-sm text-slate-400">
+            <p className="mt-2 text-sm text-cream-dim">
               Or{' '}
               <Link href="/signup" className="font-semibold text-brand-primary hover:text-brand-secondary transition">
                 create a new account
@@ -108,7 +127,7 @@ export default function LoginPage() {
           <form className="mt-8 space-y-5" onSubmit={handleLogin}>
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-cream-dim mb-2">
                   Email Address
                 </label>
                 <input
@@ -116,13 +135,13 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition text-sm"
+                  className="w-full px-4 py-3 bg-ink-850 border border-cream/10 rounded-xl text-cream placeholder-cream-faint focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition text-sm"
                   placeholder="name@example.com"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-cream-dim mb-2">
                   Password
                 </label>
                 <input
@@ -130,7 +149,7 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition text-sm"
+                  className="w-full px-4 py-3 bg-ink-850 border border-cream/10 rounded-xl text-cream placeholder-cream-faint focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition text-sm"
                   placeholder="Enter your password"
                 />
               </div>
@@ -139,7 +158,7 @@ export default function LoginPage() {
             <div className="flex items-center justify-end">
               <Link 
                 href="/forgot-password"
-                className="text-sm text-slate-400 hover:text-brand-primary transition"
+                className="text-sm text-cream-dim hover:text-brand-primary transition"
               >
                 Forgot password?
               </Link>

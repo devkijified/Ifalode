@@ -66,7 +66,7 @@ const initialLessonForm: LessonForm = {
 }
 
 const inputClassName =
-  'w-full rounded-xl border border-slate-800 bg-slate-950 px-3.5 py-3 text-sm text-slate-100 placeholder-slate-600 outline-none transition focus:border-brand-primary/50 focus:ring-2 focus:ring-brand-primary/20'
+  'w-full rounded-xl border border-cream/10 bg-ink-950 px-3.5 py-3 text-sm text-cream placeholder-cream-faint outline-none transition focus:border-brand-primary/50 focus:ring-2 focus:ring-brand-primary/20'
 
 export default function AdminCourseContentPage() {
   const params = useParams()
@@ -451,13 +451,13 @@ export default function AdminCourseContentPage() {
 
   if (status === 'denied') {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-ink-950 text-cream flex items-center justify-center px-4">
         <div className="text-center">
           <p className="text-5xl mb-5">🔒</p>
 
           <h1 className="text-2xl font-bold">Access denied</h1>
 
-          <p className="mt-2 text-slate-500">
+          <p className="mt-2 text-cream-faint">
             You do not have permission to manage this course.
           </p>
 
@@ -478,11 +478,11 @@ export default function AdminCourseContentPage() {
 
   if (!course) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-ink-950 text-cream flex items-center justify-center px-4">
         <div className="text-center">
           <h1 className="text-2xl font-bold">Course not found</h1>
 
-          <p className="mt-2 text-slate-500">
+          <p className="mt-2 text-cream-faint">
             This course could not be loaded.
           </p>
 
@@ -498,13 +498,13 @@ export default function AdminCourseContentPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
-      <header className="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-xl">
+    <main className="min-h-screen bg-ink-950 text-cream">
+      <header className="sticky top-0 z-40 border-b border-cream/10/80 bg-ink-950/90 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div>
             <Link
               href="/admin/lms"
-              className="text-sm text-slate-500 hover:text-white transition"
+              className="text-sm text-cream-faint hover:text-white transition"
             >
               ← LMS Management
             </Link>
@@ -516,7 +516,7 @@ export default function AdminCourseContentPage() {
 
           <Link
             href={`/courses/${course.slug}`}
-            className="px-4 py-2.5 rounded-xl border border-slate-800 text-sm text-slate-300 hover:bg-slate-900 hover:text-white transition"
+            className="px-4 py-2.5 rounded-xl border border-cream/10 text-sm text-cream-dim hover:bg-ink-850 hover:text-white transition"
           >
             View Course
           </Link>
@@ -537,7 +537,7 @@ export default function AdminCourseContentPage() {
         )}
 
         <div className="grid xl:grid-cols-2 gap-8">
-          <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+          <section className="rounded-2xl border border-cream/10 bg-ink-850 p-6">
             <p className="text-xs uppercase tracking-[.2em] text-brand-primary font-bold">
               Modules
             </p>
@@ -607,7 +607,7 @@ export default function AdminCourseContentPage() {
                       setEditingModuleId(null)
                       setModuleForm(initialModuleForm)
                     }}
-                    className="px-5 py-3 rounded-xl border border-slate-800 text-sm text-slate-400 hover:bg-slate-800 hover:text-white transition"
+                    className="px-5 py-3 rounded-xl border border-cream/10 text-sm text-cream-dim hover:bg-ink-700 hover:text-white transition"
                   >
                     Cancel
                   </button>
@@ -617,7 +617,7 @@ export default function AdminCourseContentPage() {
 
             <div className="mt-8 space-y-3">
               {modules.length === 0 ? (
-                <p className="rounded-xl border border-dashed border-slate-800 p-5 text-sm text-slate-500">
+                <p className="rounded-xl border border-dashed border-cream/10 p-5 text-sm text-cream-faint">
                   No modules yet.
                 </p>
               ) : (
@@ -629,7 +629,7 @@ export default function AdminCourseContentPage() {
                   return (
                     <div
                       key={module.id}
-                      className="rounded-xl border border-slate-800 bg-slate-950 p-4"
+                      className="rounded-xl border border-cream/10 bg-ink-950 p-4"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
@@ -642,12 +642,12 @@ export default function AdminCourseContentPage() {
                           </h3>
 
                           {module.description && (
-                            <p className="mt-1 text-sm text-slate-500">
+                            <p className="mt-1 text-sm text-cream-faint">
                               {module.description}
                             </p>
                           )}
 
-                          <p className="mt-3 text-xs text-slate-600">
+                          <p className="mt-3 text-xs text-cream-faint">
                             {moduleLessonCount} lesson
                             {moduleLessonCount === 1 ? '' : 's'}
                           </p>
@@ -656,7 +656,7 @@ export default function AdminCourseContentPage() {
                         <div className="flex gap-3">
                           <button
                             onClick={() => editModule(module)}
-                            className="text-xs text-slate-400 hover:text-white transition"
+                            className="text-xs text-cream-dim hover:text-white transition"
                           >
                             Edit
                           </button>
@@ -676,7 +676,7 @@ export default function AdminCourseContentPage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+          <section className="rounded-2xl border border-cream/10 bg-ink-850 p-6">
             <p className="text-xs uppercase tracking-[.2em] text-brand-primary font-bold">
               Lessons
             </p>
@@ -794,7 +794,7 @@ export default function AdminCourseContentPage() {
                       setEditingLessonId(null)
                       setLessonForm(initialLessonForm)
                     }}
-                    className="px-5 py-3 rounded-xl border border-slate-800 text-sm text-slate-400 hover:bg-slate-800 hover:text-white transition"
+                    className="px-5 py-3 rounded-xl border border-cream/10 text-sm text-cream-dim hover:bg-ink-700 hover:text-white transition"
                   >
                     Cancel
                   </button>
@@ -804,7 +804,7 @@ export default function AdminCourseContentPage() {
 
             <div className="mt-8 space-y-6">
               {modules.length === 0 ? (
-                <p className="rounded-xl border border-dashed border-slate-800 p-5 text-sm text-slate-500">
+                <p className="rounded-xl border border-dashed border-cream/10 p-5 text-sm text-cream-faint">
                   Create a module before adding lessons.
                 </p>
               ) : (
@@ -826,7 +826,7 @@ export default function AdminCourseContentPage() {
                       </h3>
 
                       {moduleLessons.length === 0 ? (
-                        <p className="rounded-xl border border-dashed border-slate-800 p-4 text-xs text-slate-600">
+                        <p className="rounded-xl border border-dashed border-cream/10 p-4 text-xs text-cream-faint">
                           No lessons in this module.
                         </p>
                       ) : (
@@ -834,10 +834,10 @@ export default function AdminCourseContentPage() {
                           {moduleLessons.map((lesson) => (
                             <div
                               key={lesson.id}
-                              className="flex items-center justify-between gap-3 rounded-xl border border-slate-800 bg-slate-950 p-4"
+                              className="flex items-center justify-between gap-3 rounded-xl border border-cream/10 bg-ink-950 p-4"
                             >
                               <div>
-                                <p className="text-xs text-slate-600">
+                                <p className="text-xs text-cream-faint">
                                   Lesson {lesson.order_number}
                                 </p>
 
@@ -845,7 +845,7 @@ export default function AdminCourseContentPage() {
                                   {lesson.title}
                                 </p>
 
-                                <p className="text-xs text-slate-500">
+                                <p className="text-xs text-cream-faint">
                                   {lesson.duration || 0} minutes
                                 </p>
                               </div>
@@ -855,7 +855,7 @@ export default function AdminCourseContentPage() {
                                   onClick={() =>
                                     editLesson(lesson)
                                   }
-                                  className="text-xs text-slate-400 hover:text-white transition"
+                                  className="text-xs text-cream-dim hover:text-white transition"
                                 >
                                   Edit
                                 </button>
@@ -887,10 +887,10 @@ export default function AdminCourseContentPage() {
 
 function LoadingScreen({ text }: { text: string }) {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center">
+    <div className="min-h-screen bg-ink-950 text-cream flex items-center justify-center">
       <div className="text-center">
         <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-brand-primary border-t-transparent" />
-        <p className="text-slate-400">{text}</p>
+        <p className="text-cream-dim">{text}</p>
       </div>
     </div>
   )

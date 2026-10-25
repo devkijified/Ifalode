@@ -68,11 +68,11 @@ export default function ResetPasswordPage() {
   // Show error if no valid session
   if (validToken === false) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-ink-950 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 text-center">
           <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-6">
             <h2 className="text-2xl font-bold text-white mb-2">Invalid or Expired Link</h2>
-            <p className="text-slate-400 mb-4">
+            <p className="text-cream-dim mb-4">
               This password reset link is invalid or has expired.
             </p>
             <Link 
@@ -89,20 +89,20 @@ export default function ResetPasswordPage() {
 
   if (validToken === null) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">
+      <div className="min-h-screen bg-ink-950 flex items-center justify-center text-white">
         Verifying...
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-ink-950 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
             Create New Password
           </h2>
-          <p className="mt-2 text-center text-sm text-slate-400">
+          <p className="mt-2 text-center text-sm text-cream-dim">
             Enter your new password below.
           </p>
         </div>
@@ -110,7 +110,7 @@ export default function ResetPasswordPage() {
         {success ? (
           <div className="rounded-xl bg-green-500/10 border border-green-500/20 p-6 text-center">
             <p className="text-green-400 font-medium text-lg">✅ Password Reset Successfully!</p>
-            <p className="text-sm text-slate-400 mt-1">Redirecting to sign in...</p>
+            <p className="text-sm text-cream-dim mt-1">Redirecting to sign in...</p>
           </div>
         ) : (
           <form className="mt-8 space-y-6" onSubmit={handleResetPassword}>
@@ -125,7 +125,7 @@ export default function ResetPasswordPage() {
                   required
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="appearance-none relative block w-full px-3 py-2 border border-slate-700 bg-slate-900 placeholder-slate-500 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent sm:text-sm"
+                  className="appearance-none relative block w-full px-3 py-2 border border-cream/15 bg-ink-850 placeholder-cream-faint text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent sm:text-sm"
                   placeholder="New Password (min 6 characters)"
                   minLength={6}
                 />
@@ -140,7 +140,7 @@ export default function ResetPasswordPage() {
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="appearance-none relative block w-full px-3 py-2 border border-slate-700 bg-slate-900 placeholder-slate-500 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent sm:text-sm"
+                  className="appearance-none relative block w-full px-3 py-2 border border-cream/15 bg-ink-850 placeholder-cream-faint text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent sm:text-sm"
                   placeholder="Confirm Password"
                   minLength={6}
                 />
@@ -166,7 +166,7 @@ export default function ResetPasswordPage() {
             <div className="text-center text-sm">
               <Link 
                 href="/login" 
-                className="text-slate-400 hover:text-brand-primary transition"
+                className="text-cream-dim hover:text-brand-primary transition"
               >
                 ← Back to Sign In
               </Link>

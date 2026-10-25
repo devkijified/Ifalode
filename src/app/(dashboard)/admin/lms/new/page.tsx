@@ -32,7 +32,7 @@ const initialForm: CourseForm = {
 }
 
 const inputClassName =
-  'w-full rounded-xl border border-slate-800 bg-slate-950 px-3.5 py-3 text-sm text-slate-100 placeholder-slate-600 outline-none transition focus:border-brand-primary/50 focus:ring-2 focus:ring-brand-primary/20'
+  'w-full rounded-xl border border-cream/10 bg-ink-950 px-3.5 py-3 text-sm text-cream placeholder-cream-faint outline-none transition focus:border-brand-primary/50 focus:ring-2 focus:ring-brand-primary/20'
 
 function createSlug(title: string) {
   return title
@@ -150,13 +150,13 @@ export default function NewCoursePage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
-      <header className="border-b border-slate-800 bg-slate-950/90">
+    <main className="min-h-screen bg-ink-950 text-cream">
+      <header className="border-b border-cream/10 bg-ink-950/90">
         <div className="mx-auto flex h-20 max-w-4xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <div>
             <Link
               href="/admin/lms"
-              className="text-sm text-slate-500 transition hover:text-white"
+              className="text-sm text-cream-faint transition hover:text-white"
             >
               ← LMS Management
             </Link>
@@ -173,7 +173,7 @@ export default function NewCoursePage() {
 
         <form
           onSubmit={createCourse}
-          className="rounded-2xl border border-slate-800 bg-slate-900 p-6 sm:p-8"
+          className="rounded-2xl border border-cream/10 bg-ink-850 p-6 sm:p-8"
         >
           <div className="grid gap-5 md:grid-cols-2">
             <FormField
@@ -276,14 +276,14 @@ export default function NewCoursePage() {
                 onChange={(event) =>
                   updateForm('is_published', event.target.checked)
                 }
-                className="h-4 w-4 rounded border-slate-700 bg-slate-950 text-brand-primary focus:ring-brand-primary"
+                className="h-4 w-4 rounded border-cream/15 bg-ink-950 text-brand-primary focus:ring-brand-primary"
               />
 
               <span>
                 <span className="block text-sm font-semibold">
                   Publish course
                 </span>
-                <span className="mt-1 block text-xs text-slate-500">
+                <span className="mt-1 block text-xs text-cream-faint">
                   Published courses are visible to learners.
                 </span>
               </span>
@@ -301,7 +301,7 @@ export default function NewCoursePage() {
 
             <Link
               href="/admin/lms"
-              className="rounded-xl border border-slate-800 px-6 py-3 text-sm text-slate-400 transition hover:bg-slate-800 hover:text-white"
+              className="rounded-xl border border-cream/10 px-6 py-3 text-sm text-cream-dim transition hover:bg-ink-700 hover:text-white"
             >
               Cancel
             </Link>
@@ -325,7 +325,7 @@ function FormField({
 }) {
   return (
     <label className={`block ${className}`}>
-      <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-400">
+      <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-cream-dim">
         {label}
         {required && (
           <span className="ml-1 text-brand-primary">*</span>
@@ -339,10 +339,10 @@ function FormField({
 
 function LoadingScreen({ text }: { text: string }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-100">
+    <div className="flex min-h-screen items-center justify-center bg-ink-950 text-cream">
       <div className="text-center">
         <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-brand-primary border-t-transparent" />
-        <p className="text-slate-400">{text}</p>
+        <p className="text-cream-dim">{text}</p>
       </div>
     </div>
   )
@@ -350,11 +350,11 @@ function LoadingScreen({ text }: { text: string }) {
 
 function DeniedScreen() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4 text-slate-100">
+    <div className="flex min-h-screen items-center justify-center bg-ink-950 px-4 text-cream">
       <div className="text-center">
         <p className="mb-5 text-5xl">🔒</p>
         <h1 className="text-2xl font-bold">Access denied</h1>
-        <p className="mt-2 text-slate-500">
+        <p className="mt-2 text-cream-faint">
           You do not have permission to manage the LMS.
         </p>
         <Link

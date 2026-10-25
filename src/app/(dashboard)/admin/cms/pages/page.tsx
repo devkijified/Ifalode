@@ -38,7 +38,7 @@ const initialForm: PageForm = {
 }
 
 const inputClassName =
-  'w-full rounded-xl border border-slate-800 bg-slate-950 px-3.5 py-3 text-sm text-slate-100 placeholder-slate-600 outline-none transition focus:border-brand-primary/50 focus:ring-2 focus:ring-brand-primary/20'
+  'w-full rounded-xl border border-cream/10 bg-ink-950 px-3.5 py-3 text-sm text-cream placeholder-cream-faint outline-none transition focus:border-brand-primary/50 focus:ring-2 focus:ring-brand-primary/20'
 
 function slugify(value: string) {
   return value
@@ -325,13 +325,13 @@ export default function AdminPagesPage() {
 
   if (status === 'denied') {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-ink-950 text-cream flex items-center justify-center px-4">
         <div className="text-center">
           <p className="text-5xl mb-5">🔒</p>
 
           <h1 className="text-2xl font-bold">Access denied</h1>
 
-          <p className="mt-2 text-slate-500">
+          <p className="mt-2 text-cream-faint">
             You do not have permission to manage site pages.
           </p>
 
@@ -347,13 +347,13 @@ export default function AdminPagesPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
-      <header className="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-xl">
+    <main className="min-h-screen bg-ink-950 text-cream">
+      <header className="sticky top-0 z-40 border-b border-cream/10/80 bg-ink-950/90 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div>
             <Link
               href="/admin/cms"
-              className="text-sm text-slate-500 hover:text-white transition"
+              className="text-sm text-cream-faint hover:text-white transition"
             >
               ← Site Content & Branding
             </Link>
@@ -386,7 +386,7 @@ export default function AdminPagesPage() {
           </div>
         )}
 
-        <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5 sm:p-7">
+        <section className="rounded-2xl border border-cream/10 bg-ink-850 p-5 sm:p-7">
           <div className="flex items-start justify-between gap-4 mb-6">
             <div>
               <p className="text-xs uppercase tracking-[.2em] text-brand-primary font-bold">
@@ -397,7 +397,7 @@ export default function AdminPagesPage() {
                 {editingPage ? 'Edit page' : 'Create a page'}
               </h2>
 
-              <p className="mt-2 text-sm text-slate-500">
+              <p className="mt-2 text-sm text-cream-faint">
                 Static pages like About, FAQ, or Terms of Service.
               </p>
             </div>
@@ -406,7 +406,7 @@ export default function AdminPagesPage() {
               <button
                 onClick={cancelEdit}
                 type="button"
-                className="text-sm text-slate-500 hover:text-white transition"
+                className="text-sm text-cream-faint hover:text-white transition"
               >
                 Cancel edit
               </button>
@@ -427,7 +427,7 @@ export default function AdminPagesPage() {
 
               <FormField label="Slug" required>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-600 shrink-0">/</span>
+                  <span className="text-xs text-cream-faint shrink-0">/</span>
                   <input
                     value={form.slug}
                     onChange={(event) => {
@@ -483,15 +483,15 @@ export default function AdminPagesPage() {
                   onChange={(event) =>
                     updateForm('is_published', event.target.checked)
                   }
-                  className="h-4 w-4 rounded border-slate-700 bg-slate-950 text-brand-primary focus:ring-brand-primary"
+                  className="h-4 w-4 rounded border-cream/15 bg-ink-950 text-brand-primary focus:ring-brand-primary"
                 />
 
                 <span>
-                  <span className="block text-sm font-semibold text-slate-200">
+                  <span className="block text-sm font-semibold text-cream">
                     Published
                   </span>
 
-                  <span className="block text-xs text-slate-500 mt-1">
+                  <span className="block text-xs text-cream-faint mt-1">
                     Visible to site visitors when checked.
                   </span>
                 </span>
@@ -515,7 +515,7 @@ export default function AdminPagesPage() {
                 <button
                   type="button"
                   onClick={cancelEdit}
-                  className="px-6 py-3 rounded-xl border border-slate-800 text-sm text-slate-400 hover:bg-slate-800 hover:text-white transition"
+                  className="px-6 py-3 rounded-xl border border-cream/10 text-sm text-cream-dim hover:bg-ink-700 hover:text-white transition"
                 >
                   Cancel
                 </button>
@@ -534,28 +534,28 @@ export default function AdminPagesPage() {
               <h2 className="mt-2 text-2xl font-bold">Pages</h2>
             </div>
 
-            <span className="text-sm text-slate-500">
+            <span className="text-sm text-cream-faint">
               {pages.length} page{pages.length === 1 ? '' : 's'}
             </span>
           </div>
 
           {loading ? (
-            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-10 text-center text-slate-500">
+            <div className="rounded-2xl border border-cream/10 bg-ink-850 p-10 text-center text-cream-faint">
               Loading pages...
             </div>
           ) : pages.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/50 p-10 text-center">
+            <div className="rounded-2xl border border-dashed border-cream/10 bg-ink-850/50 p-10 text-center">
               <p className="text-4xl mb-4">📄</p>
               <h3 className="text-lg font-bold">No pages yet</h3>
-              <p className="mt-2 text-sm text-slate-500">
+              <p className="mt-2 text-sm text-cream-faint">
                 Create your first page above.
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-slate-800">
+            <div className="overflow-x-auto rounded-xl border border-cream/10">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-800 bg-slate-950/60 text-left text-xs uppercase tracking-wide text-slate-500">
+                  <tr className="border-b border-cream/10 bg-ink-950/60 text-left text-xs uppercase tracking-wide text-cream-faint">
                     <th className="px-4 py-3 font-semibold">Title</th>
                     <th className="px-4 py-3 font-semibold">Slug</th>
                     <th className="px-4 py-3 font-semibold">Status</th>
@@ -570,13 +570,13 @@ export default function AdminPagesPage() {
                   {pages.map((page) => (
                     <tr
                       key={page.id}
-                      className="border-b border-slate-800/60 last:border-0 hover:bg-slate-800/30 transition"
+                      className="border-b border-cream/10/60 last:border-0 hover:bg-ink-700/30 transition"
                     >
-                      <td className="px-4 py-3 font-semibold text-slate-200">
+                      <td className="px-4 py-3 font-semibold text-cream">
                         {page.title}
                       </td>
 
-                      <td className="px-4 py-3 text-slate-500">/{page.slug}</td>
+                      <td className="px-4 py-3 text-cream-faint">/{page.slug}</td>
 
                       <td className="px-4 py-3">
                         <button
@@ -584,14 +584,14 @@ export default function AdminPagesPage() {
                           className={`rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-wide transition ${
                             page.is_published
                               ? 'border-green-500/30 bg-green-500/10 text-green-400'
-                              : 'border-slate-700 bg-slate-950 text-slate-400'
+                              : 'border-cream/15 bg-ink-950 text-cream-dim'
                           }`}
                         >
                           {page.is_published ? 'Published' : 'Draft'}
                         </button>
                       </td>
 
-                      <td className="px-4 py-3 text-slate-500">
+                      <td className="px-4 py-3 text-cream-faint">
                         {new Date(page.updated_at).toLocaleDateString()}
                       </td>
 
@@ -599,7 +599,7 @@ export default function AdminPagesPage() {
                         <div className="flex justify-end gap-2">
                           <button
                             onClick={() => openEditForm(page)}
-                            className="rounded-lg border border-slate-800 px-3 py-2 text-xs font-semibold text-slate-400 transition hover:bg-slate-800 hover:text-white"
+                            className="rounded-lg border border-cream/10 px-3 py-2 text-xs font-semibold text-cream-dim transition hover:bg-ink-700 hover:text-white"
                           >
                             Edit
                           </button>
@@ -638,7 +638,7 @@ function FormField({
 }) {
   return (
     <label className={`block ${className}`}>
-      <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-400">
+      <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-cream-dim">
         {label}
         {required && <span className="ml-1 text-brand-primary">*</span>}
       </span>
@@ -649,10 +649,10 @@ function FormField({
 
 function LoadingScreen({ text }: { text: string }) {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center">
+    <div className="min-h-screen bg-ink-950 text-cream flex items-center justify-center">
       <div className="text-center">
         <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-brand-primary border-t-transparent" />
-        <p className="text-slate-400">{text}</p>
+        <p className="text-cream-dim">{text}</p>
       </div>
     </div>
   )

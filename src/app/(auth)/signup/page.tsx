@@ -67,6 +67,32 @@ export default function SignupPage() {
           .eq('id', data.user.id)
           .maybeSingle()
 
+        const claimStoredReferral = async () => {
+          // Referral claim is best effort: it runs after the profile
+          // exists, uses the fresh session cookies, and never blocks or
+          // fails the signup itself.
+          try {
+            const refCode = localStorage.getItem('ifalode_ref')
+            if (!refCode || !data.session) return
+            const res = await fetch('/api/referrals', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ code: refCode }),
+            })
+            const result = await res.json().catch(() => ({}))
+            if (res.ok && result.ok) {
+              localStorage.setItem('ifalode_ref_claimed', refCode)
+              localStorage.removeItem('ifalode_ref')
+            }
+          } catch (refErr) {
+            console.error('Referral claim after signup failed:', refErr)
+          }
+        }
+
+        if (profile) {
+          await claimStoredReferral()
+        }
+
         if (!profile) {
           // Profile doesn't exist - create it
           const { error: insertError } = await supabase
@@ -85,6 +111,8 @@ export default function SignupPage() {
             setLoading(false)
             return
           }
+
+          await claimStoredReferral()
         }
 
         setSuccess(true)
@@ -99,14 +127,14 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-slate-950 text-slate-100 selection:bg-brand-primary selection:text-white">
+    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-ink-950 text-cream selection:bg-brand-primary selection:text-white">
       {/* Left Visual Side */}
-      <div className="hidden lg:flex flex-col justify-between p-12 relative overflow-hidden bg-slate-900 border-r border-slate-800/80">
+      <div className="hidden lg:flex flex-col justify-between p-12 relative overflow-hidden bg-ink-850 border-r border-cream/10/80">
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-brand-primary/15 blur-[120px] pointer-events-none rounded-full" />
         <div className="absolute bottom-10 right-10 w-[300px] h-[300px] bg-brand-secondary/10 blur-[100px] pointer-events-none rounded-full" />
 
         <div className="relative z-10">
-          <Link href="/" className="text-2xl font-black tracking-wider bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
+          <Link href="/" className="text-2xl font-display tracking-tight text-cream font-display">
             {brand?.display_name || 'Ifalode'}
           </Link>
         </div>
@@ -117,14 +145,14 @@ export default function SignupPage() {
             Join the Community
           </div>
           <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight mb-6 leading-tight">
-            Begin your journey into <span className="bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">sacred wisdom</span>.
+            Begin your journey into <span className="text-cream font-display">sacred wisdom</span>.
           </h1>
-          <p className="text-slate-400 text-base leading-relaxed">
+          <p className="text-cream-dim text-base leading-relaxed">
             Create your account to access exclusive ebooks, enroll in masterclasses, and connect with a global community of seekers.
           </p>
         </div>
 
-        <div className="relative z-10 text-xs text-slate-500">
+        <div className="relative z-10 text-xs text-cream-faint">
           © {new Date().getFullYear()} {brand?.display_name || 'Ifalode'}. All rights reserved.
         </div>
       </div>
@@ -133,14 +161,14 @@ export default function SignupPage() {
       <div className="flex items-center justify-center p-8 sm:p-12 lg:p-16">
         <div className="w-full max-w-md space-y-8">
           <div className="lg:hidden text-center mb-4">
-            <Link href="/" className="text-2xl font-black tracking-wider bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
+            <Link href="/" className="text-2xl font-display tracking-tight text-cream font-display">
               {brand?.display_name || 'Ifalode'}
             </Link>
           </div>
 
           <div className="text-center lg:text-left">
             <h2 className="text-3xl font-bold tracking-tight text-white">Create your account</h2>
-            <p className="mt-2 text-sm text-slate-400">
+            <p className="mt-2 text-sm text-cream-dim">
               Already have an account?{' '}
               <Link href="/login" className="font-semibold text-brand-primary hover:text-brand-secondary transition">
                 Sign in
@@ -151,13 +179,13 @@ export default function SignupPage() {
           {success ? (
             <div className="rounded-xl bg-green-500/10 border border-green-500/20 p-6 text-center">
               <p className="text-green-400 font-medium text-lg">✅ Account Created Successfully!</p>
-              <p className="text-sm text-slate-400 mt-2">Redirecting to sign in...</p>
+              <p className="text-sm text-cream-dim mt-2">Redirecting to sign in...</p>
             </div>
           ) : (
             <form className="mt-8 space-y-5" onSubmit={handleSignup}>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-cream-dim mb-2">
                     Full Name
                   </label>
                   <input
@@ -165,13 +193,13 @@ export default function SignupPage() {
                     required
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition text-sm"
+                    className="w-full px-4 py-3 bg-ink-850 border border-cream/10 rounded-xl text-cream placeholder-cream-faint focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition text-sm"
                     placeholder="Your full name"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-cream-dim mb-2">
                     Email Address
                   </label>
                   <input
@@ -179,13 +207,13 @@ export default function SignupPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition text-sm"
+                    className="w-full px-4 py-3 bg-ink-850 border border-cream/10 rounded-xl text-cream placeholder-cream-faint focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition text-sm"
                     placeholder="name@example.com"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-cream-dim mb-2">
                     Password
                   </label>
                   <input
@@ -193,7 +221,7 @@ export default function SignupPage() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition text-sm"
+                    className="w-full px-4 py-3 bg-ink-850 border border-cream/10 rounded-xl text-cream placeholder-cream-faint focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition text-sm"
                     placeholder="Min 6 characters"
                     minLength={6}
                   />
@@ -225,7 +253,7 @@ export default function SignupPage() {
                 {loading ? 'Creating account...' : 'Create Account'}
               </button>
 
-              <div className="text-center text-xs text-slate-500">
+              <div className="text-center text-xs text-cream-faint">
                 By creating an account, you agree to our Terms of Service and Privacy Policy.
               </div>
             </form>

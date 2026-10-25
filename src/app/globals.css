@@ -1,79 +1,187 @@
+/* Kijitech style foundation for IfaLode.
+   Fonts are SELF-HOSTED from /public/fonts on our own origin.
+   Display: Aeonik Pro Bold. Body: Figtree. No third-party font CDN. */
+@font-face {
+  font-family: 'Aeonik Pro Bold';
+  src: url('/fonts/aeonik-pro-bold.woff2') format('woff2'),
+    url('/fonts/aeonik-pro-bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Figtree';
+  src: url('/fonts/figtree-variable.woff2') format('woff2');
+  font-weight: 400 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  /* Default brand colors - these will be overridden by admin settings */
-  --brand-primary: #8B5E3C;
-  --brand-secondary: #D4A574;
-  --brand-accent: #C41E3A;
-  --brand-font: Inter, sans-serif;
+  /* Brand vars stay CMS-driven (admin brand settings override these). */
+  --brand-primary: #8b5e3c;
+  --brand-secondary: #d4a574;
+  --brand-accent: #c41e3a;
+  --ink-950: #0b0908;
+  --ink-900: #14100d;
+  --ink-850: #171310;
+  --ink-800: #201913;
+  --line: rgba(243, 236, 224, 0.09);
+  --cream: #f3ece0;
+  --cream-dim: #a99a87;
+  --cream-faint: #7d7060;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  font-family: var(--brand-font);
-  background-color: #0f172a;
+  font-family: 'Figtree', system-ui, -apple-system, sans-serif;
+  background-color: var(--ink-950);
+  color: var(--cream);
+  font-size: 14px;
+  line-height: 1.55;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
 }
 
-/* Smooth transitions for color changes */
-* {
-  transition:
-    background-color 0.3s ease,
-    color 0.3s ease,
-    border-color 0.3s ease,
-    box-shadow 0.3s ease;
+::selection {
+  background-color: var(--brand-secondary);
+  color: #14100d;
 }
 
-/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
-
 ::-webkit-scrollbar-track {
-  background: #1e293b;
+  background: #14100d;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: var(--brand-primary);
+  background: #3a2e23;
   border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--brand-secondary);
+@layer utilities {
+  /* Native app helpers */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  /* Prime-style content rail: intentional snap scroll for posters only.
+     Primary actions are never placed inside a rail. */
+  .rail {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-inline: 16px;
+    margin-inline: -16px;
+  }
+  .rail::-webkit-scrollbar {
+    display: none;
+  }
+  .rail > * {
+    scroll-snap-align: start;
+    flex-shrink: 0;
+  }
+  @media (min-width: 1024px) {
+    .rail {
+      padding-inline: 0;
+      margin-inline: 0;
+    }
+  }
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      #201913 25%,
+      #2a211a 50%,
+      #201913 75%
+    );
+    background-size: 800px 100%;
+    animation: shimmer 1.4s linear infinite;
+  }
+  @keyframes shimmer {
+    from {
+      background-position: -400px 0;
+    }
+    to {
+      background-position: 400px 0;
+    }
+  }
 }
 
-/* Selection color */
-::selection {
-  background-color: var(--brand-primary);
-  color: white;
+/* LiveKit room theming: bend the stock components to the house palette
+   so the theatre never looks like a default demo. */
+.lk-room {
+  --lk-bg: #0b0908;
+  --lk-bg2: #171310;
+  --lk-bg3: #201913;
+  --lk-fg: #f3ece0;
+  --lk-fg2: #a99a87;
+  --lk-accent-bg: #d4a574;
+  --lk-accent-fg: #14100d;
+  --lk-danger: #e5484d;
+  --lk-border-color: rgba(243, 236, 224, 0.12);
+  background: #0b0908;
+  font-family: 'Figtree', system-ui, sans-serif;
+}
+.lk-room .lk-participant-tile {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(243, 236, 224, 0.1);
+  background: #171310;
+}
+.lk-room .lk-chat {
+  background: #14100d;
+}
+.lk-room .lk-chat-entry {
+  border-bottom: 1px solid rgba(243, 236, 224, 0.06);
+}
+.lk-room .lk-button {
+  border-radius: 999px;
+}
+.lk-room .lk-disconnect-button {
+  background: #e5484d;
+  color: #fff;
 }
 
-/* =====================================================
-   MARQUEE
-===================================================== */
-
+/* Legacy marquee used by the homepage ticker */
 @keyframes marquee {
   from {
     transform: translateX(0);
   }
-
   to {
     transform: translateX(-50%);
   }
 }
-
-.animate-marquee {
+.animate-marquee-legacy {
   animation: marquee 28s linear infinite;
   will-change: transform;
 }
 
-.animate-marquee:hover {
-  animation-play-state: paused;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .animate-marquee {
+  html {
+    scroll-behavior: auto;
+  }
+  .animate-marquee-legacy {
     animation: none;
   }
 }

@@ -30,13 +30,13 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-ink-950 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
             Reset Your Password
           </h2>
-          <p className="mt-2 text-center text-sm text-slate-400">
+          <p className="mt-2 text-center text-sm text-cream-dim">
             Enter your email and we'll send you a link to reset your password.
           </p>
         </div>
@@ -44,7 +44,7 @@ export default function ForgotPasswordPage() {
         {success ? (
           <div className="rounded-xl bg-green-500/10 border border-green-500/20 p-4 text-center">
             <p className="text-green-400 font-medium">Check your email!</p>
-            <p className="text-sm text-slate-400 mt-1">
+            <p className="text-sm text-cream-dim mt-1">
               We've sent a password reset link to <strong>{email}</strong>
             </p>
             <Link 
@@ -66,7 +66,7 @@ export default function ForgotPasswordPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="appearance-none relative block w-full px-3 py-2 border border-slate-700 bg-slate-900 placeholder-slate-500 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent sm:text-sm"
+                className="appearance-none relative block w-full px-3 py-2 border border-cream/15 bg-ink-850 placeholder-cream-faint text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent sm:text-sm"
                 placeholder="Email address"
               />
             </div>
@@ -90,7 +90,7 @@ export default function ForgotPasswordPage() {
             <div className="text-center text-sm">
               <Link 
                 href="/login" 
-                className="text-slate-400 hover:text-brand-primary transition"
+                className="text-cream-dim hover:text-brand-primary transition"
               >
                 ← Back to Sign In
               </Link>

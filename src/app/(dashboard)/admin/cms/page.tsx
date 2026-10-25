@@ -49,7 +49,7 @@ const initialForm: SettingsForm = {
 }
 
 const inputClassName =
-  'w-full rounded-xl border border-slate-800 bg-slate-950 px-3.5 py-3 text-sm text-slate-100 placeholder-slate-600 outline-none transition focus:border-brand-primary/50 focus:ring-2 focus:ring-brand-primary/20'
+  'w-full rounded-xl border border-cream/10 bg-ink-950 px-3.5 py-3 text-sm text-cream placeholder-cream-faint outline-none transition focus:border-brand-primary/50 focus:ring-2 focus:ring-brand-primary/20'
 
 const colorFields: { key: keyof SettingsForm; label: string }[] = [
   { key: 'primary_color', label: 'Primary color' },
@@ -229,13 +229,13 @@ export default function AdminCmsPage() {
 
   if (status === 'denied') {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-ink-950 text-cream flex items-center justify-center px-4">
         <div className="text-center">
           <p className="text-5xl mb-5">🔒</p>
 
           <h1 className="text-2xl font-bold">Access denied</h1>
 
-          <p className="mt-2 text-slate-500">
+          <p className="mt-2 text-cream-faint">
             You do not have permission to manage site content.
           </p>
 
@@ -251,13 +251,13 @@ export default function AdminCmsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
-      <header className="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-xl">
+    <main className="min-h-screen bg-ink-950 text-cream">
+      <header className="sticky top-0 z-40 border-b border-cream/10/80 bg-ink-950/90 backdrop-blur-xl">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div>
             <Link
               href="/admin"
-              className="text-sm text-slate-500 hover:text-white transition"
+              className="text-sm text-cream-faint hover:text-white transition"
             >
               ← Admin Dashboard
             </Link>
@@ -268,7 +268,7 @@ export default function AdminCmsPage() {
           </div>
 
           {lastUpdated && (
-            <span className="hidden sm:inline-flex text-xs text-slate-500">
+            <span className="hidden sm:inline-flex text-xs text-cream-faint">
               Last updated {new Date(lastUpdated).toLocaleString()}
             </span>
           )}
@@ -289,19 +289,19 @@ export default function AdminCmsPage() {
         )}
 
         {loading ? (
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-10 text-center text-slate-500">
+          <div className="rounded-2xl border border-cream/10 bg-ink-850 p-10 text-center text-cream-faint">
             Loading settings...
           </div>
         ) : (
           <form onSubmit={saveSettings} className="space-y-8">
-            <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5 sm:p-7">
+            <section className="rounded-2xl border border-cream/10 bg-ink-850 p-5 sm:p-7">
               <p className="text-xs uppercase tracking-[.2em] text-brand-primary font-bold">
                 Branding
               </p>
 
               <h2 className="mt-2 text-2xl font-bold">Brand identity</h2>
 
-              <p className="mt-2 text-sm text-slate-500">
+              <p className="mt-2 text-sm text-cream-faint">
                 Controls the name, logo, and colors used across the site.
               </p>
 
@@ -363,14 +363,14 @@ export default function AdminCmsPage() {
               </div>
             </section>
 
-            <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5 sm:p-7">
+            <section className="rounded-2xl border border-cream/10 bg-ink-850 p-5 sm:p-7">
               <p className="text-xs uppercase tracking-[.2em] text-brand-primary font-bold">
                 Theme
               </p>
 
               <h2 className="mt-2 text-2xl font-bold">Colors</h2>
 
-              <p className="mt-2 text-sm text-slate-500">
+              <p className="mt-2 text-sm text-cream-faint">
                 Used for buttons, links, and accents site-wide.
               </p>
 
@@ -384,7 +384,7 @@ export default function AdminCmsPage() {
                         onChange={(event) =>
                           updateForm(key, event.target.value)
                         }
-                        className="h-11 w-12 shrink-0 cursor-pointer rounded-lg border border-slate-800 bg-slate-950"
+                        className="h-11 w-12 shrink-0 cursor-pointer rounded-lg border border-cream/10 bg-ink-950"
                       />
 
                       <input
@@ -401,14 +401,14 @@ export default function AdminCmsPage() {
               </div>
             </section>
 
-            <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5 sm:p-7">
+            <section className="rounded-2xl border border-cream/10 bg-ink-850 p-5 sm:p-7">
               <p className="text-xs uppercase tracking-[.2em] text-brand-primary font-bold">
                 SEO
               </p>
 
               <h2 className="mt-2 text-2xl font-bold">Meta tags</h2>
 
-              <p className="mt-2 text-sm text-slate-500">
+              <p className="mt-2 text-sm text-cream-faint">
                 Shown in search results and social previews.
               </p>
 
@@ -464,7 +464,7 @@ function FormField({
 }) {
   return (
     <label className={`block ${className}`}>
-      <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-400">
+      <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-cream-dim">
         {label}
       </span>
       {children}
@@ -474,10 +474,10 @@ function FormField({
 
 function LoadingScreen({ text }: { text: string }) {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center">
+    <div className="min-h-screen bg-ink-950 text-cream flex items-center justify-center">
       <div className="text-center">
         <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-brand-primary border-t-transparent" />
-        <p className="text-slate-400">{text}</p>
+        <p className="text-cream-dim">{text}</p>
       </div>
     </div>
   )

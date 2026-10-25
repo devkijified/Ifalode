@@ -266,7 +266,7 @@ export default function StorePage() {
                     className="text-2xl font-black"
                     style={{ color: 'var(--brand-secondary, #D4A574)' }}
                   >
-                    ${spotlightProduct.price ?? '0.00'}
+                    ₦{(spotlightProduct.price ?? 0).toLocaleString('en-NG')}
                   </span>
                   <Link
                     href={`/store/${spotlightProduct.id}`}

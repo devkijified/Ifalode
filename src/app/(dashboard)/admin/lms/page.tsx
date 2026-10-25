@@ -47,7 +47,7 @@ const initialForm: CourseForm = {
 }
 
 const inputClassName =
-  'w-full rounded-xl border border-slate-800 bg-slate-950 px-3.5 py-3 text-sm text-slate-100 placeholder-slate-600 outline-none transition focus:border-brand-primary/50 focus:ring-2 focus:ring-brand-primary/20'
+  'w-full rounded-xl border border-cream/10 bg-ink-950 px-3.5 py-3 text-sm text-cream placeholder-cream-faint outline-none transition focus:border-brand-primary/50 focus:ring-2 focus:ring-brand-primary/20'
 
 function createSlug(title: string) {
   return title
@@ -348,13 +348,13 @@ export default function AdminLmsPage() {
 
   if (status === 'denied') {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-ink-950 text-cream flex items-center justify-center px-4">
         <div className="text-center">
           <p className="text-5xl mb-5">🔒</p>
 
           <h1 className="text-2xl font-bold">Access denied</h1>
 
-          <p className="mt-2 text-slate-500">
+          <p className="mt-2 text-cream-faint">
             You do not have permission to manage the LMS.
           </p>
 
@@ -370,13 +370,13 @@ export default function AdminLmsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
-      <header className="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-xl">
+    <main className="min-h-screen bg-ink-950 text-cream">
+      <header className="sticky top-0 z-40 border-b border-cream/10/80 bg-ink-950/90 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div>
             <Link
               href="/admin"
-              className="text-sm text-slate-500 hover:text-white transition"
+              className="text-sm text-cream-faint hover:text-white transition"
             >
               ← Admin Dashboard
             </Link>
@@ -389,7 +389,7 @@ export default function AdminLmsPage() {
           <div className="flex items-center gap-3">
             <Link
               href="/courses"
-              className="hidden sm:inline-flex px-4 py-2.5 rounded-xl border border-slate-800 text-sm text-slate-300 hover:bg-slate-900 hover:text-white transition"
+              className="hidden sm:inline-flex px-4 py-2.5 rounded-xl border border-cream/10 text-sm text-cream-dim hover:bg-ink-850 hover:text-white transition"
             >
               View Courses
             </Link>
@@ -418,7 +418,7 @@ export default function AdminLmsPage() {
           </div>
         )}
 
-        <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5 sm:p-7">
+        <section className="rounded-2xl border border-cream/10 bg-ink-850 p-5 sm:p-7">
           <div className="flex items-start justify-between gap-4 mb-6">
             <div>
               <p className="text-xs uppercase tracking-[.2em] text-brand-primary font-bold">
@@ -429,7 +429,7 @@ export default function AdminLmsPage() {
                 {editingCourse ? 'Edit course' : 'Create a course'}
               </h2>
 
-              <p className="mt-2 text-sm text-slate-500">
+              <p className="mt-2 text-sm text-cream-faint">
                 Add the course information learners will see before enrolling.
               </p>
             </div>
@@ -438,7 +438,7 @@ export default function AdminLmsPage() {
               <button
                 onClick={cancelEdit}
                 type="button"
-                className="text-sm text-slate-500 hover:text-white transition"
+                className="text-sm text-cream-faint hover:text-white transition"
               >
                 Cancel edit
               </button>
@@ -547,15 +547,15 @@ export default function AdminLmsPage() {
                 onChange={(event) =>
                   updateForm('is_published', event.target.checked)
                 }
-                className="h-4 w-4 rounded border-slate-700 bg-slate-950 text-brand-primary focus:ring-brand-primary"
+                className="h-4 w-4 rounded border-cream/15 bg-ink-950 text-brand-primary focus:ring-brand-primary"
               />
 
               <span>
-                <span className="block text-sm font-semibold text-slate-200">
+                <span className="block text-sm font-semibold text-cream">
                   Publish this course
                 </span>
 
-                <span className="block text-xs text-slate-500 mt-1">
+                <span className="block text-xs text-cream-faint mt-1">
                   Published courses are visible to learners.
                 </span>
               </span>
@@ -578,7 +578,7 @@ export default function AdminLmsPage() {
                 <button
                   type="button"
                   onClick={cancelEdit}
-                  className="px-6 py-3 rounded-xl border border-slate-800 text-sm text-slate-400 hover:bg-slate-800 hover:text-white transition"
+                  className="px-6 py-3 rounded-xl border border-cream/10 text-sm text-cream-dim hover:bg-ink-700 hover:text-white transition"
                 >
                   Cancel
                 </button>
@@ -597,23 +597,23 @@ export default function AdminLmsPage() {
               <h2 className="mt-2 text-2xl font-bold">Courses</h2>
             </div>
 
-            <span className="text-sm text-slate-500">
+            <span className="text-sm text-cream-faint">
               {courses.length} course
               {courses.length === 1 ? '' : 's'}
             </span>
           </div>
 
           {loading ? (
-            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-10 text-center text-slate-500">
+            <div className="rounded-2xl border border-cream/10 bg-ink-850 p-10 text-center text-cream-faint">
               Loading courses...
             </div>
           ) : courses.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/50 p-10 text-center">
+            <div className="rounded-2xl border border-dashed border-cream/10 bg-ink-850/50 p-10 text-center">
               <p className="text-4xl mb-4">📚</p>
 
               <h3 className="text-lg font-bold">No courses yet</h3>
 
-              <p className="mt-2 text-sm text-slate-500">
+              <p className="mt-2 text-sm text-cream-faint">
                 Create your first Ifá course above.
               </p>
             </div>
@@ -652,7 +652,7 @@ function FormField({
 }) {
   return (
     <label className={`block ${className}`}>
-      <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-400">
+      <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-cream-dim">
         {label}
 
         {required && (
@@ -679,8 +679,8 @@ function CourseCard({
   onTogglePublished: () => void
 }) {
   return (
-    <article className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
-      <div className="relative h-36 overflow-hidden bg-gradient-to-br from-brand-primary/20 via-slate-900 to-slate-950">
+    <article className="overflow-hidden rounded-2xl border border-cream/10 bg-ink-850">
+      <div className="relative h-36 overflow-hidden bg-gradient-to-br from-brand-primary/20 via-slate-900 to-ink-950">
         {course.cover_image ? (
           <img
             src={course.cover_image}
@@ -693,7 +693,7 @@ function CourseCard({
           </div>
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink-850 to-transparent" />
 
         <div className="absolute bottom-4 left-5 flex items-center gap-2">
           <span className="rounded-full border border-brand-primary/30 bg-brand-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-brand-primary">
@@ -719,41 +719,41 @@ function CourseCard({
               {course.title}
             </h3>
 
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-cream-faint">
               {course.level || 'beginner'} ·{' '}
               {course.price && course.price > 0
-                ? `$${course.price}`
+                ? `₦${course.price.toLocaleString('en-NG')}`
                 : 'Free'}
             </p>
           </div>
 
-          <span className="text-xs text-slate-600">
+          <span className="text-xs text-cream-faint">
             {course.instructor || 'No instructor'}
           </span>
         </div>
 
-        <p className="mt-4 line-clamp-3 text-sm leading-6 text-slate-500">
+        <p className="mt-4 line-clamp-3 text-sm leading-6 text-cream-faint">
           {course.description || 'No description provided.'}
         </p>
 
-        <div className="mt-5 flex flex-wrap gap-2 border-t border-slate-800 pt-4">
+        <div className="mt-5 flex flex-wrap gap-2 border-t border-cream/10 pt-4">
           <Link
             href={`/courses/${course.slug}`}
-            className="rounded-lg border border-slate-800 px-3 py-2 text-xs font-semibold text-slate-400 transition hover:bg-slate-800 hover:text-white"
+            className="rounded-lg border border-cream/10 px-3 py-2 text-xs font-semibold text-cream-dim transition hover:bg-ink-700 hover:text-white"
           >
             View
           </Link>
 
           <Link
             href={`/admin/lms/${course.id}`}
-            className="rounded-lg border border-slate-800 px-3 py-2 text-xs font-semibold text-slate-400 transition hover:bg-slate-800 hover:text-white"
+            className="rounded-lg border border-cream/10 px-3 py-2 text-xs font-semibold text-cream-dim transition hover:bg-ink-700 hover:text-white"
           >
             Modules & Lessons
           </Link>
 
           <button
             onClick={onEdit}
-            className="rounded-lg border border-slate-800 px-3 py-2 text-xs font-semibold text-slate-400 transition hover:bg-slate-800 hover:text-white"
+            className="rounded-lg border border-cream/10 px-3 py-2 text-xs font-semibold text-cream-dim transition hover:bg-ink-700 hover:text-white"
           >
             Edit
           </button>
@@ -780,10 +780,10 @@ function CourseCard({
 
 function LoadingScreen({ text }: { text: string }) {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center">
+    <div className="min-h-screen bg-ink-950 text-cream flex items-center justify-center">
       <div className="text-center">
         <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-brand-primary border-t-transparent" />
-        <p className="text-slate-400">{text}</p>
+        <p className="text-cream-dim">{text}</p>
       </div>
     </div>
   )

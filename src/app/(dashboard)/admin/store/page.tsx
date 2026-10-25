@@ -44,7 +44,7 @@ const initialForm: ProductForm = {
 }
 
 const inputClassName =
-  'w-full rounded-xl border border-slate-800 bg-slate-950 px-3.5 py-3 text-sm text-slate-100 placeholder-slate-600 outline-none transition focus:border-brand-primary/50 focus:ring-2 focus:ring-brand-primary/20'
+  'w-full rounded-xl border border-cream/10 bg-ink-950 px-3.5 py-3 text-sm text-cream placeholder-cream-faint outline-none transition focus:border-brand-primary/50 focus:ring-2 focus:ring-brand-primary/20'
 
 export default function AdminStorePage() {
   const router = useRouter()
@@ -324,13 +324,13 @@ export default function AdminStorePage() {
 
   if (status === 'denied') {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-ink-950 text-cream flex items-center justify-center px-4">
         <div className="text-center">
           <p className="text-5xl mb-5">🔒</p>
 
           <h1 className="text-2xl font-bold">Access denied</h1>
 
-          <p className="mt-2 text-slate-500">
+          <p className="mt-2 text-cream-faint">
             You do not have permission to manage the store.
           </p>
 
@@ -346,13 +346,13 @@ export default function AdminStorePage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
-      <header className="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-xl">
+    <main className="min-h-screen bg-ink-950 text-cream">
+      <header className="sticky top-0 z-40 border-b border-cream/10/80 bg-ink-950/90 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div>
             <Link
               href="/admin"
-              className="text-sm text-slate-500 hover:text-white transition"
+              className="text-sm text-cream-faint hover:text-white transition"
             >
               ← Admin Dashboard
             </Link>
@@ -365,7 +365,7 @@ export default function AdminStorePage() {
           <div className="flex items-center gap-3">
             <Link
               href="/store"
-              className="hidden sm:inline-flex px-4 py-2.5 rounded-xl border border-slate-800 text-sm text-slate-300 hover:bg-slate-900 hover:text-white transition"
+              className="hidden sm:inline-flex px-4 py-2.5 rounded-xl border border-cream/10 text-sm text-cream-dim hover:bg-ink-850 hover:text-white transition"
             >
               View Store
             </Link>
@@ -394,7 +394,7 @@ export default function AdminStorePage() {
           </div>
         )}
 
-        <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5 sm:p-7">
+        <section className="rounded-2xl border border-cream/10 bg-ink-850 p-5 sm:p-7">
           <div className="flex items-start justify-between gap-4 mb-6">
             <div>
               <p className="text-xs uppercase tracking-[.2em] text-brand-primary font-bold">
@@ -405,7 +405,7 @@ export default function AdminStorePage() {
                 {editingProduct ? 'Edit product' : 'Create a product'}
               </h2>
 
-              <p className="mt-2 text-sm text-slate-500">
+              <p className="mt-2 text-sm text-cream-faint">
                 Add ebooks, digital resources, and other products.
               </p>
             </div>
@@ -414,7 +414,7 @@ export default function AdminStorePage() {
               <button
                 onClick={cancelEdit}
                 type="button"
-                className="text-sm text-slate-500 hover:text-white transition"
+                className="text-sm text-cream-faint hover:text-white transition"
               >
                 Cancel edit
               </button>
@@ -516,15 +516,15 @@ export default function AdminStorePage() {
                   onChange={(event) =>
                     updateForm('is_ebook', event.target.checked)
                   }
-                  className="h-4 w-4 rounded border-slate-700 bg-slate-950 text-brand-primary focus:ring-brand-primary"
+                  className="h-4 w-4 rounded border-cream/15 bg-ink-950 text-brand-primary focus:ring-brand-primary"
                 />
 
                 <span>
-                  <span className="block text-sm font-semibold text-slate-200">
+                  <span className="block text-sm font-semibold text-cream">
                     Digital product
                   </span>
 
-                  <span className="block text-xs text-slate-500 mt-1">
+                  <span className="block text-xs text-cream-faint mt-1">
                     Mark this product as an ebook or digital resource.
                   </span>
                 </span>
@@ -559,7 +559,7 @@ export default function AdminStorePage() {
                 <button
                   type="button"
                   onClick={cancelEdit}
-                  className="px-6 py-3 rounded-xl border border-slate-800 text-sm text-slate-400 hover:bg-slate-800 hover:text-white transition"
+                  className="px-6 py-3 rounded-xl border border-cream/10 text-sm text-cream-dim hover:bg-ink-700 hover:text-white transition"
                 >
                   Cancel
                 </button>
@@ -578,23 +578,23 @@ export default function AdminStorePage() {
               <h2 className="mt-2 text-2xl font-bold">Products</h2>
             </div>
 
-            <span className="text-sm text-slate-500">
+            <span className="text-sm text-cream-faint">
               {products.length} product
               {products.length === 1 ? '' : 's'}
             </span>
           </div>
 
           {loading ? (
-            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-10 text-center text-slate-500">
+            <div className="rounded-2xl border border-cream/10 bg-ink-850 p-10 text-center text-cream-faint">
               Loading products...
             </div>
           ) : products.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/50 p-10 text-center">
+            <div className="rounded-2xl border border-dashed border-cream/10 bg-ink-850/50 p-10 text-center">
               <p className="text-4xl mb-4">🛍️</p>
 
               <h3 className="text-lg font-bold">No products yet</h3>
 
-              <p className="mt-2 text-sm text-slate-500">
+              <p className="mt-2 text-sm text-cream-faint">
                 Create your first product above.
               </p>
             </div>
@@ -633,7 +633,7 @@ function FormField({
 }) {
   return (
     <label className={`block ${className}`}>
-      <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-400">
+      <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-cream-dim">
         {label}
 
         {required && (
@@ -660,8 +660,8 @@ function ProductCard({
   onStockChange: (value: number) => void
 }) {
   return (
-    <article className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
-      <div className="relative h-40 overflow-hidden bg-gradient-to-br from-brand-primary/20 via-slate-900 to-slate-950">
+    <article className="overflow-hidden rounded-2xl border border-cream/10 bg-ink-850">
+      <div className="relative h-40 overflow-hidden bg-gradient-to-br from-brand-primary/20 via-slate-900 to-ink-950">
         {product.cover_image ? (
           <img
             src={product.cover_image}
@@ -674,14 +674,14 @@ function ProductCard({
           </div>
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink-850 to-transparent" />
 
         <div className="absolute bottom-4 left-5 flex items-center gap-2">
           <span className="rounded-full border border-brand-primary/30 bg-brand-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-brand-primary">
             {product.category || 'Product'}
           </span>
 
-          <span className="rounded-full border border-slate-700 bg-slate-950/80 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-300">
+          <span className="rounded-full border border-cream/15 bg-ink-950/80 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-cream-dim">
             {product.is_ebook ? 'Digital' : 'Physical'}
           </span>
         </div>
@@ -695,7 +695,7 @@ function ProductCard({
             </h3>
 
             <p className="mt-1 text-sm font-semibold text-brand-primary">
-              {product.price > 0 ? `$${product.price}` : 'Free'}
+              {product.price > 0 ? `₦${product.price.toLocaleString('en-NG')}` : 'Free'}
             </p>
           </div>
 
@@ -710,12 +710,12 @@ function ProductCard({
           </span>
         </div>
 
-        <p className="mt-4 line-clamp-3 text-sm leading-6 text-slate-500">
+        <p className="mt-4 line-clamp-3 text-sm leading-6 text-cream-faint">
           {product.description || 'No description provided.'}
         </p>
 
-        <div className="mt-5 flex items-center gap-3 border-t border-slate-800 pt-4">
-          <label className="flex items-center gap-2 text-xs text-slate-500">
+        <div className="mt-5 flex items-center gap-3 border-t border-cream/10 pt-4">
+          <label className="flex items-center gap-2 text-xs text-cream-faint">
             Stock
 
             <input
@@ -725,7 +725,7 @@ function ProductCard({
               onChange={(event) =>
                 onStockChange(Number(event.target.value))
               }
-              className="w-20 rounded-lg border border-slate-800 bg-slate-950 px-2 py-1.5 text-xs text-slate-100 outline-none focus:border-brand-primary/50"
+              className="w-20 rounded-lg border border-cream/10 bg-ink-950 px-2 py-1.5 text-xs text-cream outline-none focus:border-brand-primary/50"
             />
           </label>
         </div>
@@ -733,7 +733,7 @@ function ProductCard({
         <div className="mt-4 flex flex-wrap gap-2">
           <Link
             href="/store"
-            className="rounded-lg border border-slate-800 px-3 py-2 text-xs font-semibold text-slate-400 transition hover:bg-slate-800 hover:text-white"
+            className="rounded-lg border border-cream/10 px-3 py-2 text-xs font-semibold text-cream-dim transition hover:bg-ink-700 hover:text-white"
           >
             View Store
           </Link>
@@ -743,7 +743,7 @@ function ProductCard({
               href={product.file_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-lg border border-slate-800 px-3 py-2 text-xs font-semibold text-slate-400 transition hover:bg-slate-800 hover:text-white"
+              className="rounded-lg border border-cream/10 px-3 py-2 text-xs font-semibold text-cream-dim transition hover:bg-ink-700 hover:text-white"
             >
               Open File
             </a>
@@ -751,7 +751,7 @@ function ProductCard({
 
           <button
             onClick={onEdit}
-            className="rounded-lg border border-slate-800 px-3 py-2 text-xs font-semibold text-slate-400 transition hover:bg-slate-800 hover:text-white"
+            className="rounded-lg border border-cream/10 px-3 py-2 text-xs font-semibold text-cream-dim transition hover:bg-ink-700 hover:text-white"
           >
             Edit
           </button>
@@ -771,10 +771,10 @@ function ProductCard({
 
 function LoadingScreen({ text }: { text: string }) {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center">
+    <div className="min-h-screen bg-ink-950 text-cream flex items-center justify-center">
       <div className="text-center">
         <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-brand-primary border-t-transparent" />
-        <p className="text-slate-400">{text}</p>
+        <p className="text-cream-dim">{text}</p>
       </div>
     </div>
   )
