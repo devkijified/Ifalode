@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
     const admin = createAdminClient()
     const isAdmin = await isAdminUser(user.id)
     const status = request.nextUrl.searchParams.get('status')
+    const category = request.nextUrl.searchParams.get('category')
 
     let query = admin
       .from('support_tickets')
@@ -36,6 +37,9 @@ export async function GET(request: NextRequest) {
     }
     if (status && (STATUSES as readonly string[]).includes(status)) {
       query = query.eq('status', status)
+    }
+    if (category && /^[a-z_]{1,40}$/.test(category)) {
+      query = query.eq('category', category)
     }
 
     const { data: tickets, error } = await query

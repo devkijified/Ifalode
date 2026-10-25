@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { PublicBar } from '@/components/shell/PublicBar'
 import { Icon } from '@/components/ui/Icon'
 import { HelpTip, SectionHeader } from '@/components/ui/primitives'
+import { createClient } from '@/lib/supabase/client'
 
 const READING_TYPES = [
   {
@@ -33,29 +34,68 @@ const READING_TYPES = [
   },
 ] as const
 
+const TIME_WINDOWS = ['Morning', 'Afternoon', 'Evening'] as const
+
 export default function ReadingsPage() {
   const [selected, setSelected] = useState<string>('ifa-consultation')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [preferredDate, setPreferredDate] = useState('')
+  const [timeWindow, setTimeWindow] = useState('')
   const [message, setMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [ticketId, setTicketId] = useState<string | null>(null)
+  const [signedIn, setSignedIn] = useState(false)
   const [error, setError] = useState('')
 
   const active = READING_TYPES.find((r) => r.id === selected)!
+
+  // A signed-in student books under their account: name and email come
+  // from the profile, and the request can be tracked in their inbox.
+  useEffect(() => {
+    const supabase = createClient() as any
+    supabase.auth.getUser().then(async ({ data: { user } }: any) => {
+      if (!user) return
+      setSignedIn(true)
+      if (user.email) setEmail(user.email)
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .maybeSingle()
+      if (profile?.full_name) setName(profile.full_name)
+    })
+  }, [])
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitting(true)
     setError('')
     try {
+      const parts: string[] = []
+      if (preferredDate || timeWindow) {
+        const dateLabel = preferredDate
+          ? new Date(`${preferredDate}T12:00:00`).toLocaleDateString('en-NG', {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+            })
+          : 'Any date'
+        parts.push(
+          `Preferred time: ${dateLabel} · ${timeWindow || 'Any time of day'}`
+        )
+      }
+      parts.push(message.trim())
+
       const res = await fetch('/api/tickets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           subject: `Reading request: ${active.title}`,
-          category: 'general',
-          message: message.trim(),
+          category: 'consultation',
+          message: parts.join('\n\n'),
           guest_name: name.trim() || undefined,
           guest_email: email.trim() || undefined,
         }),
@@ -67,6 +107,7 @@ export default function ReadingsPage() {
             'Your request could not be sent. If you are signed in, your name and email are already on your account; otherwise both are required.'
         )
       }
+      if (data.id) setTicketId(data.id)
       setSubmitted(true)
     } catch (err: any) {
       setError(err.message || 'Something went wrong. Please try again.')
@@ -74,6 +115,8 @@ export default function ReadingsPage() {
       setSubmitting(false)
     }
   }
+
+  const today = new Date().toISOString().split('T')[0]
 
   return (
     <div className="min-h-screen bg-ink-950 text-cream">
@@ -136,8 +179,8 @@ export default function ReadingsPage() {
               <h2 className="font-display text-title tracking-tight">How it works</h2>
               <ol className="mt-4 space-y-4">
                 {[
-                  'Send your request with a few lines about what you need.',
-                  'You get a reply with available times and the exact fee.',
+                  'Send your request with a few lines about what you need, and a day and time that suit you if you have one.',
+                  'You get a reply confirming the time and the exact fee.',
                   'Your session holds in person or remotely, as arranged.',
                 ].map((step, i) => (
                   <li key={step} className="flex gap-3">
@@ -160,15 +203,25 @@ export default function ReadingsPage() {
                 </span>
                 <h2 className="mt-5 font-display text-title">Request received</h2>
                 <p className="mx-auto mt-2 max-w-sm text-body text-cream-dim">
-                  Your {active.title} request is with us. Watch your email for
-                  times and the fee for your session.
+                  {signedIn
+                    ? `Your ${active.title} request is booked in. Replies land in your Support inbox, and you will get a notification when one arrives.`
+                    : `Your ${active.title} request is with us. Watch your email for the confirmed time and the fee for your session.`}
                 </p>
-                <Link
-                  href="/courses"
-                  className="mt-6 inline-flex min-h-[44px] items-center rounded-full bg-gold px-5 text-body font-bold text-ink-950 transition hover:bg-gold-light"
-                >
-                  Browse courses while you wait
-                </Link>
+                {signedIn && ticketId ? (
+                  <Link
+                    href={`/dashboard/support/${ticketId}`}
+                    className="mt-6 inline-flex min-h-[44px] items-center rounded-full bg-gold px-5 text-body font-bold text-ink-950 transition hover:bg-gold-light"
+                  >
+                    Track your consultation
+                  </Link>
+                ) : (
+                  <Link
+                    href="/courses"
+                    className="mt-6 inline-flex min-h-[44px] items-center rounded-full bg-gold px-5 text-body font-bold text-ink-950 transition hover:bg-gold-light"
+                  >
+                    Browse courses while you wait
+                  </Link>
+                )}
               </div>
             ) : (
               <form
@@ -179,30 +232,67 @@ export default function ReadingsPage() {
                   Requesting: <span className="font-semibold text-cream">{active.title}</span>
                 </p>
                 <div className="mt-5 space-y-4">
-                  <div>
-                    <label htmlFor="rd-name" className="mb-2 block text-caption font-semibold uppercase tracking-wider text-cream-dim">
-                      Your name
-                    </label>
-                    <input
-                      id="rd-name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Only needed if you are not signed in"
-                      className="w-full rounded-xl border border-cream/10 bg-ink-900 px-4 py-3 text-body text-cream placeholder:text-cream-faint focus:border-gold focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="rd-email" className="mb-2 block text-caption font-semibold uppercase tracking-wider text-cream-dim">
-                      Email
-                    </label>
-                    <input
-                      id="rd-email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Only needed if you are not signed in"
-                      className="w-full rounded-xl border border-cream/10 bg-ink-900 px-4 py-3 text-body text-cream placeholder:text-cream-faint focus:border-gold focus:outline-none"
-                    />
+                  {!signedIn && (
+                    <>
+                      <div>
+                        <label htmlFor="rd-name" className="mb-2 block text-caption font-semibold uppercase tracking-wider text-cream-dim">
+                          Your name
+                        </label>
+                        <input
+                          id="rd-name"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="Your full name"
+                          className="w-full rounded-xl border border-cream/10 bg-ink-900 px-4 py-3 text-body text-cream placeholder:text-cream-faint focus:border-gold focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="rd-email" className="mb-2 block text-caption font-semibold uppercase tracking-wider text-cream-dim">
+                          Email
+                        </label>
+                        <input
+                          id="rd-email"
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="The reply comes to this email"
+                          className="w-full rounded-xl border border-cream/10 bg-ink-900 px-4 py-3 text-body text-cream placeholder:text-cream-faint focus:border-gold focus:outline-none"
+                        />
+                      </div>
+                    </>
+                  )}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label htmlFor="rd-date" className="mb-2 block text-caption font-semibold uppercase tracking-wider text-cream-dim">
+                        Preferred day
+                      </label>
+                      <input
+                        id="rd-date"
+                        type="date"
+                        min={today}
+                        value={preferredDate}
+                        onChange={(e) => setPreferredDate(e.target.value)}
+                        className="w-full rounded-xl border border-cream/10 bg-ink-900 px-4 py-3 text-body text-cream focus:border-gold focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="rd-window" className="mb-2 block text-caption font-semibold uppercase tracking-wider text-cream-dim">
+                        Time of day
+                      </label>
+                      <select
+                        id="rd-window"
+                        value={timeWindow}
+                        onChange={(e) => setTimeWindow(e.target.value)}
+                        className="w-full rounded-xl border border-cream/10 bg-ink-900 px-4 py-3 text-body text-cream focus:border-gold focus:outline-none"
+                      >
+                        <option value="">Any time</option>
+                        {TIME_WINDOWS.map((w) => (
+                          <option key={w} value={w}>
+                            {w}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                   <div>
                     <label htmlFor="rd-message" className="mb-2 block text-caption font-semibold uppercase tracking-wider text-cream-dim">
@@ -233,7 +323,9 @@ export default function ReadingsPage() {
                   {submitting ? 'Sending...' : 'Send request'}
                 </button>
                 <p className="mt-3 text-center text-caption text-cream-faint">
-                  Signed-in students can follow the reply under Support in My learning.
+                  {signedIn
+                    ? 'This request attaches to your account, so you can follow the reply under Support in My learning.'
+                    : 'Have an account? Sign in first and you can follow the reply inside the app as well.'}
                 </p>
               </form>
             )}

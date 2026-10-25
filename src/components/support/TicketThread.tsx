@@ -208,6 +208,27 @@ export function TicketThread({ ticketId }: { ticketId: string }) {
         </div>
       </div>
 
+      {/* Guest warning: a guest holds no account, so thread replies are
+          not delivered anywhere. The admin must answer by email. */}
+      {isAdmin && !ticket.user_id && ticket.guest_email && (
+        <div className="flex items-start gap-3 rounded-xl border border-gold/30 bg-gold/10 px-4 py-3">
+          <span className="mt-0.5 shrink-0 text-gold">
+            <Icon name="info" size={18} />
+          </span>
+          <p className="text-body text-cream-dim">
+            Guest request: replies typed here are not delivered. Reach{' '}
+            {ticket.guest_name || 'the requester'} by email at{' '}
+            <a
+              href={`mailto:${ticket.guest_email}`}
+              className="font-semibold text-gold underline"
+            >
+              {ticket.guest_email}
+            </a>{' '}
+            and then mark this ticket resolved.
+          </p>
+        </div>
+      )}
+
       {/* Messages */}
       <div className="space-y-4">
         {messages.map((m) => {

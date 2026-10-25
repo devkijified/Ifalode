@@ -18,6 +18,14 @@ const FILTERS: { value: string; label: string }[] = [
   { value: 'closed', label: 'Closed' },
 ]
 
+// Category queues: consultations are reading and ceremony bookings from
+// /readings; everything else lands as general support.
+const CATEGORY_FILTERS: { value: string; label: string }[] = [
+  { value: '', label: 'All types' },
+  { value: 'consultation', label: 'Consultations' },
+  { value: 'general', label: 'General' },
+]
+
 type TicketRow = {
   id: string
   subject: string
@@ -34,6 +42,7 @@ type TicketRow = {
 
 export default function AdminSupportPage() {
   const [filter, setFilter] = useState('')
+  const [category, setCategory] = useState('')
   const [tickets, setTickets] = useState<TicketRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -43,8 +52,11 @@ export default function AdminSupportPage() {
     setLoading(true)
     const load = async () => {
       try {
-        const url = filter ? `/api/tickets?status=${filter}` : '/api/tickets'
-        const res = await fetch(url)
+        const params = new URLSearchParams()
+        if (filter) params.set('status', filter)
+        if (category) params.set('category', category)
+        const qs = params.toString()
+        const res = await fetch(qs ? `/api/tickets?${qs}` : '/api/tickets')
         const data = await res.json()
         if (!res.ok) throw new Error(data.error || 'Could not load the inbox')
         if (mounted) {
@@ -61,7 +73,9 @@ export default function AdminSupportPage() {
     return () => {
       mounted = false
     }
-  }, [filter])
+  }, [filter, category])
+
+  const isFiltering = filter !== '' || category !== ''
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
@@ -70,18 +84,37 @@ export default function AdminSupportPage() {
       </h1>
       <p className="mt-1 text-body text-cream-dim">
         Every ticket from students and guests, newest activity first.
+        Consultation bookings from the readings page arrive here as their own
+        queue.
       </p>
 
-      {/* Status filter */}
+      {/* Category queues */}
       <div className="no-scrollbar mt-6 flex gap-2 overflow-x-auto pb-1">
+        {CATEGORY_FILTERS.map((f) => (
+          <button
+            key={f.label}
+            onClick={() => setCategory(f.value)}
+            className={`min-h-[40px] shrink-0 rounded-full border px-4 text-body font-semibold transition ${
+              category === f.value
+                ? 'border-gold bg-gold text-ink-950'
+                : 'border-cream/15 text-cream-dim hover:border-gold/50 hover:text-cream'
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Status filter */}
+      <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto pb-1">
         {FILTERS.map((f) => (
           <button
             key={f.label}
             onClick={() => setFilter(f.value)}
             className={`min-h-[40px] shrink-0 rounded-full border px-4 text-body font-semibold transition ${
               filter === f.value
-                ? 'border-gold bg-gold text-ink-950'
-                : 'border-cream/15 text-cream-dim hover:border-gold/50 hover:text-cream'
+                ? 'border-cream bg-cream text-ink-950'
+                : 'border-cream/15 text-cream-dim hover:border-cream/40 hover:text-cream'
             }`}
           >
             {f.label}
@@ -103,8 +136,8 @@ export default function AdminSupportPage() {
           <EmptyState
             title="Nothing here"
             body={
-              filter
-                ? 'No tickets carry this status right now.'
+              isFiltering
+                ? 'No tickets match this queue and status right now.'
                 : 'No support tickets have been opened yet.'
             }
           />
