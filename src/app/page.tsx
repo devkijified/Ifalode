@@ -1,11 +1,10 @@
 import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase/server'
 import { PublicBar } from '@/components/shell/PublicBar'
-import { LiveClassesWidget } from '@/components/live-class/LiveClassesWidget'
 import { CourseCard } from '@/components/lms/CourseCard'
 import { Icon } from '@/components/ui/Icon'
-import { SectionHeader } from '@/components/ui/primitives'
-import { formatMoney } from '@/lib/format'
+import { LiveBadge, SectionHeader } from '@/components/ui/primitives'
+import { formatDateTime, formatMoney, timeUntil } from '@/lib/format'
 import type { Course } from '@/types'
 
 // The home is a working front page, not a landing page: search first, then
@@ -75,6 +74,14 @@ const TEACHINGS: Teaching[] = [
   },
 ]
 
+type LiveClassRow = {
+  id: string
+  title: string
+  scheduled_at: string
+  status: string
+  instructor: string | null
+}
+
 type Product = {
   id: string
   title: string
@@ -88,8 +95,12 @@ export const dynamic = 'force-dynamic'
 export default async function HomePage() {
   const supabase = createServerClient() as any
 
-  const [{ data: coursesData }, { data: productsData }, { data: brandData }] =
-    await Promise.all([
+  const [
+    { data: coursesData },
+    { data: productsData },
+    { data: brandData },
+    { data: liveData },
+  ] = await Promise.all([
       supabase
         .from('courses')
         .select('*')
@@ -102,7 +113,23 @@ export default async function HomePage() {
         .order('created_at', { ascending: false })
         .limit(4),
       supabase.from('brand_settings').select('*').limit(1),
+      supabase
+        .from('live_classes')
+        .select('id, title, scheduled_at, status, instructor')
+        .eq('is_published', true)
+        .order('scheduled_at', { ascending: true })
+        .limit(6),
     ])
+
+  // Public live list, rendered on the server: the student widget needs a
+  // signed-in session, so guests would always see an empty state here.
+  const liveClasses = ((liveData ?? []) as LiveClassRow[])
+    .slice()
+    .sort(
+      (a, b) =>
+        (a.status === 'LIVE' ? 0 : 1) - (b.status === 'LIVE' ? 0 : 1)
+    )
+    .slice(0, 3)
 
   const courses = (coursesData ?? []) as Course[]
   const products = (productsData ?? []) as Product[]
@@ -212,7 +239,50 @@ export default async function HomePage() {
         {/* Live classes */}
         <section className="mt-10" aria-label="Live classes">
           <SectionHeader title="Live classes" href="/live-classes" />
-          <LiveClassesWidget />
+          {liveClasses.length === 0 ? (
+            <div className="rounded-2xl border border-cream/10 bg-ink-850 px-6 py-8 text-center">
+              <p className="text-body text-cream-dim">No upcoming live classes</p>
+              <p className="mt-1 text-caption text-cream-faint">
+                New sessions appear here as soon as they are scheduled.
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {liveClasses.map((lc) => {
+                const isLive = lc.status === 'LIVE'
+                return (
+                  <Link
+                    key={lc.id}
+                    href={`/live-classes/${lc.id}`}
+                    className="group rounded-2xl border border-cream/10 bg-ink-850 p-5 transition hover:border-gold/40"
+                  >
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      {isLive ? (
+                        <LiveBadge />
+                      ) : (
+                        <span className="inline-flex items-center rounded-md border border-gold/30 bg-gold/10 px-2 py-1 text-meta font-bold uppercase tracking-wider text-gold">
+                          {timeUntil(lc.scheduled_at)}
+                        </span>
+                      )}
+                      {isLive && (
+                        <span className="text-caption font-semibold text-live">
+                          Join now
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="line-clamp-1 font-display text-lead tracking-tight text-cream transition group-hover:text-gold">
+                      {lc.title}
+                    </h3>
+                    <p className="mt-2 flex items-center gap-2 text-caption text-cream-faint">
+                      <Icon name="calendar" size={15} />
+                      {formatDateTime(lc.scheduled_at)}
+                      {lc.instructor ? ` · ${lc.instructor}` : ''}
+                    </p>
+                  </Link>
+                )
+              })}
+            </div>
+          )}
         </section>
 
         {/* Courses */}
