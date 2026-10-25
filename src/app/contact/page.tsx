@@ -122,8 +122,32 @@ function ContactContent() {
     setError(null)
     setSubmitted(false)
 
+    const SERVICE_LABELS: Record<string, string> = {
+      consultation: 'Ifá Consultation',
+      ritual: 'Ritual & Ceremony',
+      naming: 'Naming Ceremony',
+      counseling: 'Spiritual Counseling',
+      other: 'Other',
+    }
+
     try {
-      await new Promise((res) => setTimeout(res, 800))
+      const res = await fetch('/api/tickets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: `Contact: ${SERVICE_LABELS[form.service] || 'General'}`,
+          category: 'general',
+          message: form.location
+            ? `${form.message}\n\nLocation: ${form.location}`
+            : form.message,
+          guest_name: form.name,
+          guest_email: form.email,
+        }),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) {
+        throw new Error(data?.error || 'Request failed')
+      }
       setSubmitted(true)
       setForm({
         name: '',
@@ -133,7 +157,7 @@ function ContactContent() {
         message: '',
       })
     } catch (err) {
-      setError('Something went wrong. Please try again or send a message directly via email or WhatsApp.')
+      setError('Your message could not be sent. Please check your connection and try again, or reach us directly via email or WhatsApp.')
     } finally {
       setSubmitting(false)
     }
@@ -180,7 +204,7 @@ function ContactContent() {
                       Sign In
                     </Link>
                     <Link
-                      href="/register"
+                      href="/signup"
                       className="inline-flex items-center justify-center px-4 sm:px-5 py-2.5 rounded-xl bg-brand-primary text-white text-sm font-semibold hover:opacity-90 transition shadow-lg shadow-brand-primary/10"
                     >
                       Get Updates
