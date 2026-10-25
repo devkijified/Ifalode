@@ -26,6 +26,12 @@ export default function CoursesPage() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const supabase = createClient() as any
 
+  // The home page search submits here with ?q=; pick it up on mount.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get('q')
+    if (q) setQuery(q)
+  }, [])
+
   useEffect(() => {
     const fetchData = async () => {
       // Fetch courses
