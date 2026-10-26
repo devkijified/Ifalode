@@ -69,50 +69,12 @@ export default async function LearnPage({
   const course: any = courseData
   const courseId = course.id
 
-  // 3. Fetch Modules for this course
-  const { data: modules } = await supabase
-    .from('modules')
-    .select('*')
-    .eq('course_id', courseId)
-    .order('order_number', { ascending: true })
-
-  // 4. Fetch Lessons for this course
-  const { data: lessons, error: lessonsError } = await supabase
-    .from('lessons')
-    .select('*')
-    .eq('course_id', courseId)
-    .order('order_number', { ascending: true })
-
-  // 5. Handle Empty Lessons scenario safely
-  if (lessonsError || !lessons || lessons.length === 0) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-ink-950 p-6 text-center text-cream">
-        <span className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-gold/40 font-display text-title text-gold" aria-hidden="true">
-          !
-        </span>
-        <h1 className="mt-5 font-display text-headline tracking-tight">No lessons yet</h1>
-        <p className="mt-2 max-w-sm text-body text-cream-dim">
-          This course does not have any published lessons yet. Please check back soon.
-        </p>
-        <a
-          href="/dashboard"
-          className="mt-6 inline-flex min-h-[48px] items-center rounded-full border border-cream/15 px-6 font-display text-body text-cream transition hover:border-cream/30 hover:bg-cream/5"
-        >
-          Return to My learning
-        </a>
-      </div>
-    )
-  }
-
-  // 6. Select current lesson
-  const selectedLessonId = resolvedSearch.lesson
-  const initialLesson = lessons.find((l: any) => l.id === selectedLessonId) || lessons[0]
-
-  // 7. Enrolment gate. Paid courses stay locked until the student is
-  // enrolled: the detail page sends buyers to checkout first, and a
-  // paid lesson must never render for a signed-in non-buyer. Free
-  // courses open right away, so enrol the student on the spot, which
-  // also gives their progress a row to live in. Admins always pass.
+  // 3. Enrolment gate, checked before any lesson is fetched. Paid
+  // courses stay locked until the student is enrolled: the detail
+  // page sends buyers to checkout first, and a paid lesson must never
+  // render for a signed-in non-buyer. Free courses open right away,
+  // so enrol the student on the spot, which also gives their progress
+  // a row to live in. Admins always pass.
   const { data: enrollment } = await supabase
     .from('enrollments')
     .select('*')
@@ -139,8 +101,8 @@ export default async function LearnPage({
           </span>
           <h1 className="mt-4 font-display text-headline tracking-tight">{course.title}</h1>
           <p className="mt-2 max-w-sm text-body text-cream-dim">
-            This course is {formatMoney(course.price)}. Enrol to unlock all{' '}
-            {lessons.length} lessons, in order, on any device you sign in on.
+            This course is {formatMoney(course.price)}. Enrol to unlock every
+            lesson in this course, in order, on any device you sign in on.
           </p>
           <a
             href={`/courses/${courseId}`}
@@ -169,6 +131,45 @@ export default async function LearnPage({
       if (created) effectiveEnrollment = created
     }
   }
+
+  // 4. Fetch Modules for this course
+  const { data: modules } = await supabase
+    .from('modules')
+    .select('*')
+    .eq('course_id', courseId)
+    .order('order_number', { ascending: true })
+
+  // 5. Fetch Lessons for this course
+  const { data: lessons, error: lessonsError } = await supabase
+    .from('lessons')
+    .select('*')
+    .eq('course_id', courseId)
+    .order('order_number', { ascending: true })
+
+  // 6. Handle Empty Lessons scenario safely
+  if (lessonsError || !lessons || lessons.length === 0) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-ink-950 p-6 text-center text-cream">
+        <span className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-gold/40 font-display text-title text-gold" aria-hidden="true">
+          !
+        </span>
+        <h1 className="mt-5 font-display text-headline tracking-tight">No lessons yet</h1>
+        <p className="mt-2 max-w-sm text-body text-cream-dim">
+          This course does not have any published lessons yet. Please check back soon.
+        </p>
+        <a
+          href="/dashboard"
+          className="mt-6 inline-flex min-h-[48px] items-center rounded-full border border-cream/15 px-6 font-display text-body text-cream transition hover:border-cream/30 hover:bg-cream/5"
+        >
+          Return to My learning
+        </a>
+      </div>
+    )
+  }
+
+  // 7. Select current lesson
+  const selectedLessonId = resolvedSearch.lesson
+  const initialLesson = lessons.find((l: any) => l.id === selectedLessonId) || lessons[0]
 
   return (
     <LessonClientView
