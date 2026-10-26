@@ -17,6 +17,8 @@ export const BrandEditor = () => {
       setFormData({
         brand_name: brand.brand_name,
         display_name: brand.display_name,
+        teacher_title: brand.teacher_title || '',
+        logo_url: brand.logo_url || '',
         primary_color: brand.primary_color,
         secondary_color: brand.secondary_color,
         accent_color: brand.accent_color,
@@ -69,6 +71,8 @@ export const BrandEditor = () => {
     setFormData({
       brand_name: brand.brand_name,
       display_name: brand.display_name,
+      teacher_title: brand.teacher_title || '',
+      logo_url: brand.logo_url || '',
       primary_color: brand.primary_color,
       secondary_color: brand.secondary_color,
       accent_color: brand.accent_color,
@@ -122,12 +126,20 @@ export const BrandEditor = () => {
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-cream-dim">Brand Name</p>
+              <p className="text-sm text-cream-dim">Teacher Name</p>
               <p className="font-semibold text-white">{brand.brand_name}</p>
             </div>
             <div>
-              <p className="text-sm text-cream-dim">Display Name</p>
+              <p className="text-sm text-cream-dim">Organization Name</p>
               <p className="font-semibold text-white">{brand.display_name}</p>
+            </div>
+            <div>
+              <p className="text-sm text-cream-dim">Teacher Title</p>
+              <p className="font-semibold text-white">{brand.teacher_title || 'Not set'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-cream-dim">Logo</p>
+              <p className="font-semibold text-white">{brand.logo_url ? 'Set' : 'Not set'}</p>
             </div>
             <div>
               <p className="text-sm text-cream-dim">Primary Color</p>
@@ -183,7 +195,7 @@ export const BrandEditor = () => {
       {isEditing && (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1 text-cream-dim">Brand Name</label>
+            <label className="block text-sm font-medium mb-1 text-cream-dim">Teacher Name</label>
             <input
               type="text"
               name="brand_name"
@@ -194,12 +206,36 @@ export const BrandEditor = () => {
           </div>
           
           <div>
-            <label className="block text-sm font-medium mb-1 text-cream-dim">Display Name</label>
+            <label className="block text-sm font-medium mb-1 text-cream-dim">Organization Name</label>
             <input
               type="text"
               name="display_name"
               value={formData.display_name || ''}
               onChange={handleChange}
+              className="w-full px-4 py-2 bg-ink-700 border border-cream/15 rounded-lg focus:ring-2 focus:ring-brand-primary text-white placeholder-cream-faint"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1 text-cream-dim">Teacher Title</label>
+            <input
+              type="text"
+              name="teacher_title"
+              value={formData.teacher_title || ''}
+              onChange={handleChange}
+              placeholder="For example: Babalawo, Iyalorisa, Chief Priest"
+              className="w-full px-4 py-2 bg-ink-700 border border-cream/15 rounded-lg focus:ring-2 focus:ring-brand-primary text-white placeholder-cream-faint"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1 text-cream-dim">Logo URL</label>
+            <input
+              type="text"
+              name="logo_url"
+              value={formData.logo_url || ''}
+              onChange={handleChange}
+              placeholder="https://... (leave empty to use the organization name)"
               className="w-full px-4 py-2 bg-ink-700 border border-cream/15 rounded-lg focus:ring-2 focus:ring-brand-primary text-white placeholder-cream-faint"
             />
           </div>

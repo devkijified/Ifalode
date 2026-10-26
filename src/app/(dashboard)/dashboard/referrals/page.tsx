@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { formatCompactCount, formatDateTime, formatMoney } from '@/lib/format'
 import { Icon } from '@/components/ui/Icon'
+import { useBrand } from '@/hooks/useBrand'
 import {
   EmptyState,
   HelpTip,
@@ -77,7 +78,9 @@ export default function ReferralsPage() {
     }
   }
 
-  const inviteText = `Join me on IfaLode to learn Ifa wisdom through structured courses and live classes. Create your account here: ${fullLink}`
+  const { brand } = useBrand()
+  const orgName = brand?.display_name || 'IfaLode'
+  const inviteText = `Join me on ${orgName} to learn Ifa wisdom through structured courses and live classes. Create your account here: ${fullLink}`
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
@@ -95,7 +98,7 @@ export default function ReferralsPage() {
           <HelpTip text="You earn 10% of a referred student's first paid order. The money is added to your referral earnings here, and earnings are always shown in exact naira." />
         </h1>
         <p className="mt-2 max-w-xl text-body text-cream-dim">
-          Share IfaLode with people who want to learn. When they join with
+          Share {orgName} with people who want to learn. When they join with
           your link and pay for their first order, you earn 10% of it.
         </p>
       </header>
@@ -152,7 +155,7 @@ export default function ReferralsPage() {
                 Share on WhatsApp
               </a>
               <a
-                href={`https://t.me/share/url?url=${encodeURIComponent(fullLink)}&text=${encodeURIComponent('Join me on IfaLode to learn Ifa wisdom through structured courses and live classes.')}`}
+                href={`https://t.me/share/url?url=${encodeURIComponent(fullLink)}&text=${encodeURIComponent(`Join me on ${orgName} to learn Ifa wisdom through structured courses and live classes.`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex min-h-[44px] items-center rounded-full border border-cream/15 px-5 text-body font-semibold text-cream transition hover:border-gold/50 hover:text-gold"

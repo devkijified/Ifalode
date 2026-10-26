@@ -5,6 +5,7 @@ interface BrandSettings {
   id: string
   brand_name: string
   display_name: string
+  teacher_title: string | null
   primary_color: string
   secondary_color: string
   accent_color: string

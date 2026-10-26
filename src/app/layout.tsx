@@ -17,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const supabase = createServerClient()
   const { data: brand } = await supabase
     .from('brand_settings')
-    .select('meta_title, meta_description, brand_name')
+    .select('meta_title, meta_description, brand_name, display_name')
     .limit(1)
     .single()
 
@@ -27,11 +27,10 @@ export async function generateMetadata(): Promise<Metadata> {
     title: brandData?.meta_title || brandData?.brand_name || 'IfaLode',
     description:
       brandData?.meta_description || 'Ifá Wisdom, Courses & Sacred Store',
-    manifest: '/manifest.webmanifest',
     appleWebApp: {
       capable: true,
       statusBarStyle: 'black-translucent',
-      title: 'IfaLode',
+      title: brandData?.display_name || 'IfaLode',
     },
     icons: {
       icon: '/icons/icon-192.png',

@@ -135,6 +135,7 @@ export default async function HomePage() {
   const products = (productsData ?? []) as Product[]
   const brand = (brandData ?? [])[0] ?? null
   const teacherName: string = brand?.brand_name || 'Akinsoji Elebuibon'
+  const teacherTitle: string | null = brand?.teacher_title || null
 
   // Continue learning, for a signed-in learner with enrolments.
   let enrolledCourses: Course[] = []
@@ -392,10 +393,14 @@ export default async function HomePage() {
             <h3 className="mt-2 font-display text-title tracking-tight text-cream">
               {teacherName}
             </h3>
+            {teacherTitle && (
+              <p className="mt-1 text-body font-semibold text-gold">
+                {teacherTitle}
+              </p>
+            )}
             <p className="mt-1.5 max-w-md text-body leading-relaxed text-cream-dim">
-              Babalawo, Ifá priest and keeper of the Yoruba and Ifá tradition,
-              sharing teachings, offerings and guidance from a lifetime of
-              practice.
+              Keeper of the Yoruba and Ifá tradition, sharing teachings,
+              offerings and guidance from a lifetime of practice.
             </p>
             <Link
               href="/about"
